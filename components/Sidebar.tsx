@@ -2,12 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, TrendingUp, ChevronLeft } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, Sparkles, Calendar, TrendingUp, ChevronLeft } from 'lucide-react'
 import clsx from 'clsx'
 
 const nav = [
   { href: '/instagram', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/instagram/competitors', label: 'Competitors', icon: Users },
   { href: '/instagram/reports', label: 'Weekly Report', icon: FileText },
+  { href: '/instagram/content', label: 'Content Gen', icon: Sparkles },
+  { href: '/instagram/scheduler', label: 'Scheduler', icon: Calendar },
 ]
 
 export default function Sidebar() {

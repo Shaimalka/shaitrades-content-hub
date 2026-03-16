@@ -1,21 +1,31 @@
 import { NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 export async function POST(req: Request) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({
+      analysis: null,
+      error: 'ANTHROPIC_API_KEY is not set. Add it to your Vercel environment variables.',
+    }, { status: 500 })
+  }
+
   try {
     const { post, avgLikes, avgComments, avgEngagement, followers } = await req.json()
 
     const engRate = followers ? ((post.like_count + post.comments_count) / followers * 100) : 0
-    const hookLine = (post.caption || '').split('\n')[0].substring(0, 100)
 
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
-      messages: [{
-        role: 'user',
-        content: `You are an Instagram content strategist analyzing a post from @shaitrades (trading/finance creator, ${followers} followers).
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: `You are an Instagram content strategist analyzing a post from @shaitrades (trading/finance creator, ${followers} followers).
 
 POST DATA:
 - Type: ${post.media_type}
@@ -43,19 +53,36 @@ Analyze this post and return a JSON object (no markdown, just pure JSON) with th
   "content_intelligence": "2-3 sentence plain English analysis of exactly why this post performed the way it did — what worked, what didn't, what to replicate",
   "replicate_tips": ["actionable tip 1", "actionable tip 2", "actionable tip 3"]
 }`
-      }]
+        }]
+      }),
     })
 
-    const text = msg.content[0].type === 'text' ? msg.content[0].text : ''
+    if (!response.ok) {
+      const errBody = await response.text()
+      console.error('Anthropic API error:', response.status, errBody)
+      return NextResponse.json({
+        analysis: null,
+        error: `Anthropic API error ${response.status}: ${errBody.substring(0, 300)}`,
+      }, { status: 500 })
+    }
+
+    const msg = await response.json()
+    const text = msg.content?.[0]?.type === 'text' ? msg.content[0].text : ''
+    const hookLine = (post.caption || '').split('\n')[0].substring(0, 100)
+
     try {
       const match = text.match(/\{[\s\S]*\}/)
       const analysis = match ? JSON.parse(match[0]) : null
+      if (!analysis) {
+        return NextResponse.json({ analysis: null, error: `Could not parse AI response: ${text.substring(0, 200)}`, hookLine })
+      }
       return NextResponse.json({ analysis, hookLine })
     } catch {
-      return NextResponse.json({ analysis: null, raw: text, hookLine })
+      return NextResponse.json({ analysis: null, error: `JSON parse error. Raw response: ${text.substring(0, 300)}`, hookLine })
     }
   } catch (error) {
-    console.error('Analysis error:', error)
-    return NextResponse.json({ error: 'Failed to analyze post' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Analysis error:', message)
+    return NextResponse.json({ analysis: null, error: `Server error: ${message}` }, { status: 500 })
   }
 }

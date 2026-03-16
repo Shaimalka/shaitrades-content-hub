@@ -132,6 +132,7 @@ export default function InstagramDashboard() {
   const [analyzePost, setAnalyzePost] = useState<(Post & { engagement: number }) | null>(null)
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
   const [addedToReport, setAddedToReport] = useState(false)
 
   const load = useCallback(async () => {
@@ -282,6 +283,7 @@ export default function InstagramDashboard() {
   const runAnalysis = async (post: Post & { engagement: number }) => {
     setAnalyzePost(post)
     setAnalysisData(null)
+    setAnalysisError(null)
     setAnalyzing(true)
     setAddedToReport(false)
     try {
@@ -297,9 +299,13 @@ export default function InstagramDashboard() {
         }),
       })
       const data = await res.json()
-      setAnalysisData(data.analysis)
+      if (data.error) {
+        setAnalysisError(data.error)
+      } else {
+        setAnalysisData(data.analysis)
+      }
     } catch (e) {
-      console.error(e)
+      setAnalysisError(e instanceof Error ? e.message : 'Network error')
     } finally {
       setAnalyzing(false)
     }
@@ -478,7 +484,17 @@ export default function InstagramDashboard() {
                 </button>
               </div>
             ) : (
-              <div className="p-12 text-center text-gray-500 text-sm">Analysis failed. Try again.</div>
+              <div className="p-8 text-center">
+                <p className="text-red-400 text-sm font-medium mb-3">Analysis failed</p>
+                {analysisError && (
+                  <div className="bg-red-500/5 border border-red-500/20 p-4 text-left mb-4">
+                    <p className="text-xs text-red-400 font-mono break-all">{analysisError}</p>
+                  </div>
+                )}
+                <button onClick={() => analyzePost && runAnalysis(analyzePost)} className="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-500/20 px-3 py-1.5">
+                  Retry
+                </button>
+              </div>
             )}
           </div>
         </div>
