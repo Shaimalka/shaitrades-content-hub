@@ -1,3 +1,4 @@
+// Shaitrades Content Hub — Dashboard v2.0
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
