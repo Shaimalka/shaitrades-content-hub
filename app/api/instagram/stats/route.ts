@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const [userInfo, media] = await Promise.allSettled([
       getInstagramUserInfo(),
-      getInstagramMedia(12),
+      getInstagramMedia(50),
     ])
 
     const profile = userInfo.status === 'fulfilled' ? userInfo.value?.data : null
