@@ -39,6 +39,8 @@ export interface CompetitorPost {
   posted_at: string
   media_type: string
   hook?: string
+  username?: string
+  analysis?: Record<string, unknown>
 }
 
 export interface WeeklyReport {
