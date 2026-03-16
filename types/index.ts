@@ -49,6 +49,7 @@ export interface WeeklyReport {
   content_ideas: ContentIdea[]
   emerging_creators: string[]
   summary: string
+  saved_analyses?: PostAnalysis[]
 }
 
 export interface ContentIdea {
@@ -67,4 +68,25 @@ export interface CalendarPost {
   topic: string
   hook: string
   status: 'planned' | 'scripted' | 'filmed' | 'posted'
+}
+
+export interface PostAnalysis {
+  post_id: string
+  post_caption: string
+  post_likes: number
+  post_comments: number
+  post_type: string
+  post_timestamp: string
+  post_permalink: string
+  hook_text: string
+  hook_rating: number
+  hook_explanation: string
+  caption_key_points: string[]
+  caption_cta: string
+  caption_hashtags: string[]
+  vs_average: string
+  vs_explanation: string
+  content_intelligence: string
+  replicate_tips: string[]
+  added_at: string
 }

@@ -20,7 +20,7 @@ export default function ContentCalendar({ posts }: { posts: CalendarPost[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {posts.map((post, i) => (
-        <div key={i} className="bg-gray-900 border border-gray-800 rounded-lg p-3 hover:border-gray-700 transition-colors">
+        <div key={i} className="bg-black border border-gray-800 p-3 hover:border-gray-700 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500">{post.date}</span>
             <span className={clsx('text-xs font-medium', typeColors[post.content_type] || 'text-gray-400')}>
@@ -29,7 +29,7 @@ export default function ContentCalendar({ posts }: { posts: CalendarPost[] }) {
           </div>
           <p className="text-sm font-medium text-white mb-1">{post.topic}</p>
           <p className="text-xs text-gray-400 line-clamp-2 mb-2">{post.hook}</p>
-          <span className={clsx('text-xs px-2 py-0.5 rounded-full', statusColors[post.status])}>
+          <span className={clsx('text-xs px-2 py-0.5', statusColors[post.status])}>
             {post.status}
           </span>
         </div>

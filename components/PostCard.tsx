@@ -13,7 +13,7 @@ interface PostCardProps {
 
 export default function PostCard({ caption, likes, comments, permalink, timestamp, engagement_rate, media_type, rank }: PostCardProps) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors">
+    <div className="bg-black border border-gray-800 p-4 hover:border-gray-700 transition-colors">
       {rank && (
         <div className="text-xs font-bold text-cyan-400 mb-2">#{rank} Top Post</div>
       )}
@@ -25,7 +25,7 @@ export default function PostCard({ caption, likes, comments, permalink, timestam
           {engagement_rate && <span className="text-green-400">{engagement_rate.toFixed(2)}% ER</span>}
         </div>
         <div className="flex items-center gap-2">
-          {media_type && <span className="bg-gray-800 px-2 py-0.5 rounded text-gray-400">{media_type}</span>}
+          {media_type && <span className="bg-gray-900 px-2 py-0.5 text-gray-400">{media_type}</span>}
           <a href={permalink} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300">
             <ExternalLink className="w-3 h-3" />
           </a>

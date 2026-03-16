@@ -20,10 +20,10 @@ export default function StatCard({ label, value, change, positive, icon: Icon, c
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-colors">
+    <div className="bg-black border border-gray-800 p-5 hover:border-gray-700 transition-colors">
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm text-gray-400">{label}</span>
-        <div className={clsx('p-2 rounded-lg', colorMap[color])}>
+        <div className={clsx('p-2', colorMap[color])}>
           <Icon className={clsx('w-4 h-4', colorMap[color].split(' ')[0])} />
         </div>
       </div>
