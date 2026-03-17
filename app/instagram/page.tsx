@@ -399,7 +399,7 @@ export default function InstagramDashboard() {
                   <p className="font-mono text-[10px] text-gray-600 mb-2">HOOK ANALYSIS</p>
                   <div className="bg-gray-900 p-4">
                     <p className="text-sm text-cyan-400 mb-2">&ldquo;{analysisData.hook_text}&rdquo;</p>
-                    <div className="flex items-center gap-2 mb-2"
+                    <div className="flex items-center gap-2 mb-2">
                       <span className="text-xs text-gray-500">Rating:</span>
                       <span className={`text-sm font-bold ${analysisData.hook_rating >= 7 ? 'text-green-400' : analysisData.hook_rating >= 5 ? 'text-amber-400' : 'text-red-400'}`}>
                         {analysisData.hook_rating}/10
