@@ -111,7 +111,9 @@ export async function POST(request: Request) {
             )
 
       const rawData = await dataRes.json()
+      console.log('RAW DATA TYPE:', typeof rawData, 'isArray:', Array.isArray(rawData), 'keys:', rawData && typeof rawData === 'object' ? Object.keys(rawData).slice(0,5) : 'N/A')
       const items: any[] = Array.isArray(rawData) ? rawData : (rawData?.items || rawData?.data?.items || [])
+      console.log('ITEMS COUNT:', items.length, 'first item keys:', items[0] ? Object.keys(items[0]).slice(0,5) : 'none')
 
       const profileMap: Record<string, any> = {}
 
