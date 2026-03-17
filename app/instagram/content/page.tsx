@@ -37,8 +37,8 @@ function formatNum(n: number): string {
   return String(n)
 }
 
-// PostThumbnail: shows post number + type icon + like count
-// Instagram CDN blocks cross-origin img requests so we skip broken images
+// PostThumbnail: shows post number + type + likes
+// Instagram CDN blocks cross-origin img requests, so we skip broken images
 function PostThumbnail({ post, idx }: { post: TopPost; idx: number }) {
   return (
     <div className="w-14 h-14 bg-[#1a1a1a] border border-[#2a2a2a] flex flex-col items-center justify-center gap-0.5 group-hover:border-[#444] transition-colors">
