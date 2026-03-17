@@ -1,74 +1,237 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
+
   try {
-    const { username } = await req.json()
-    if (!username) return NextResponse.json({ error: 'Username required' }, { status: 400 })
 
-    const APIFY_KEY = process.env.APIFY_API_KEY
-    if (!APIFY_KEY) return NextResponse.json({ error: 'Apify API key not configured' }, { status: 500 })
+      const { handles } = await request.json()
 
-    const runRes = await fetch(
-      `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${APIFY_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          directUrls: [`https://www.instagram.com/${username}/`],
-          resultsType: 'posts',
-          resultsLimit: 20,
-        }),
+
+
+      if (!handles || handles.length === 0) {
+
+          return NextResponse.json({ error: 'No handles provided' }, { status: 400 })
+
       }
-    )
 
-    if (!runRes.ok) {
-      const err = await runRes.text()
-      return NextResponse.json({ error: `Apify error: ${err}` }, { status: 500 })
-    }
+      const apifyToken = process.env.APIFY_API_KEY
 
-    const runData = await runRes.json()
-    const runId = runData.data?.id
-    if (!runId) return NextResponse.json({ error: 'Failed to start scrape job' }, { status: 500 })
+      if (!apifyToken) {
 
-    let attempts = 0
-    let items: any[] = []
-    while (attempts < 40) {
-      await new Promise(r => setTimeout(r, 3000))
-      const statusRes = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${APIFY_KEY}`)
-      const statusData = await statusRes.json()
-      const status = statusData.data?.status
+          return NextResponse.json({ error: 'Apify API key not configured' }, { status: 500 })
 
-      if (status === 'SUCCEEDED') {
-        const datasetId = statusData.data?.defaultDatasetId
-        const itemsRes = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_KEY}&limit=50`)
-        items = await itemsRes.json()
-        break
-      } else if (status === 'FAILED' || status === 'ABORTED') {
-        return NextResponse.json({ error: 'Scrape job failed' }, { status: 500 })
       }
-      attempts++
-    }
 
-    if (!items || items.length === 0) {
-      return NextResponse.json({ error: 'No data returned' }, { status: 404 })
-    }
+      const directUrls = handles.map((h: string) => {
 
-    const first = items[0]
-    const ownerUsername = first?.ownerUsername || first?.username || username
+                                           const clean = h.replace('@', '').trim()
 
-    const posts = items.map((post: any) => ({
-      id: post.id || post.shortCode,
-      shortCode: post.shortCode,
-      type: post.type || 'Image',
-      likesCount: post.likesCount || post.likes || 0,
-      commentsCount: post.commentsCount || post.comments || 0,
-      videoViewCount: post.videoViewCount || post.videoPlayCount || 0,
-      timestamp: post.timestamp || post.takenAt,
-      caption: post.caption || post.text || '',
-      url: post.url || `https://www.instagram.com/p/${post.shortCode}/`,
-      thumbnailUrl: post.displayUrl || post.thumbnailUrl || post.imageUrl || '',
-    }))
+                                           return `https://www.instagram.com/${clean}/`
 
-    const sorted = posts.sort((a: any, b: any) => {
-      const engA = a.likesCount + a.commentsCount * 2 + (a.videoViewCount || 0) * 0.1
-      const engB =
+      })
+
+      const startRes = await fetch(
+
+              `https://api.apify.com/v2/acts/apify~instagram-scraper/runs?token=${apifyToken}`,
+
+        {
+
+                method: 'POST',
+
+                  headers: { 'Content-Type': 'application/json' },
+
+                  body: JSON.stringify({
+
+                                                 directUrls,
+
+                              resultsType: 'posts',
+
+                              resultsLimit: 12,
+
+                              addParentData: true,
+
+                  }),
+
+        }
+
+            )
+
+      if (!startRes.ok) {
+
+          const err = await startRes.text()
+
+          return NextResponse.json({ error: `Failed to start Apify run: ${err}` }, { status: 500 })
+
+      }
+
+      const startData = await startRes.json()
+
+      const runId = startData.data?.id
+
+      if (!runId) {
+
+          return NextResponse.json({ error: 'No run ID returned from Apify' }, { status: 500 })
+
+      }
+
+      let attempts = 0
+
+      let status = 'RUNNING'
+
+      while (attempts < 40 && (status === 'RUNNING' || status === 'READY' || status === 'ABORTING')) {
+
+          await new Promise(r => setTimeout(r, 5000))
+
+          const statusRes = await fetch(
+
+                    `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}?token=${apifyToken}`
+
+                  )
+
+          const statusData = await statusRes.json()
+
+          status = statusData.data?.status || 'FAILED'
+
+          attempts++
+
+          if (status === 'SUCCEEDED' || status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') break
+
+      }
+
+      if (status !== 'SUCCEEDED') {
+
+          return NextResponse.json({ error: `Apify run ended with status: ${status}` }, { status: 500 })
+
+      }
+
+      const dataRes = await fetch(
+
+              `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}/dataset/items?token=${apifyToken}&limit=200`
+
+            )
+
+      const items: any[] = await dataRes.json()
+
+      const profileMap: Record<string, any> = {}
+
+            for (const item of items) {
+
+          if (item.error) continue
+
+          const username = item.ownerUsername || item.username
+
+          if (!username) continue
+
+          if (!profileMap[username]) {
+
+                      profileMap[username] = {
+
+                                  username,
+
+                                  fullName: item.ownerFullName || username,
+
+                                  profilePicUrl: null,
+
+                                  followersCount: 0,
+
+                                  postsCount: 0,
+
+                                  posts: [],
+
+                                  totalLikes: 0,
+
+                                  totalComments: 0,
+
+                      }
+
+          }
+
+          const profile = profileMap[username]
+
+          profile.postsCount++
+
+          const post = {
+
+                    id: item.id || item.shortCode,
+
+                    shortCode: item.shortCode,
+
+                    url: item.url,
+
+                    type: item.type || 'Image',
+
+                    displayUrl: item.displayUrl || null,
+
+                    caption: item.caption || '',
+
+                    likesCount: item.likesCount || 0,
+
+                    commentsCount: item.commentsCount || 0,
+
+                    videoViewCount: item.videoViewCount || item.videoPlayCount || 0,
+
+                    timestamp: item.timestamp || null,
+
+                    hashtags: item.hashtags || [],
+
+          }
+
+          profile.totalLikes += post.likesCount
+
+          profile.totalComments += post.commentsCount
+
+          profile.posts.push(post)
+
+            }
+
+      const competitors = Object.values(profileMap).map((p: any) => {
+
+                                                              const postCount = p.posts.length
+
+                                                              const avgLikes = postCount > 0 ? Math.round(p.totalLikes / postCount) : 0
+
+                                                              const avgComments = postCount > 0 ? Math.round(p.totalComments / postCount) : 0
+
+                                                              const sortedPosts = [...p.posts].sort(
+
+                                                                        (a, b) => (b.likesCount + b.commentsCount) - (a.likesCount + a.commentsCount)
+
+                                                                      )
+
+                                                              return {
+
+                                                                        username: p.username,
+
+                                                                        fullName: p.fullName,
+
+                                                                        profilePicUrl: p.profilePicUrl,
+
+                                                                        followersCount: p.followersCount,
+
+                                                                        postsCount: p.postsCount,
+
+                                                                        avgLikes,
+
+                                                                        avgComments,
+
+                                                                        engagementRate: 0,
+
+                                                                        topPosts: sortedPosts.slice(0, 6),
+
+                                                                        allPosts: sortedPosts,
+
+                                                              }
+
+      })
+
+      return NextResponse.json({ competitors })
+
+  } catch (error: any) {
+
+      console.error('Scrape error:', error)
+
+      return NextResponse.json({ error: error.message || 'Unknown error' }, { status: 500 })
+
+  }
+
+}
