@@ -449,7 +449,7 @@ export default function CompetitorTracker() {
                                 className="flex-shrink-0 relative group">
                                 <div className="w-16 h-16 bg-[#1a1a1a] overflow-hidden">
                                   {post.displayUrl ? (
-                                    <img src={post.displayUrl} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                    <img src={`/api/proxy-image?url=${encodeURIComponent(post.displayUrl)}`} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                                   ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-700 text-xs">
                                       {post.type === 'Video' ? '▶' : '📷'}
