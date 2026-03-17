@@ -126,12 +126,12 @@ export default function ContentGenPage() {
             <div>
               <p className="text-white text-sm font-bold">Context: @{context.competitorUsername}</p>
               <p className="text-gray-500 text-xs mt-0.5">
-                {formatNum(context.followersCount)} followers &middot; {context.topPosts.length} top posts &middot;{' '}
+                {formatNum(context.followersCount)} followers · {context.topPosts.length} top posts ·{' '}
                 {new Date(context.sentAt).toLocaleDateString()}
               </p>
             </div>
             <button onClick={clearContext} className="text-gray-600 hover:text-red-400 text-xs transition-colors">
-              Clear &times;
+              Clear ×
             </button>
           </div>
 
@@ -146,7 +146,7 @@ export default function ContentGenPage() {
               >
                 <PostThumbnail post={post} idx={idx} />
                 <p className="text-gray-600 text-[9px] text-center mt-0.5">
-                  {formatNum(post.likesCount)}&hearts;
+                  {formatNum(post.likesCount)}♥
                 </p>
               </a>
             ))}
@@ -192,7 +192,7 @@ export default function ContentGenPage() {
             <a href="/instagram/competitors" className="text-gray-400 underline hover:text-white transition-colors">
               Competitor Tracker
             </a>
-            , analyze a competitor, then click{' '}
+            {', analyze a competitor, then click '}
             <span className="text-gray-300 font-mono text-[11px] bg-[#1a1a1a] px-1 py-0.5">
               Send Top 10 to Content Generator
             </span>
@@ -307,7 +307,7 @@ CTA:
 
       {context && ideas.length === 0 && !isGenerating && (
         <div className="text-center py-12 text-gray-600 text-sm border border-dashed border-[#1e1e1e]">
-          Hit &ldquo;Generate Content Ideas&rdquo; to create Hook + Script + CTA for each post
+          Hit &quot;Generate Content Ideas&quot; to create Hook + Script + CTA for each post
         </div>
       )}
     </div>
