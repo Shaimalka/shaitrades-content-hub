@@ -110,7 +110,8 @@ export async function POST(request: Request) {
 
             )
 
-      const items: any[] = await dataRes.json()
+      const rawData = await dataRes.json()
+      const items: any[] = Array.isArray(rawData) ? rawData : (rawData?.items || rawData?.data?.items || [])
 
       const profileMap: Record<string, any> = {}
 
