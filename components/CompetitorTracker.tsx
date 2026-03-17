@@ -110,7 +110,13 @@ export default function CompetitorTracker() {
       if (!res.ok) throw new Error(data.error || 'Scrape failed')
 
       setCompetitors(prev =>
-        prev.map(c => (c.username === clean ? { ...data.competitors?.[0], posts: data.competitors?.[0]?.allPosts || [], isLoading: false } : c))
+        prev.map(c => (c.username === clean ? (() => {
+            const comp = data.competitors?.[0]
+            if (!comp) {
+              return { ...c, isLoading: false, error: 'No posts found. Account may be private or rate-limited.' }
+            }
+            return { ...comp, username: clean, posts: comp.allPosts || comp.topPosts || [], isLoading: false }
+          })() : c))
       )
     } catch (err: any) {
       setCompetitors(prev =>
