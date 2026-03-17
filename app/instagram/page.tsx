@@ -399,7 +399,7 @@ export default function InstagramDashboard() {
                   <p className="font-mono text-[10px] text-gray-600 mb-2">HOOK ANALYSIS</p>
                   <div className="bg-gray-900 p-4">
                     <p className="text-sm text-cyan-400 mb-2">&ldquo;{analysisData.hook_text}&rdquo;</p>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2"
                       <span className="text-xs text-gray-500">Rating:</span>
                       <span className={`text-sm font-bold ${analysisData.hook_rating >= 7 ? 'text-green-400' : analysisData.hook_rating >= 5 ? 'text-amber-400' : 'text-red-400'}`}>
                         {analysisData.hook_rating}/10
@@ -507,7 +507,7 @@ export default function InstagramDashboard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {profile?.profile_picture_url ? (
-              <img src={profile.profile_picture_url} alt={profile.username} className="w-14 h-14 border-2 border-cyan-500" />
+              <img src={'/api/proxy-image?url=' + encodeURIComponent(profile.profile_picture_url)} alt={profile.username} className="w-14 h-14 border-2 border-cyan-500" />
             ) : (
               <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-lg font-bold shrink-0">ST</div>
             )}
@@ -684,7 +684,7 @@ export default function InstagramDashboard() {
           <a key={p.id} href={p.permalink} target="_blank" rel="noopener noreferrer" className="group relative bg-black border border-gray-800 overflow-hidden hover:border-gray-600 transition-colors">
             <div className="aspect-square bg-gray-900 relative">
               {p.thumbnail_url || (p.media_type !== 'VIDEO' && p.media_url) ? (
-                <img src={p.thumbnail_url || p.media_url} alt="" className="w-full h-full object-cover" />
+                <img src={'/api/proxy-image?url=' + encodeURIComponent(p.thumbnail_url || p.media_url)} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-600"><Play className="w-8 h-8" /></div>
               )}
@@ -771,7 +771,7 @@ function PerformerCard({ post, rank, followers, variant, onAnalyze }: {
       <div className="flex items-start gap-3">
         <div className="w-16 h-16 bg-gray-900 overflow-hidden shrink-0">
           {post.thumbnail_url || (post.media_type !== 'VIDEO' && post.media_url) ? (
-            <img src={post.thumbnail_url || post.media_url} alt="" className="w-full h-full object-cover" />
+            <img src={'/api/proxy-image?url=' + encodeURIComponent(post.thumbnail_url || post.media_url)} alt="" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-600"><Play className="w-5 h-5" /></div>
           )}
