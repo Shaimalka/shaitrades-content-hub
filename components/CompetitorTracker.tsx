@@ -10,7 +10,7 @@ interface Post {
   commentsCount: number
   videoViewCount: number
   timestamp: string
-  caption: strin
+  caption: string
   url: string
   thumbnailUrl: string
 }
