@@ -668,7 +668,7 @@ export default function CompetitorTracker() {
 
         {risingAccounts.length === 0 && !loadingRising && (
           <div className="text-center py-8 text-gray-600 text-sm border border-dashed border-[#1e1e1e]">
-            Hit &quot;Scan Niche&quot; to discover who is growing in the trading space
+            Hit "Scan Niche" to discover who is growing in the trading space
           </div>
         )}
       </div>
