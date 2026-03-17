@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Post {
@@ -143,6 +143,26 @@ export default function CompetitorTracker() {
     }
   }
 
+
+  // Load tracked competitor usernames from localStorage on mount (runs after scrapeCompetitor is defined)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const saved = localStorage.getItem('trackedCompetitors')
+    if (saved) {
+      try {
+        const usernames: string[] = JSON.parse(saved)
+        usernames.forEach(username => scrapeCompetitor(username))
+      } catch {}
+    }
+  }, [])
+
+  // Persist tracked competitor usernames to localStorage whenever the list changes
+  useEffect(() => {
+    const activeUsernames = competitors
+      .filter(c => !c.error)
+      .map(c => c.username)
+    localStorage.setItem('trackedCompetitors', JSON.stringify(activeUsernames))
+  }, [competitors])
   const handleSingleAdd = () => {
     if (!inputValue.trim()) return
     scrapeCompetitor(inputValue)
