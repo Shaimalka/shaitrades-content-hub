@@ -104,12 +104,20 @@ export async function POST(request: Request) {
 
       }
 
-      const dataRes = await fetch(
+      // Get run details to find the default dataset ID
+      const runDetailsRes = await fetch(
+        `https://api.apify.com/v2/actor-runs/${runId}?token=${apifyToken}`
+      )
+      const runDetails = await runDetailsRes.json()
+      const datasetId = runDetails.data?.defaultDatasetId
+      console.log('Dataset ID from run:', datasetId)
 
-              `https://api.apify.com/v2/acts/apify~instagram-scraper/runs/${runId}/dataset/items?token=${apifyToken}&limit=200`
+      const itemsUrl = datasetId
+        ? `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apifyToken}&limit=200`
+        : `https://api.apify.com/v2/actor-runs/${runId}/dataset/items?token=${apifyToken}&limit=200`
+      console.log('Fetching items from:', itemsUrl.split('?')[0])
 
-            )
-
+      const dataRes = await fetch(itemsUrl)
       const rawData = await dataRes.json()
       console.log('RAW DATA TYPE:', typeof rawData, 'isArray:', Array.isArray(rawData), 'keys:', rawData && typeof rawData === 'object' ? Object.keys(rawData).slice(0,5) : 'N/A')
       const items: any[] = Array.isArray(rawData) ? rawData : (rawData?.items || rawData?.data?.items || [])
