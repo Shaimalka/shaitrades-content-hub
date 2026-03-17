@@ -3,6 +3,36 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+function formatPost(p: any, i: number): string {
+  const viewsPart = p.videoViewCount ? ' | Views: ' + p.videoViewCount : ''
+  const captionTrunc = (p.caption || '').slice(0, 300)
+  const captionEllipsis = (p.caption || '').length > 300 ? '...' : ''
+  const dateStr = p.timestamp ? new Date(p.timestamp).toLocaleDateString() : 'unknown'
+  return 'Post #' + (i + 1) + ' (' + (p.type || 'image') + '):\n' +
+    '- Likes: ' + p.likesCount + ' | Comments: ' + p.commentsCount + viewsPart + '\n' +
+    '- Caption: ' + captionTrunc + captionEllipsis + '\n' +
+    '- Posted: ' + dateStr
+}
+
+function formatPostDetail(post: any, multiplier: string, avgEngagement: number): string {
+  const viewsPart = post.videoViewCount ? ' | Views: ' + post.videoViewCount : ''
+  const dateStr = post.timestamp
+    ? new Date(post.timestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+    : 'unknown'
+  const hashtagCount = (post.hashtags || []).length
+  const captionText = (post.caption || '(no caption)').slice(0, 500)
+  const postEng = Math.round(post.likesCount + post.commentsCount * 2 + (post.videoViewCount || 0) * 0.1)
+  return [
+    'POST DETAILS:',
+    '- Type: ' + (post.type || 'Image'),
+    '- Likes: ' + post.likesCount + ' | Comments: ' + post.commentsCount + viewsPart,
+    '- Engagement score: ' + postEng + ' (' + multiplier + 'x average)',
+    '- Caption: ' + captionText,
+    '- Posted: ' + dateStr,
+    '- Hashtag count: ' + hashtagCount,
+  ].join('\n')
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { competitor, posts } = await req.json()
@@ -13,51 +43,48 @@ export async function POST(req: NextRequest) {
 
     const topPosts = posts.slice(0, 20)
 
-    // Calculate average engagement
     const avgEngagement = topPosts.reduce((acc: number, p: any) => {
       return acc + p.likesCount + p.commentsCount * 2 + (p.videoViewCount || 0) * 0.1
     }, 0) / topPosts.length
 
-    // Find outperforming posts (>1.5x average)
     const outperformers = topPosts.filter((p: any) => {
       const eng = p.likesCount + p.commentsCount * 2 + (p.videoViewCount || 0) * 0.1
       return eng > avgEngagement * 1.5
-    }).slice(0, 5) // analyze top 5 outperformers
+    }).slice(0, 5)
 
-    const postsText = topPosts.slice(0, 10).map((p: any, i: number) => `Post #${i + 1} (${p.type || 'image'}):
-- Likes: ${p.likesCount} | Comments: ${p.commentsCount}${p.videoViewCount ? ` | Views: ${p.videoViewCount}` : ''}
-- Caption: ${(p.caption || '').slice(0, 300)}${(p.caption || '').length > 300 ? '...' : ''}
-- Posted: ${p.timestamp ? new Date(p.timestamp).toLocaleDateString() : 'unknown'}
-`).join('
-')
+    const postsText = topPosts.slice(0, 10).map(formatPost).join('\n\n')
 
-    // --- Overall analysis prompt ---
-    const overallPrompt = `You are an elite Instagram growth strategist analyzing a competitor in the trading/finance space.
+    const followersStr = competitor.followersCount?.toLocaleString() || '0'
+    const bioStr = competitor.biography || 'N/A'
 
-Competitor: @${competitor.username} (${competitor.followersCount?.toLocaleString() || 0} followers)
-Bio: ${competitor.biography || 'N/A'}
-
-Their top posts by engagement:
-${postsText}
-
-Provide a sharp, tactical analysis covering:
-
-**Content Strategy**
-- What types of content get the most engagement
-- Posting patterns and formats
-
-**What's Working**
-- Top 3 content themes driving results
-- Specific tactics they use
-
-**Gaps & Opportunities**
-- Where they're weak
-- What you could do better
-
-**Action Items**
-- 3 specific things to implement immediately
-
-Be direct and tactical. No fluff.`
+    const overallPrompt = [
+      'You are an elite Instagram growth strategist analyzing a competitor in the trading/finance space.',
+      '',
+      'Competitor: @' + competitor.username + ' (' + followersStr + ' followers)',
+      'Bio: ' + bioStr,
+      '',
+      'Their top posts by engagement:',
+      postsText,
+      '',
+      'Provide a sharp, tactical analysis covering:',
+      '',
+      '**Content Strategy**',
+      '- What types of content get the most engagement',
+      '- Posting patterns and formats',
+      '',
+      '**What\'s Working**',
+      '- Top 3 content themes driving results',
+      '- Specific tactics they use',
+      '',
+      '**Gaps & Opportunities**',
+      '- Where they\'re weak',
+      '- What you could do better',
+      '',
+      '**Action Items**',
+      '- 3 specific things to implement immediately',
+      '',
+      'Be direct and tactical. No fluff.',
+    ].join('\n')
 
     const overallMessage = await anthropic.messages.create({
       model: 'claude-opus-4-5',
@@ -67,38 +94,35 @@ Be direct and tactical. No fluff.`
 
     const analysis = overallMessage.content[0].type === 'text' ? overallMessage.content[0].text : ''
 
-    // --- Per-post deep analysis for outperformers ---
     const postAnalyses: any[] = []
 
     for (const post of outperformers) {
       const postEng = post.likesCount + post.commentsCount * 2 + (post.videoViewCount || 0) * 0.1
       const multiplier = (postEng / avgEngagement).toFixed(1)
 
-      const postPrompt = `Analyze why this Instagram post outperformed the account average by ${multiplier}x.
+      const postDetail = formatPostDetail(post, multiplier, avgEngagement)
 
-Account: @${competitor.username} (${competitor.followersCount?.toLocaleString() || 0} followers)
-Account avg engagement score: ${Math.round(avgEngagement)}
-
-POST DETAILS:
-- Type: ${post.type || 'Image'}
-- Likes: ${post.likesCount} | Comments: ${post.commentsCount}${post.videoViewCount ? ` | Views: ${post.videoViewCount}` : ''}
-- Engagement score: ${Math.round(postEng)} (${multiplier}x average)
-- Caption: ${(post.caption || '(no caption)').slice(0, 500)}
-- Posted: ${post.timestamp ? new Date(post.timestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : 'unknown'}
-- Hashtag count: ${(post.hashtags || []).length}
-
-Analyze exactly WHY this post outperformed. Respond in this exact JSON format:
-{
-  "hookStyle": "one sentence describing the opening hook or visual hook",
-  "captionLength": "short/medium/long with word count estimate",
-  "hashtagUsage": "none/minimal/moderate/heavy - brief note",
-  "postingTime": "observation about timing if known, else 'unknown'",
-  "format": "Image/Video/Carousel - what made the format effective",
-  "engagementRate": "${multiplier}x above average",
-  "whyItWorked": ["bullet 1", "bullet 2", "bullet 3"]
-}
-
-Return ONLY valid JSON, nothing else.`
+      const postPrompt = [
+        'Analyze why this Instagram post outperformed the account average by ' + multiplier + 'x.',
+        '',
+        'Account: @' + competitor.username + ' (' + followersStr + ' followers)',
+        'Account avg engagement score: ' + Math.round(avgEngagement),
+        '',
+        postDetail,
+        '',
+        'Analyze exactly WHY this post outperformed. Respond in this exact JSON format:',
+        '{',
+        '  "hookStyle": "one sentence describing the opening hook or visual hook",',
+        '  "captionLength": "short/medium/long with word count estimate",',
+        '  "hashtagUsage": "none/minimal/moderate/heavy - brief note",',
+        '  "postingTime": "observation about timing if known, else unknown",',
+        '  "format": "Image/Video/Carousel - what made the format effective",',
+        '  "engagementRate": "' + multiplier + 'x above average",',
+        '  "whyItWorked": ["bullet 1", "bullet 2", "bullet 3"]',
+        '}',
+        '',
+        'Return ONLY valid JSON, nothing else.',
+      ].join('\n')
 
       try {
         const postMessage = await anthropic.messages.create({
@@ -108,7 +132,6 @@ Return ONLY valid JSON, nothing else.`
         })
 
         const rawText = postMessage.content[0].type === 'text' ? postMessage.content[0].text : '{}'
-        // Extract JSON from response
         const jsonMatch = rawText.match(/\{[\s\S]*\}/)
         const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {}
 
@@ -125,7 +148,6 @@ Return ONLY valid JSON, nothing else.`
         })
       } catch (postErr) {
         console.error('Post analysis error:', postErr)
-        // Continue with next post
       }
     }
 
