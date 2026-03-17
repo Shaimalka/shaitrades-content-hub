@@ -10,7 +10,7 @@ interface Post {
   commentsCount: number
   videoViewCount: number
   timestamp: string
-  caption: string
+  caption: strin
   url: string
   thumbnailUrl: string
 }
@@ -103,14 +103,14 @@ export default function CompetitorTracker() {
       const res = await fetch('/api/competitors/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: clean }),
+        body: JSON.stringify({ handles: [clean] }),
       })
       const data = await res.json()
 
       if (!res.ok) throw new Error(data.error || 'Scrape failed')
 
       setCompetitors(prev =>
-        prev.map(c => (c.username === clean ? { ...data, isLoading: false } : c))
+        prev.map(c => (c.username === clean ? { ...data.competitors?.[0], posts: data.competitors?.[0]?.allPosts || [], isLoading: false } : c))
       )
     } catch (err: any) {
       setCompetitors(prev =>
