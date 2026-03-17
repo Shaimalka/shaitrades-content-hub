@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 interface Post {
   id: string
@@ -57,6 +57,7 @@ const GROWTH_LABELS: Record<string, string> = {
 }
 
 function formatNum(n: number): string {
+  if (!n) return '0'
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
   if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
   return String(n)
@@ -96,7 +97,12 @@ export default function CompetitorTracker() {
     }
   }
 
-  const handleSingleAdd = () => { if (!inputValue.trim()) return; scrapeCompetitor(inputValue); setInputValue('') }
+  const handleSingleAdd = () => {
+    if (!inputValue.trim()) return
+    scrapeCompetitor(inputValue)
+    setInputValue('')
+  }
+
   const handleBulkAdd = () => {
     bulkInput.split(/[\n,]+/).map(u => u.trim()).filter(Boolean).forEach(u => scrapeCompetitor(u))
     setBulkInput('')
@@ -130,7 +136,10 @@ export default function CompetitorTracker() {
       const res = await fetch('/api/competitors/rising', { method: 'POST' })
       const data = await res.json()
       setRisingAccounts(data.accounts || [])
-    } catch {} finally { setLoadingRising(false) }
+    } catch {
+    } finally {
+      setLoadingRising(false)
+    }
   }
 
   const renderAnalysis = (text: string) => text.split('\n').map((line, i) => {
@@ -193,7 +202,10 @@ export default function CompetitorTracker() {
                 </div>
               ) : comp.error ? (
                 <div className="flex items-center justify-between">
-                  <div><p className="text-white text-sm font-medium">@{comp.username}</p><p className="text-red-400 text-xs mt-1">{comp.error}</p></div>
+                  <div>
+                    <p className="text-white text-sm font-medium">@{comp.username}</p>
+                    <p className="text-red-400 text-xs mt-1">{comp.error}</p>
+                  </div>
                   <button onClick={() => removeCompetitor(comp.username)} className="text-gray-600 hover:text-red-400 text-xs">Remove</button>
                 </div>
               ) : (
@@ -202,7 +214,9 @@ export default function CompetitorTracker() {
                     <div className="flex items-center gap-3">
                       {comp.profilePicUrl
                         ? <img src={comp.profilePicUrl} alt={comp.username} className="w-10 h-10 rounded-full object-cover" />
-                        : <div className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center"><span className="text-gray-500 text-sm">{comp.username[0].toUpperCase()}</span></div>
+                        : <div className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center">
+                            <span className="text-gray-500 text-sm">{comp.username?.[0]?.toUpperCase() ?? '?'}</span>
+                          </div>
                       }
                       <div>
                         <div className="flex items-center gap-2">
@@ -214,7 +228,8 @@ export default function CompetitorTracker() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => analyzeCompetitor(comp.username)} disabled={comp.isAnalyzing || comp.posts.length === 0}
+                      <button onClick={() => analyzeCompetitor(comp.username)}
+                        disabled={comp.isAnalyzing || !comp.posts?.length}
                         className="text-xs px-3 py-1.5 bg-white text-black font-bold hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">
                         {comp.isAnalyzing ? 'Analyzing...' : comp.analysis ? 'Re-Analyze' : '🔍 Analyze'}
                       </button>
@@ -224,13 +239,16 @@ export default function CompetitorTracker() {
 
                   <div className="flex gap-4 mt-3 pt-3 border-t border-[#1a1a1a]">
                     {[['Followers', formatNum(comp.followersCount)], ['Following', formatNum(comp.followingCount)], ['Posts', formatNum(comp.postsCount)]].map(([label, val]) => (
-                      <div key={label} className="text-center"><p className="text-white text-sm font-bold">{val}</p><p className="text-gray-600 text-xs">{label}</p></div>
+                      <div key={label} className="text-center">
+                        <p className="text-white text-sm font-bold">{val}</p>
+                        <p className="text-gray-600 text-xs">{label}</p>
+                      </div>
                     ))}
                   </div>
 
                   {comp.biography && <p className="text-gray-500 text-xs mt-2 leading-relaxed line-clamp-2">{comp.biography}</p>}
 
-                  {comp.posts.length > 0 && (
+                  {comp.posts?.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-[#1a1a1a]">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Top Posts</p>
@@ -261,7 +279,7 @@ export default function CompetitorTracker() {
                       <div>
                         <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">All Posts Performance</p>
                         <div className="space-y-1 max-h-64 overflow-y-auto">
-                          {comp.posts.map((post, idx) => (
+                          {comp.posts?.map((post, idx) => (
                             <div key={post.id || idx} className="flex items-center gap-3 bg-[#111] px-3 py-2 hover:bg-[#161616]">
                               <span className="text-gray-700 text-xs w-4">{idx + 1}</span>
                               <div className="flex-1 min-w-0">
