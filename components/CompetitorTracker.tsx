@@ -234,31 +234,12 @@ export default function CompetitorTracker() {
     finally { setLoadingRising(false) }
   }
 
-  const renderAnalysis = (text: string) => {
-    return text.split('\n').map((line, i) => {
-      if (line.startsWith('**') && line.endsWith('**')) {
-        return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{line.replace(/\*\*/g, '')}</p>
-      }
-      if (line.match(/^\d+\.\s\*\*/)) {
-        const content = line.replace(/^\d+\.\s\*\*/, '').replace(/\*\*/, '')
-        return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{content}</p>
-      }
-      if (line.startsWith('-')) {
-        return <p key={i} className="text-gray-300 text-sm pl-3 leading-relaxed">{line}</p>
-      }
-      if (line.startsWith('#')) {
-        return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{line.replace(/^#+\s*/, '')}</p>
-      }
-      if (line.trim()) {
-        return <p key={i} className="text-gray-300 text-sm leading-relaxed">{line}</p>
-      }
-      return <br key={i} />
-    })
-  }
-
+  
   const extractViralScripts = async (competitor: CompetitorData) => {
     if (!competitor.posts.length) return
-    setCompetitors(prev => prev.map(c => c.username === competitor.username ? { ...c, isExtractingViral: true } : c))
+    setCompetitors(prev => prev.map(c =>
+      c.username === competitor.username ? { ...c, isExtractingViral: true } : c
+    ))
     try {
       const res = await fetch('/api/competitors/viral-scripts', {
         method: 'POST',
@@ -267,25 +248,26 @@ export default function CompetitorTracker() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Extraction failed')
-
-      // Save to viralScriptsQueue in localStorage
       const existing: any[] = JSON.parse(localStorage.getItem('viralScriptsQueue') || '[]')
-      // Remove old entries from this competitor (keep fresh)
       const filtered = existing.filter((s: any) => s.competitorUsername !== competitor.username)
-      const merged = [...data.viralScripts, ...filtered]
-      localStorage.setItem('viralScriptsQueue', JSON.stringify(merged))
-
-      // Navigate to Content Gen
+      localStorage.setItem('viralScriptsQueue', JSON.stringify([...data.viralScripts, ...filtered]))
       router.push('/instagram/content')
     } catch (err: any) {
-      console.error('extractViralScripts error:', err)
-      alert('Failed to extract viral scripts: ' + err.message)
+      alert('Failed to extract viral scripts: ' + (err as Error).message)
     } finally {
-      setCompetitors(prev => prev.map(c => c.username === competitor.username ? { ...c, isExtractingViral: false } : c))
+      setCompetitors(prev => prev.map(c =>
+        c.username === competitor.username ? { ...c, isExtractingViral: false } : c
+      ))
     }
   }
 
-eplace(/^\d+\.\s\*\*/, '').replace(/\*\*/, '')
+const renderAnalysis = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      if (line.startsWith('**') && line.endsWith('**')) {
+        return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{line.replace(/\*\*/g, '')}</p>
+      }
+      if (line.match(/^\d+\.\s\*\*/)) {
+        const content = line.replace(/^\d+\.\s\*\*/, '').replace(/\*\*/, '')
         return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{content}</p>
       }
       if (line.startsWith('-')) {
