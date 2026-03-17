@@ -240,7 +240,22 @@ export default function CompetitorTracker() {
         return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{line.replace(/\*\*/g, '')}</p>
       }
       if (line.match(/^\d+\.\s\*\*/)) {
-        const content = line.r
+        const content = line.replace(/^\d+\.\s\*\*/, '').replace(/\*\*/, '')
+        return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{content}</p>
+      }
+      if (line.startsWith('-')) {
+        return <p key={i} className="text-gray-300 text-sm pl-3 leading-relaxed">{line}</p>
+      }
+      if (line.startsWith('#')) {
+        return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{line.replace(/^#+\s*/, '')}</p>
+      }
+      if (line.trim()) {
+        return <p key={i} className="text-gray-300 text-sm leading-relaxed">{line}</p>
+      }
+      return <br key={i} />
+    })
+  }
+
   const extractViralScripts = async (competitor: CompetitorData) => {
     if (!competitor.posts.length) return
     setCompetitors(prev => prev.map(c => c.username === competitor.username ? { ...c, isExtractingViral: true } : c))
