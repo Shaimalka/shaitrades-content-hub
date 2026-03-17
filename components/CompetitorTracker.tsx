@@ -44,6 +44,7 @@ interface CompetitorData {
   isAnalyzing?: boolean
   isLoading?: boolean
   error?: string
+  isExtractingViral?: boolean
 }
 
 interface RisingAccount {
@@ -239,7 +240,37 @@ export default function CompetitorTracker() {
         return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{line.replace(/\*\*/g, '')}</p>
       }
       if (line.match(/^\d+\.\s\*\*/)) {
-        const content = line.replace(/^\d+\.\s\*\*/, '').replace(/\*\*/, '')
+        const content = line.r
+  const extractViralScripts = async (competitor: CompetitorData) => {
+    if (!competitor.posts.length) return
+    setCompetitors(prev => prev.map(c => c.username === competitor.username ? { ...c, isExtractingViral: true } : c))
+    try {
+      const res = await fetch('/api/competitors/viral-scripts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ competitor, posts: competitor.posts }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Extraction failed')
+
+      // Save to viralScriptsQueue in localStorage
+      const existing: any[] = JSON.parse(localStorage.getItem('viralScriptsQueue') || '[]')
+      // Remove old entries from this competitor (keep fresh)
+      const filtered = existing.filter((s: any) => s.competitorUsername !== competitor.username)
+      const merged = [...data.viralScripts, ...filtered]
+      localStorage.setItem('viralScriptsQueue', JSON.stringify(merged))
+
+      // Navigate to Content Gen
+      router.push('/instagram/content')
+    } catch (err: any) {
+      console.error('extractViralScripts error:', err)
+      alert('Failed to extract viral scripts: ' + err.message)
+    } finally {
+      setCompetitors(prev => prev.map(c => c.username === competitor.username ? { ...c, isExtractingViral: false } : c))
+    }
+  }
+
+eplace(/^\d+\.\s\*\*/, '').replace(/\*\*/, '')
         return <p key={i} className="text-white font-bold mt-4 mb-1 text-sm">{content}</p>
       }
       if (line.startsWith('-')) {
@@ -404,6 +435,14 @@ export default function CompetitorTracker() {
                             className="text-xs px-3 py-1.5 bg-white text-black font-bold hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                           >
                             {comp.isAnalyzing ? 'Analyzing...' : comp.analysis ? 'Re-Analyze' : '🔍 Analyze'}
+                          </button>
+                          <button
+                            onClick={() => extractViralScripts(comp)}
+                            disabled={comp.isExtractingViral || comp.posts.length === 0}
+                            className="text-xs px-3 py-1.5 border border-[#333] text-orange-400 hover:border-orange-400 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                            title="Extract top 10 viral scripts and send to Content Gen"
+                          >
+                            {comp.isExtractingViral ? '🔄 Extracting...' : '🔥 Viral Scripts'}
                           </button>
                           <button
                             onClick={() => removeCompetitor(comp.username)}
