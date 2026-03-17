@@ -350,7 +350,7 @@ export default function CompetitorTracker() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {comp.profilePicUrl ? (
-                            <img src={comp.profilePicUrl} alt={comp.username} className="w-10 h-10 rounded-full object-cover" />
+                            <img src={'/api/proxy-image?url=' + encodeURIComponent(comp.profilePicUrl)} alt={comp.username} className="w-10 h-10 rounded-full object-cover" />
                           ) : (
                             <div className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center">
                               <span className="text-gray-500 text-sm">{comp.username[0]?.toUpperCase()}</span>
