@@ -10,7 +10,7 @@ interface SchedulerDraft {
   contentType: string
   hook: string
   script: string
-  cta: strin
+  cta: string
   viralStructure: string
   inspiredBy: string
   originalUrl: string
