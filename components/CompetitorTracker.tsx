@@ -100,6 +100,27 @@ export default function CompetitorTracker() {
   const [loadingRising, setLoadingRising] = useState(false)
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
+  const [lastSyncedAt, setLastSyncedAt] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    fetch('/api/cron/daily-scrape')
+      .then(r => r.json())
+      .then(data => { if (data.lastScrape) setLastSyncedAt(data.lastScrape) })
+      .catch(() => {})
+  }, [])
+
+  function getLastSyncedLabel(): string {
+    const times = Object.values(lastSyncedAt).filter(Boolean)
+    if (!times.length) return 'Never synced'
+    const latest = Math.max(...times.map(t => new Date(t).getTime()))
+    const diffMs = Date.now() - latest
+    const diffH = Math.floor(diffMs / 3600000)
+    const diffM = Math.floor(diffMs / 60000)
+    if (diffH >= 24) return `${Math.floor(diffH / 24)}d ago`
+    if (diffH >= 1) return `${diffH}h ago`
+    if (diffM >= 1) return `${diffM}m ago`
+    return 'Just now'
+  }
 
   const scrapeCompetitor = async (username: string) => {
     const clean = username.replace('@', '').trim().toLowerCase()
@@ -309,6 +330,10 @@ const renderAnalysis = (text: string) => {
             ))}
           </div>
           <span className="text-gray-500 text-xs">{competitors.length} tracked</span>
+            <span className="text-gray-600 text-[10px] border border-[#222] px-2 py-0.5 flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              Last synced: {getLastSyncedLabel()}
+            </span>
         </div>
       </div>
 
