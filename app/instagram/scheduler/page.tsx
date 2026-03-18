@@ -162,13 +162,13 @@ export default function SchedulerPage() {
               <div className="flex-1">
                 <label className="text-[10px] text-gray-600 uppercase tracking-widest block mb-1">Scheduled Date</label>
                 <input type="date" value={local.scheduledDate || ''}
-                  onChange={e => setLocal({ ...local, scheduledDate: e.target.value || null })}
+                  onChange={e => setLocal({ ...local, scheduledDate: e.target.value ? e.target.value : null })}
                   className="w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white text-sm px-3 py-2 focus:outline-none focus:border-gray-500" />
               </div>
               <div className="w-32">
                 <label className="text-[10px] text-gray-600 uppercase tracking-widest block mb-1">Time</label>
                 <input type="time" value={local.scheduledTime || ''}
-                  onChange={e => setLocal({ ...local, scheduledTime: e.target.value || null as string | null })}
+                  onChange={e => setLocal({ ...local, scheduledTime: e.target.value ? e.target.value : null })}
                   className="w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white text-sm px-3 py-2 focus:outline-none focus:border-gray-500" />
               </div>
             </div>
