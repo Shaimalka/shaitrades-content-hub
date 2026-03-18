@@ -16,9 +16,9 @@ const platforms = [
     name: 'TikTok',
     icon: '🎵',
     connected: true,
-    href: '/tiktok/competitors',
-    description: 'Competitor tracker, viral script generator, content ideas',
-    stats: 'Competitor tracker live',
+    href: '/tiktok/analytics',
+    description: 'Analytics dashboard — views, growth, best posting times',
+    stats: 'Analytics dashboard live',
   },
   {
     name: 'YouTube',
