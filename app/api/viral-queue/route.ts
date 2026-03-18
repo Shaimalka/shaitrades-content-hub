@@ -1,40 +1,48 @@
 import { NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { Redis } from '@upstash/redis'
 
-const VIRAL_QUEUE_FILE = path.join(process.cwd(), 'data', 'viralQueue.json')
+// ── Redis client ─────────────────────────────────────────────────────────────
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
+const VIRAL_QUEUE_KEY = 'viralQueue'
+
+// ── GET — return all scripts in the viral queue ───────────────────────────────
 export async function GET() {
   try {
-    let queue: any[] = []
-    try {
-      const content = await fs.readFile(VIRAL_QUEUE_FILE, 'utf-8')
-      queue = JSON.parse(content)
-    } catch {
-      queue = []
-    }
+    const queue: any[] = (await redis.get<any[]>(VIRAL_QUEUE_KEY)) ?? []
     return NextResponse.json({ scripts: queue, total: queue.length })
   } catch (error: any) {
+    console.error('GET /api/viral-queue error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
+// ── PATCH — update status of a single script by index ────────────────────────
 export async function PATCH(req: Request) {
   try {
     const { index, status } = await req.json()
-    let queue: any[] = []
-    try {
-      const content = await fs.readFile(VIRAL_QUEUE_FILE, 'utf-8')
-      queue = JSON.parse(content)
-    } catch {
-      queue = []
-    }
+    const queue: any[] = (await redis.get<any[]>(VIRAL_QUEUE_KEY)) ?? []
     if (index >= 0 && index < queue.length) {
       queue[index] = { ...queue[index], status }
-      await fs.writeFile(VIRAL_QUEUE_FILE, JSON.stringify(queue, null, 2), 'utf-8')
+      await redis.set(VIRAL_QUEUE_KEY, queue)
     }
     return NextResponse.json({ success: true })
   } catch (error: any) {
+    console.error('PATCH /api/viral-queue error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+// ── DELETE — clear all scripts from the queue ────────────────────────────────
+export async function DELETE() {
+  try {
+    await redis.set(VIRAL_QUEUE_KEY, [])
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('DELETE /api/viral-queue error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
