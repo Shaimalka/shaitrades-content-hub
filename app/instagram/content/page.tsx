@@ -27,6 +27,8 @@ interface ViralScript {
     script: string
     cta: string
     viralStructure: string
+    viralProbabilityScore?: number
+    captionWithHashtags?: string
   }
 }
 
@@ -122,7 +124,8 @@ export default function ContentPage() {
         originalUrl: script.originalPost.url,
         status: 'scripted',
         scheduledDate: null,
-        scheduledTime: null,
+        scheduledTime: '23:00',
+        caption: script.shaiRemake.captionWithHashtags || '',
         createdAt: new Date().toISOString(),
       }
       existing.push(draft)
@@ -181,7 +184,8 @@ export default function ContentPage() {
         originalUrl: '',
         status: 'scripted',
         scheduledDate: null,
-        scheduledTime: null,
+        scheduledTime: '23:00',
+        caption: '',
         createdAt: new Date().toISOString(),
       }
       existing.push(draft)
@@ -288,6 +292,11 @@ export default function ContentPage() {
                                 <span className={`text-[10px] px-1.5 py-0.5 border ${statusColor}`}>{script.status}</span>
                                 <span className="text-gray-600 text-[10px]">@{script.competitorUsername}</span>
                                 <span className="text-gray-700 text-[10px]">{script.originalPost.engagementMultiplier} avg</span>
+                  {script.shaiRemake.viralProbabilityScore !== undefined && (
+                    <span className={`text-[10px] px-1.5 py-0.5 font-bold ${script.shaiRemake.viralProbabilityScore >= 70 ? 'bg-green-500/20 text-green-400' : script.shaiRemake.viralProbabilityScore >= 40 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                      🔥 {script.shaiRemake.viralProbabilityScore}/100
+                    </span>
+                  )}
                               </div>
                               <p className="text-white text-sm font-medium leading-tight truncate">{script.shaiRemake.hook}</p>
                               <p className="text-gray-600 text-xs mt-0.5">{script.shaiRemake.contentType} · {script.shaiRemake.viralStructure}</p>
