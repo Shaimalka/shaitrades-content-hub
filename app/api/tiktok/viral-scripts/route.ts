@@ -27,7 +27,7 @@ function calcViralScore(post: any, avgScore: number): number {
   return Math.min(100, engScore + hookScore + brandScore)
 }
 
-function generateCaption(shaiRemake: any, competitorUsername: string): string {
+function generateCaption(shaiRemake: any, _competitorUsername: string): string {
   const hook = shaiRemake.hook || ''
   const cta = shaiRemake.cta || ''
   const hashtags = [
@@ -36,7 +36,7 @@ function generateCaption(shaiRemake: any, competitorUsername: string): string {
     '#tradingmindset', '#howtotrade', '#tradertok', '#shaitrades',
     '#rawtrader', '#lostmoney', '#tradingfromabroad', '#youngtrader',
   ].slice(0, 12).join(' ')
-  return `${hook} ${cta} ${hashtags}`
+  return hook + ' ' + cta + ' ' + hashtags
 }
 
 export async function POST(req: NextRequest) {
@@ -69,54 +69,37 @@ export async function POST(req: NextRequest) {
       ].join('\n')
     }).join('\n\n---\n\n')
 
-    const prompt = `You are a viral content strategist for Shai Malka (@shaitrades) — a raw, honest futures trader posting on TikTok.
-
-WHO SHAI IS:
-- 23 years old from Las Vegas
-- Started trading at 18 during COVID
-- Got a high-paying sales job ($250K+/year) and got distracted from trading
-- Lost $230K last year through a bad business and investments
-- Went back to sales, made $20-30K/month, paid off all debts while trading futures
-- 1 month ago quit his 6-figure job, left the USA, moved to Thailand to trade full-time
-- Journey: from -$230K to full-time trader at 23
-- Trades US futures markets from Thailand (2-3 AM local time)
-- Brand: honest, raw, vulnerable — shows losses AND wins
-- Voice: short punchy sentences, personal storytelling, real numbers, no hype
-- Audience: 18-30 year old beginner-intermediate traders who want real talk, not guru content
-
-YOUR TASK:
-Analyze the top 10 most viral TikTok videos from @${competitor.username} (${(competitor.followersCount || 0).toLocaleString()} followers).
-For each video:
-1. Extract/reconstruct the video script
-2. Identify WHY it went viral on TikTok
-3. Remake it as Shai's own TikTok — same viral structure, Shai's real story
-
-TOP 10 VIRAL TIKTOKS FROM @${competitor.username}:
-${postsContext}
-
-For EACH of the 10 videos, output this JSON structure:
-{
-  "postNumber": 1,
-  "originalPost": {
-    "url": "video url",
-    "type": "TikTok Video",
-    "likesCount": 0,
-    "commentsCount": 0,
-    "videoViewCount": 0,
-    "engagementMultiplier": "Xx avg",
-    "reconstructedScript": "What the video likely said/showed — 2-4 sentences.",
-    "whyViral": "One sentence: core reason this TikTok outperformed"
-  },
-  "shaiRemake": {
-    "contentType": "TikTok Video",
-    "hook": "Exact first line — punchy, scroll-stopping, personal. A real moment, real number, or vulnerable admission in Shai's voice. Must grab in 2 seconds.",
-    "script": "Full word-for-word TikTok script in Shai's voice. Spoken voiceover style. Minimum 120 words, personal, honest, ready to film. Include Shai's real backstory where relevant.",
-    "cta": "Exact CTA line — natural, not salesy, in Shai's voice",
-    "viralStructure": "One sentence describing the viral TikTok structure used (e.g., 'confession + lesson + resolution')"
-  }
-}
-
-Return a JSON array of exactly 10 objects. Return ONLY the JSON array, nothing else.`
+    const prompt = 'You are a viral content strategist for Shai Malka (@shaitrades) on TikTok.\n\n' +
+      'WHO SHAI IS:\n' +
+      '- 23 years old from Las Vegas\n' +
+      '- Started trading at 18 during COVID\n' +
+      '- Lost $230K last year, rebuilt from -$230K to full-time futures trader at 23\n' +
+      '- Moved to Thailand 1 month ago to trade full-time\n' +
+      '- Brand: honest, raw, vulnerable — shows losses AND wins\n' +
+      '- Voice: short punchy sentences, personal storytelling, real numbers, no hype\n' +
+      '- Audience: 18-30 year old beginner-intermediate traders\n\n' +
+      'TASK: Analyze top 10 most viral TikToks from @' + competitor.username + ' (' + (competitor.followersCount || 0).toLocaleString() + ' followers).\n' +
+      'For each: reconstruct script, explain why viral, remake as Shai version.\n\n' +
+      'TOP 10 VIRAL TIKTOKS FROM @' + competitor.username + ':\n' + postsContext + '\n\n' +
+      'For EACH of the 10 videos, output this JSON:\n' +
+      '{\n' +
+      '  "postNumber": 1,\n' +
+      '  "originalPost": {\n' +
+      '    "url": "video url", "type": "TikTok Video",\n' +
+      '    "likesCount": 0, "commentsCount": 0, "videoViewCount": 0,\n' +
+      '    "engagementMultiplier": "Xx avg",\n' +
+      '    "reconstructedScript": "What the video likely said/showed.",\n' +
+      '    "whyViral": "One sentence: core reason this TikTok outperformed"\n' +
+      '  },\n' +
+      '  "shaiRemake": {\n' +
+      '    "contentType": "TikTok Video",\n' +
+      '    "hook": "Punchy first line in Shai voice. Must grab in 2 seconds.",\n' +
+      '    "script": "Full spoken script in Shai voice. Min 120 words. Personal and honest.",\n' +
+      '    "cta": "Natural CTA in Shai voice",\n' +
+      '    "viralStructure": "One sentence describing viral structure"\n' +
+      '  }\n' +
+      '}\n\n' +
+      'Return a JSON array of exactly 10 objects. Return ONLY the JSON array.'
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -125,7 +108,7 @@ Return a JSON array of exactly 10 objects. Return ONLY the JSON array, nothing e
     })
 
     const rawText = message.content[0].type === 'text' ? message.content[0].text : '[]'
-    const jsonMatch = rawText.match(/\[\s\S\]*\]/)
+    const jsonMatch = rawText.match(/\[[\s\S]*\]/)
     if (!jsonMatch) {
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
     }
