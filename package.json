@@ -13,6 +13,7 @@
     "react": "^18",
     "react-dom": "^18",
     "@anthropic-ai/sdk": "^0.24.0",
+    "@upstash/redis": "^1.34.3",
     "recharts": "^2.12.7",
     "lucide-react": "^0.400.0",
     "date-fns": "^3.6.0",
