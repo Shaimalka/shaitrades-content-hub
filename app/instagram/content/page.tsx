@@ -47,21 +47,30 @@ interface GeneratedIdea {
   cta: string
 }
 
-// ── Post style tab type ────────────────────────────────────────────────────────
-type StyleTab = 'all' | 'Reel' | 'Carousel' | 'Single Image'
+// ── Content type tab type ────────────────────────────────────────────────────
+type ContentTypeTab = 'all' | 'Reel' | 'Carousel' | 'Single Image'
 
-const STYLE_TABS: { key: StyleTab; label: string; icon: string }[] = [
+const CONTENT_TYPE_TABS: { key: ContentTypeTab; label: string; icon: string }[] = [
   { key: 'all',          label: 'All',      icon: '📋' },
   { key: 'Reel',         label: 'Reels',    icon: '🎬' },
   { key: 'Carousel',     label: 'Carousel', icon: '🖼' },
   { key: 'Single Image', label: 'Posts',    icon: '📸' },
 ]
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// Gen-style options (for Generate tab)
+type GenStyle = 'all' | 'Reel' | 'Carousel' | 'Single Image'
+const GEN_STYLE_TABS: { key: GenStyle; label: string }[] = [
+  { key: 'all',          label: 'All'     },
+  { key: 'Reel',         label: 'Reels'   },
+  { key: 'Carousel',     label: 'Carousel'},
+  { key: 'Single Image', label: 'Posts'   },
+]
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n: number) {
   if (!n) return '0'
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
+  if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K'
   return String(n)
 }
 
@@ -77,10 +86,10 @@ function saveViralQueue(q: ViralScript[]) {
 }
 
 // normalise content types coming from AI so filtering is reliable
-function normaliseType(raw: string): StyleTab {
+function normaliseType(raw: string): ContentTypeTab {
   const t = (raw || '').toLowerCase()
   if (t.includes('reel') || t.includes('video')) return 'Reel'
-  if (t.includes('carousel')) return 'Carousel'
+  if (t.includes('carousel'))                     return 'Carousel'
   return 'Single Image'
 }
 
@@ -89,18 +98,18 @@ export default function ContentPage() {
   const router = useRouter()
 
   // ── Viral Queue state ──
-  const [queue, setQueue]           = useState<ViralScript[]>([])
-  const [activeTab, setActiveTab]   = useState<'viral' | 'generate'>('viral')
-  const [filter, setFilter]         = useState<'all' | 'pending' | 'approved'>('all')
-  const [styleTab, setStyleTab]     = useState<StyleTab>('all')
+  const [queue,      setQueue]      = useState<ViralScript[]>([])
+  const [activeTab,  setActiveTab]  = useState<'viral' | 'generate'>('viral')
+  const [filter,     setFilter]     = useState<'all' | 'pending' | 'approved'>('all')
+  const [contentTypeTab, setContentTypeTab] = useState<ContentTypeTab>('all')
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   // ── Generate state ──
-  const [context, setContext]   = useState<ContentContext | null>(null)
-  const [ideas, setIdeas]       = useState<GeneratedIdea[]>([])
-  const [loading, setLoading]   = useState(false)
-  const [count, setCount]       = useState(5)
-  const [genStyle, setGenStyle] = useState<StyleTab>('Reel')
+  const [context,  setContext]  = useState<ContentContext | null>(null)
+  const [ideas,    setIdeas]    = useState<GeneratedIdea[]>([])
+  const [loading,  setLoading]  = useState(false)
+  const [count,    setCount]    = useState(5)
+  const [genStyle, setGenStyle] = useState<GenStyle>('Reel')
 
   // ── Load on mount ──
   useEffect(() => {
@@ -130,19 +139,19 @@ export default function ContentPage() {
     try {
       const existing: any[] = JSON.parse(localStorage.getItem('schedulerDrafts') || '[]')
       const draft = {
-        id: Date.now() + Math.random(),
-        contentType: script.shaiRemake.contentType,
-        hook: script.shaiRemake.hook,
-        script: script.shaiRemake.script,
-        cta: script.shaiRemake.cta,
-        viralStructure: script.shaiRemake.viralStructure,
-        inspiredBy: script.competitorUsername,
-        originalUrl: script.originalPost.url,
-        status: 'scripted',
+        id:            Date.now() + Math.random(),
+        contentType:   script.shaiRemake.contentType,
+        hook:          script.shaiRemake.hook,
+        script:        script.shaiRemake.script,
+        cta:           script.shaiRemake.cta,
+        viralStructure:script.shaiRemake.viralStructure,
+        inspiredBy:    script.competitorUsername,
+        originalUrl:   script.originalPost.url,
+        status:        'scripted',
         scheduledDate: null,
         scheduledTime: '23:00',
-        caption: script.shaiRemake.captionWithHashtags || '',
-        createdAt: new Date().toISOString(),
+        caption:       script.shaiRemake.captionWithHashtags || '',
+        createdAt:     new Date().toISOString(),
       }
       existing.push(draft)
       localStorage.setItem('schedulerDrafts', JSON.stringify(existing))
@@ -179,26 +188,26 @@ export default function ContentPage() {
       const data = await res.json()
       if (data.ideas) setIdeas(data.ideas)
     } catch (e) { console.error(e) }
-    finally { setLoading(false) }
+    finally     { setLoading(false) }
   }
 
   const sendIdeaToScheduler = (idea: GeneratedIdea) => {
     try {
       const existing: any[] = JSON.parse(localStorage.getItem('schedulerDrafts') || '[]')
       const draft = {
-        id: Date.now() + Math.random(),
-        contentType: idea.contentType || genStyle || 'Reel',
-        hook: idea.hook,
-        script: idea.script,
-        cta: idea.cta,
-        viralStructure: idea.inspiredBy || '',
-        inspiredBy: context?.competitorUsername || '',
-        originalUrl: '',
-        status: 'scripted',
+        id:            Date.now() + Math.random(),
+        contentType:   idea.contentType || genStyle || 'Reel',
+        hook:          idea.hook,
+        script:        idea.script,
+        cta:           idea.cta,
+        viralStructure:idea.inspiredBy || '',
+        inspiredBy:    context?.competitorUsername || '',
+        originalUrl:   '',
+        status:        'scripted',
         scheduledDate: null,
         scheduledTime: '23:00',
-        caption: '',
-        createdAt: new Date().toISOString(),
+        caption:       '',
+        createdAt:     new Date().toISOString(),
       }
       existing.push(draft)
       localStorage.setItem('schedulerDrafts', JSON.stringify(existing))
@@ -213,15 +222,17 @@ export default function ContentPage() {
   const approvedCount  = queue.filter(s => s.status === 'approved').length
   const scheduledCount = queue.filter(s => s.status === 'scheduled').length
 
-  // ── Filtered queue (status + style tab) ──
+  // ── Filtered queue (status + content type tab) ──
   const filteredQueue = queue.filter(s => {
     const statusOk = filter === 'all' ? true : s.status === filter
-    const styleOk  = styleTab === 'all' ? true : normaliseType(s.shaiRemake.contentType) === styleTab
-    return statusOk && styleOk
+    const typeOk   = contentTypeTab === 'all'
+      ? true
+      : normaliseType(s.shaiRemake.contentType) === contentTypeTab
+    return statusOk && typeOk
   })
 
-  // ── Count per style tab (ignoring status filter) ──
-  const styleCount = (key: StyleTab) =>
+  // ── Count per content type tab (ignoring status filter) ──
+  const typeCount = (key: ContentTypeTab) =>
     key === 'all'
       ? queue.length
       : queue.filter(s => normaliseType(s.shaiRemake.contentType) === key).length
@@ -255,35 +266,31 @@ export default function ContentPage() {
         </div>
       </div>
 
-      {/* ── Post Style Tabs (shared between both main tabs) ── */}
-      <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
-        {STYLE_TABS.map(({ key, label, icon }) => (
-          <button
-            key={key}
-            onClick={() => {
-              if (activeTab === 'viral') setStyleTab(key)
-              else setGenStyle(key)
-            }}
-            className={`flex items-center gap-1.5 text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${
-              (activeTab === 'viral' ? styleTab : genStyle) === key
-                ? 'border-white text-white'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            <span>{icon}</span>
-            <span>{label}</span>
-            {activeTab === 'viral' && (
-              <span className="text-[9px] text-gray-600 ml-0.5">
-                {styleCount(key)}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
       {/* ══ VIRAL QUEUE TAB ══════════════════════════════════════════════════════ */}
       {activeTab === 'viral' && (
         <div className="space-y-4">
+
+          {/* ── Content Type Filter Tabs ── */}
+          <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
+            {CONTENT_TYPE_TABS.map(({ key, label, icon }) => (
+              <button
+                key={key}
+                onClick={() => setContentTypeTab(key)}
+                className={`flex items-center gap-1.5 text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${
+                  contentTypeTab === key
+                    ? 'border-white text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <span>{icon}</span>
+                <span>{label}</span>
+                <span className="text-[9px] text-gray-600 ml-0.5">
+                  {typeCount(key)}
+                </span>
+              </button>
+            ))}
+          </div>
+
           {queue.length === 0 ? (
             <div className="border border-dashed border-[#222] p-12 text-center">
               <p className="text-gray-600 text-sm mb-3">No viral scripts yet.</p>
@@ -332,11 +339,11 @@ export default function ContentPage() {
                 </div>
               </div>
 
-              {/* Empty state for filtered style */}
+              {/* Empty state for filtered type */}
               {filteredQueue.length === 0 && (
                 <div className="border border-dashed border-[#222] p-8 text-center">
                   <p className="text-gray-600 text-sm">
-                    No {styleTab === 'all' ? '' : styleTab + ' '}scripts match this filter.
+                    No {contentTypeTab === 'all' ? '' : contentTypeTab + ' '}scripts match this filter.
                   </p>
                 </div>
               )}
@@ -344,25 +351,23 @@ export default function ContentPage() {
               {/* Script Cards */}
               <div className="space-y-3">
                 {filteredQueue.map((script) => {
-                  const realIdx = queue.indexOf(script)
+                  const realIdx    = queue.indexOf(script)
                   const isExpanded = expandedId === realIdx
                   const statusColor =
-                    script.status === 'scheduled' ? 'text-cyan-400 border-cyan-400/30'
-                    : script.status === 'approved' ? 'text-green-400 border-green-400/30'
-                    : 'text-gray-500 border-[#333]'
-                  const normType = normaliseType(script.shaiRemake.contentType)
-                  const typeColor =
-                    normType === 'Reel'         ? 'text-pink-400'
-                    : normType === 'Carousel'   ? 'text-cyan-400'
-                    : 'text-gray-400'
+                    script.status === 'scheduled' ? 'text-cyan-400 border-cyan-400/30' :
+                    script.status === 'approved'  ? 'text-green-400 border-green-400/30' :
+                                                    'text-gray-500 border-[#333]'
+                  const normType  = normaliseType(script.shaiRemake.contentType)
+                  const typeColor = normType === 'Reel'     ? 'text-pink-400' :
+                                    normType === 'Carousel' ? 'text-cyan-400' : 'text-gray-400'
 
                   return (
                     <div
                       key={realIdx}
                       className={`bg-[#0d0d0d] border ${
-                        script.status === 'scheduled' ? 'border-cyan-500/20'
-                        : script.status === 'approved' ? 'border-green-500/20'
-                        : 'border-[#1e1e1e]'
+                        script.status === 'scheduled' ? 'border-cyan-500/20' :
+                        script.status === 'approved'  ? 'border-green-500/20' :
+                                                        'border-[#1e1e1e]'
                       } transition-colors`}
                     >
                       {/* Card Header */}
@@ -393,11 +398,9 @@ export default function ContentPage() {
                                 <span className="text-gray-700 text-[10px]">{script.originalPost.engagementMultiplier} avg</span>
                                 {script.shaiRemake.viralProbabilityScore !== undefined && (
                                   <span className={`text-[10px] px-1.5 py-0.5 font-bold ${
-                                    script.shaiRemake.viralProbabilityScore >= 70
-                                      ? 'bg-green-500/20 text-green-400'
-                                      : script.shaiRemake.viralProbabilityScore >= 40
-                                      ? 'bg-yellow-500/20 text-yellow-400'
-                                      : 'bg-gray-500/20 text-gray-400'
+                                    script.shaiRemake.viralProbabilityScore >= 70 ? 'bg-green-500/20 text-green-400' :
+                                    script.shaiRemake.viralProbabilityScore >= 40 ? 'bg-yellow-500/20 text-yellow-400' :
+                                                                                    'bg-gray-500/20 text-gray-400'
                                   }`}>
                                     🔥 {script.shaiRemake.viralProbabilityScore}/100
                                   </span>
@@ -522,6 +525,24 @@ export default function ContentPage() {
       {/* ══ GENERATE TAB ═════════════════════════════════════════════════════════ */}
       {activeTab === 'generate' && (
         <div className="space-y-4">
+
+          {/* ── Gen Style Tabs ── */}
+          <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
+            {GEN_STYLE_TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setGenStyle(key)}
+                className={`text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${
+                  genStyle === key
+                    ? 'border-white text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {context ? (
             <div className="bg-[#111] border border-[#222] p-4">
               <div className="flex items-start justify-between mb-3">
@@ -560,9 +581,7 @@ export default function ContentPage() {
                   disabled={loading}
                   className="flex-1 py-1.5 bg-white hover:bg-gray-200 disabled:opacity-50 text-black text-xs font-bold transition-all"
                 >
-                  {loading
-                    ? 'Generating...'
-                    : `⚡ Generate ${genStyle === 'all' ? '' : genStyle + ' '}Ideas`}
+                  {loading ? 'Generating...' : `⚡ Generate ${genStyle === 'all' ? '' : genStyle + ' '}Ideas`}
                 </button>
               </div>
 
@@ -647,7 +666,6 @@ export default function ContentPage() {
           )}
         </div>
       )}
-
     </div>
   )
 }
