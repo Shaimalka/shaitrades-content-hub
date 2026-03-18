@@ -127,7 +127,7 @@ export default function SchedulerPage() {
   // Edit Panel
   // ─────────────────────────────────────────────────────────────────────────────
   const EditPanel = ({ draft }: { draft: SchedulerDraft }) => {
-    const [local, setLocal] = useState(draft)
+    const [local, setLocal] = useState({ ...draft, scheduledTime: draft.scheduledTime || '23:00' })
     const save = () => { updateDraft(draft.id, local); setEditingId(null) }
 
     return (
