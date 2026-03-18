@@ -1,11 +1,7 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
-
-// ── Redis client ─────────────────────────────────────────────────────────────
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
 
 // ── Redis key names (same logical names as the old JSON files) ────────────────
 const KEYS = {
@@ -20,6 +16,10 @@ const BASE_URL = process.env.VERCEL_URL
 
 // ── GET — returns last scrape timestamps (for sync indicator in frontend) ─────
 export async function GET() {
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  })
   try {
     const lastScrape = (await redis.get<Record<string, string>>(KEYS.lastScrape)) ?? {}
     return NextResponse.json({ lastScrape })
@@ -31,6 +31,11 @@ export async function GET() {
 
 // ── POST — triggered by Vercel cron (0 1 * * * = 8 AM Thailand time) ─────────
 export async function POST(req: NextRequest) {
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  })
+
   // Verify Vercel cron secret to prevent unauthorized calls
   const authHeader = req.headers.get('authorization')
   if (
@@ -54,9 +59,7 @@ export async function POST(req: NextRequest) {
     const lastScrape: Record<string, string> =
       (await redis.get<Record<string, string>>(KEYS.lastScrape)) ?? {}
 
-    const existingQueue: any[] =
-      (await redis.get<any[]>(KEYS.viralQueue)) ?? []
-
+    const existingQueue: any[] = (await redis.get<any[]>(KEYS.viralQueue)) ?? []
     const newQueueEntries: any[] = []
 
     for (const username of usernames) {
@@ -101,7 +104,6 @@ export async function POST(req: NextRequest) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ competitor, posts: allPosts }),
             })
-
             if (viralRes.ok) {
               const viralData = await viralRes.json()
               const scripts: any[] = viralData.viralScripts || []
