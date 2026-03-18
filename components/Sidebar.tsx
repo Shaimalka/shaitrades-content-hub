@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Users, Sparkles, Calendar, TrendingUp, ChevronLeft } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, Sparkles, Calendar, TrendingUp, ChevronLeft, BarChart2 } from 'lucide-react'
 import clsx from 'clsx'
 
 const instagramNav = [
@@ -14,8 +14,7 @@ const instagramNav = [
 ]
 
 const tiktokNav = [
-  { href: '/tiktok/competitors', label: 'Competitors', icon: Users },
-  { href: '/tiktok/content', label: 'Content Gen', icon: Sparkles },
+  { href: '/tiktok/analytics', label: 'Analytics', icon: BarChart2 },
 ]
 
 export default function Sidebar() {
