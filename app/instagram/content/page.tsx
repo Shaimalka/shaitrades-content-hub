@@ -416,7 +416,7 @@ export default function ContentPage() {
                       ? 'bg-white text-black'
                       : 'text-gray-500 border border-[#333] hover:border-gray-500'
                   }`}
-                
+                >
                   {label}
                 </button>
               ))}
