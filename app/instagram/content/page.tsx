@@ -87,7 +87,8 @@ function fmt(n: number) {
 function loadViralQueue(): ViralScript[] {
   try {
     const s = localStorage.getItem('viralScriptsQueue')
-    return s ? JSON.parse(s) : []
+    const data: ViralScript[] = s ? JSON.parse(s) : []
+    return data.sort((a, b) => (b.shaiRemake.viralProbabilityScore ?? 0) - (a.shaiRemake.viralProbabilityScore ?? 0))
   } catch {
     return []
   }
@@ -415,7 +416,7 @@ export default function ContentPage() {
                       ? 'bg-white text-black'
                       : 'text-gray-500 border border-[#333] hover:border-gray-500'
                   }`}
-                >
+                
                   {label}
                 </button>
               ))}
