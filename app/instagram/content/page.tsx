@@ -47,30 +47,40 @@ interface GeneratedIdea {
   cta: string
 }
 
-// ── Content type tab type ────────────────────────────────────────────────────
+// ── Content type tab type ──────────────────────────────────────────────────────
 type ContentTypeTab = 'all' | 'Reel' | 'Carousel' | 'Single Image'
 
 const CONTENT_TYPE_TABS: { key: ContentTypeTab; label: string; icon: string }[] = [
-  { key: 'all',          label: 'All',      icon: '📋' },
-  { key: 'Reel',         label: 'Reels',    icon: '🎬' },
-  { key: 'Carousel',     label: 'Carousel', icon: '🖼' },
-  { key: 'Single Image', label: 'Posts',    icon: '📸' },
+  { key: 'all', label: 'All', icon: '📋' },
+  { key: 'Reel', label: 'Reels', icon: '🎬' },
+  { key: 'Carousel', label: 'Carousel', icon: '🖼' },
+  { key: 'Single Image', label: 'Posts', icon: '📸' },
 ]
 
 // Gen-style options (for Generate tab)
 type GenStyle = 'all' | 'Reel' | 'Carousel' | 'Single Image'
+
 const GEN_STYLE_TABS: { key: GenStyle; label: string }[] = [
-  { key: 'all',          label: 'All'     },
-  { key: 'Reel',         label: 'Reels'   },
-  { key: 'Carousel',     label: 'Carousel'},
-  { key: 'Single Image', label: 'Posts'   },
+  { key: 'all', label: 'All' },
+  { key: 'Reel', label: 'Reels' },
+  { key: 'Carousel', label: 'Carousel'},
+  { key: 'Single Image', label: 'Posts' },
+]
+
+// ── Time filter type ───────────────────────────────────────────────────────────
+type TimeFilter = '30d' | '60d' | 'all'
+
+const TIME_FILTER_TABS: { key: TimeFilter; label: string }[] = [
+  { key: '30d', label: '30 Days' },
+  { key: '60d', label: '60 Days' },
+  { key: 'all', label: 'All Time' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n: number) {
   if (!n) return '0'
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K'
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
   return String(n)
 }
 
@@ -78,7 +88,9 @@ function loadViralQueue(): ViralScript[] {
   try {
     const s = localStorage.getItem('viralScriptsQueue')
     return s ? JSON.parse(s) : []
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 function saveViralQueue(q: ViralScript[]) {
@@ -89,8 +101,19 @@ function saveViralQueue(q: ViralScript[]) {
 function normaliseType(raw: string): ContentTypeTab {
   const t = (raw || '').toLowerCase()
   if (t.includes('reel') || t.includes('video')) return 'Reel'
-  if (t.includes('carousel'))                     return 'Carousel'
+  if (t.includes('carousel')) return 'Carousel'
   return 'Single Image'
+}
+
+// ── Time filter helper ─────────────────────────────────────────────────────────
+function isWithinTimeFilter(script: ViralScript, tf: TimeFilter): boolean {
+  if (tf === 'all') return true
+  const days = tf === '30d' ? 30 : 60
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+  const ts = script.generatedAt
+  if (ts) return new Date(ts) >= cutoff
+  return true
 }
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
@@ -98,17 +121,22 @@ export default function ContentPage() {
   const router = useRouter()
 
   // ── Viral Queue state ──
-  const [queue,      setQueue]      = useState<ViralScript[]>([])
-  const [activeTab,  setActiveTab]  = useState<'viral' | 'generate'>('viral')
-  const [filter,     setFilter]     = useState<'all' | 'pending' | 'approved'>('all')
+  const [queue, setQueue] = useState<ViralScript[]>([])
+  const [activeTab, setActiveTab] = useState<'viral' | 'generate'>('viral')
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all')
   const [contentTypeTab, setContentTypeTab] = useState<ContentTypeTab>('all')
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
+  // ── Find New Content state ──
+  const [finding, setFinding] = useState(false)
+  const [findSummary, setFindSummary] = useState<string | null>(null)
+
   // ── Generate state ──
-  const [context,  setContext]  = useState<ContentContext | null>(null)
-  const [ideas,    setIdeas]    = useState<GeneratedIdea[]>([])
-  const [loading,  setLoading]  = useState(false)
-  const [count,    setCount]    = useState(5)
+  const [context, setContext] = useState<ContentContext | null>(null)
+  const [ideas, setIdeas] = useState<GeneratedIdea[]>([])
+  const [loading, setLoading] = useState(false)
+  const [count, setCount] = useState(5)
   const [genStyle, setGenStyle] = useState<GenStyle>('Reel')
 
   // ── Load on mount ──
@@ -139,19 +167,19 @@ export default function ContentPage() {
     try {
       const existing: any[] = JSON.parse(localStorage.getItem('schedulerDrafts') || '[]')
       const draft = {
-        id:            Date.now() + Math.random(),
-        contentType:   script.shaiRemake.contentType,
-        hook:          script.shaiRemake.hook,
-        script:        script.shaiRemake.script,
-        cta:           script.shaiRemake.cta,
-        viralStructure:script.shaiRemake.viralStructure,
-        inspiredBy:    script.competitorUsername,
-        originalUrl:   script.originalPost.url,
-        status:        'scripted',
+        id: Date.now() + Math.random(),
+        contentType: script.shaiRemake.contentType,
+        hook: script.shaiRemake.hook,
+        script: script.shaiRemake.script,
+        cta: script.shaiRemake.cta,
+        viralStructure: script.shaiRemake.viralStructure,
+        inspiredBy: script.competitorUsername,
+        originalUrl: script.originalPost.url,
+        status: 'scripted',
         scheduledDate: null,
         scheduledTime: '23:00',
-        caption:       script.shaiRemake.captionWithHashtags || '',
-        createdAt:     new Date().toISOString(),
+        caption: script.shaiRemake.captionWithHashtags || '',
+        createdAt: new Date().toISOString(),
       }
       existing.push(draft)
       localStorage.setItem('schedulerDrafts', JSON.stringify(existing))
@@ -161,13 +189,108 @@ export default function ContentPage() {
       setQueue(updated)
       saveViralQueue(updated)
       router.push('/instagram/scheduler')
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const clearScheduled = () => {
     const updated = queue.filter(s => s.status !== 'scheduled')
     setQueue(updated)
     saveViralQueue(updated)
+  }
+
+  // ── Find New Content ──────────────────────────────────────────────────────────
+  const findNewContent = async () => {
+    setFinding(true)
+    setFindSummary(null)
+    try {
+      // Load tracked competitors from localStorage
+      const raw = localStorage.getItem('trackedCompetitors')
+      const competitors: any[] = raw ? JSON.parse(raw) : []
+      if (competitors.length === 0) {
+        setFindSummary('No tracked competitors found.')
+        return
+      }
+
+      // Build set of already-processed post URLs
+      const existingUrls = new Set(queue.map(s => s.originalPost.url))
+
+      // Compute cutoff date based on current timeFilter
+      let cutoffDate: Date | null = null
+      if (timeFilter === '30d') {
+        cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - 30)
+      } else if (timeFilter === '60d') {
+        cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - 60)
+      }
+
+      let totalNewScripts = 0
+      let competitorsWithNew = 0
+      const allNewScripts: ViralScript[] = []
+
+      for (const competitor of competitors) {
+        const username = competitor.username || competitor.handle || competitor
+        try {
+          // Scrape latest posts
+          const scrapeRes = await fetch('/api/competitors/scrape', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username }),
+          })
+          if (!scrapeRes.ok) continue
+          const scrapeData = await scrapeRes.json()
+          const posts: any[] = scrapeData.posts || scrapeData.topPosts || []
+
+          // Filter to new, unseen posts within time range
+          const newPosts = posts.filter((post: any) => {
+            const postUrl = post.url || post.shortCode
+            if (existingUrls.has(postUrl)) return false
+            if (cutoffDate && post.timestamp) {
+              return new Date(post.timestamp) >= cutoffDate
+            }
+            return true
+          })
+
+          if (newPosts.length === 0) continue
+
+          // Generate viral scripts for the new posts
+          const viralRes = await fetch('/api/competitors/viral-scripts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, posts: newPosts }),
+          })
+          if (!viralRes.ok) continue
+          const viralData = await viralRes.json()
+          const newScripts: ViralScript[] = (viralData.scripts || viralData.viralScripts || []).map(
+            (s: any) => ({ ...s, status: 'pending' as const, generatedAt: new Date().toISOString() })
+          )
+
+          if (newScripts.length > 0) {
+            allNewScripts.push(...newScripts)
+            competitorsWithNew++
+            totalNewScripts += newScripts.length
+          }
+        } catch {
+          // skip failed competitors
+        }
+      }
+
+      if (allNewScripts.length > 0) {
+        const updatedQueue = [...queue, ...allNewScripts]
+        setQueue(updatedQueue)
+        saveViralQueue(updatedQueue)
+        setFindSummary(`Found ${totalNewScripts} new script${totalNewScripts !== 1 ? 's' : ''} from ${competitorsWithNew} competitor${competitorsWithNew !== 1 ? 's' : ''}`)
+      } else {
+        setFindSummary('No new content found.')
+      }
+    } catch (e) {
+      console.error(e)
+      setFindSummary('Error scanning for new content.')
+    } finally {
+      setFinding(false)
+    }
   }
 
   // ── Generate actions ──
@@ -187,60 +310,71 @@ export default function ContentPage() {
       })
       const data = await res.json()
       if (data.ideas) setIdeas(data.ideas)
-    } catch (e) { console.error(e) }
-    finally     { setLoading(false) }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const sendIdeaToScheduler = (idea: GeneratedIdea) => {
     try {
       const existing: any[] = JSON.parse(localStorage.getItem('schedulerDrafts') || '[]')
       const draft = {
-        id:            Date.now() + Math.random(),
-        contentType:   idea.contentType || genStyle || 'Reel',
-        hook:          idea.hook,
-        script:        idea.script,
-        cta:           idea.cta,
-        viralStructure:idea.inspiredBy || '',
-        inspiredBy:    context?.competitorUsername || '',
-        originalUrl:   '',
-        status:        'scripted',
+        id: Date.now() + Math.random(),
+        contentType: idea.contentType || genStyle || 'Reel',
+        hook: idea.hook,
+        script: idea.script,
+        cta: idea.cta,
+        viralStructure: idea.inspiredBy || '',
+        inspiredBy: context?.competitorUsername || '',
+        originalUrl: '',
+        status: 'scripted',
         scheduledDate: null,
         scheduledTime: '23:00',
-        caption:       '',
-        createdAt:     new Date().toISOString(),
+        caption: '',
+        createdAt: new Date().toISOString(),
       }
       existing.push(draft)
       localStorage.setItem('schedulerDrafts', JSON.stringify(existing))
       router.push('/instagram/scheduler')
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const copy = (text: string) => navigator.clipboard.writeText(text)
 
   // ── Derived counts ──
-  const pendingCount   = queue.filter(s => s.status === 'pending').length
-  const approvedCount  = queue.filter(s => s.status === 'approved').length
+  const pendingCount = queue.filter(s => s.status === 'pending').length
+  const approvedCount = queue.filter(s => s.status === 'approved').length
   const scheduledCount = queue.filter(s => s.status === 'scheduled').length
 
-  // ── Filtered queue (status + content type tab) ──
-  const filteredQueue = queue.filter(s => {
-    const statusOk = filter === 'all' ? true : s.status === filter
-    const typeOk   = contentTypeTab === 'all'
-      ? true
-      : normaliseType(s.shaiRemake.contentType) === contentTypeTab
-    return statusOk && typeOk
-  })
+  // ── Filtered + sorted queue (time filter + status + content type + viral score sort) ──
+  const filteredQueue = queue
+    .filter(s => {
+      const timeOk = isWithinTimeFilter(s, timeFilter)
+      const statusOk = filter === 'all' ? true : s.status === filter
+      const typeOk = contentTypeTab === 'all' ? true : normaliseType(s.shaiRemake.contentType) === contentTypeTab
+      return timeOk && statusOk && typeOk
+    })
+    .sort((a, b) => {
+      const scoreA = a.shaiRemake.viralProbabilityScore ?? 0
+      const scoreB = b.shaiRemake.viralProbabilityScore ?? 0
+      return scoreB - scoreA
+    })
 
-  // ── Count per content type tab (ignoring status filter) ──
-  const typeCount = (key: ContentTypeTab) =>
-    key === 'all'
-      ? queue.length
-      : queue.filter(s => normaliseType(s.shaiRemake.contentType) === key).length
+  // ── Count per content type tab (ignoring status filter, respecting time filter) ──
+  const typeCount = (key: ContentTypeTab) => {
+    const timeFiltered = queue.filter(s => isWithinTimeFilter(s, timeFilter))
+    return key === 'all'
+      ? timeFiltered.length
+      : timeFiltered.filter(s => normaliseType(s.shaiRemake.contentType) === key).length
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 p-6 max-w-4xl">
-
       {/* ── Top header ── */}
       <div className="flex items-center justify-between">
         <div>
@@ -258,9 +392,7 @@ export default function ContentPage() {
                   : 'bg-transparent text-gray-500 border border-[#333] hover:border-gray-500'
               }`}
             >
-              {tab === 'viral'
-                ? `🔥 Viral Queue${queue.length > 0 ? ' (' + queue.length + ')' : ''}`
-                : '⚡ Generate'}
+              {tab === 'viral' ? `🔥 Viral Queue${queue.length > 0 ? ' (' + queue.length + ')' : ''}` : '⚡ Generate'}
             </button>
           ))}
         </div>
@@ -269,6 +401,36 @@ export default function ContentPage() {
       {/* ══ VIRAL QUEUE TAB ══════════════════════════════════════════════════════ */}
       {activeTab === 'viral' && (
         <div className="space-y-4">
+          {/* ── Time Filter + Find New Content row ── */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex gap-1">
+              {TIME_FILTER_TABS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setTimeFilter(key)}
+                  className={`text-xs px-3 py-1.5 font-medium transition-all ${
+                    timeFilter === key
+                      ? 'bg-white text-black'
+                      : 'text-gray-500 border border-[#333] hover:border-gray-500'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              {findSummary && (
+                <span className="text-[10px] text-gray-500">{findSummary}</span>
+              )}
+              <button
+                onClick={findNewContent}
+                disabled={finding}
+                className="text-xs px-3 py-1.5 border border-[#333] text-gray-400 hover:border-white hover:text-white disabled:opacity-50 transition-all"
+              >
+                {finding ? '⏳ Scanning...' : '🔍 Find New Content'}
+              </button>
+            </div>
+          </div>
 
           {/* ── Content Type Filter Tabs ── */}
           <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
@@ -295,8 +457,8 @@ export default function ContentPage() {
             <div className="border border-dashed border-[#222] p-12 text-center">
               <p className="text-gray-600 text-sm mb-3">No viral scripts yet.</p>
               <p className="text-gray-700 text-xs mb-4">
-                Go to <strong className="text-gray-500">Competitors</strong>, pick a tracked account,
-                and click <strong className="text-gray-500">🔥 Extract 10 Viral Scripts</strong>.
+                Go to <strong className="text-gray-500">Competitors</strong>, pick a tracked account, and click{' '}
+                <strong className="text-gray-500">🔥 Extract 10 Viral Scripts</strong>.
               </p>
               <button
                 onClick={() => router.push('/instagram/competitors')}
@@ -351,23 +513,24 @@ export default function ContentPage() {
               {/* Script Cards */}
               <div className="space-y-3">
                 {filteredQueue.map((script) => {
-                  const realIdx    = queue.indexOf(script)
+                  const realIdx = queue.indexOf(script)
                   const isExpanded = expandedId === realIdx
                   const statusColor =
                     script.status === 'scheduled' ? 'text-cyan-400 border-cyan-400/30' :
-                    script.status === 'approved'  ? 'text-green-400 border-green-400/30' :
-                                                    'text-gray-500 border-[#333]'
-                  const normType  = normaliseType(script.shaiRemake.contentType)
-                  const typeColor = normType === 'Reel'     ? 'text-pink-400' :
-                                    normType === 'Carousel' ? 'text-cyan-400' : 'text-gray-400'
+                    script.status === 'approved' ? 'text-green-400 border-green-400/30' :
+                    'text-gray-500 border-[#333]'
+                  const normType = normaliseType(script.shaiRemake.contentType)
+                  const typeColor =
+                    normType === 'Reel' ? 'text-pink-400' :
+                    normType === 'Carousel' ? 'text-cyan-400' : 'text-gray-400'
 
                   return (
                     <div
                       key={realIdx}
                       className={`bg-[#0d0d0d] border ${
                         script.status === 'scheduled' ? 'border-cyan-500/20' :
-                        script.status === 'approved'  ? 'border-green-500/20' :
-                                                        'border-[#1e1e1e]'
+                        script.status === 'approved' ? 'border-green-500/20' :
+                        'border-[#1e1e1e]'
                       } transition-colors`}
                     >
                       {/* Card Header */}
@@ -398,9 +561,11 @@ export default function ContentPage() {
                                 <span className="text-gray-700 text-[10px]">{script.originalPost.engagementMultiplier} avg</span>
                                 {script.shaiRemake.viralProbabilityScore !== undefined && (
                                   <span className={`text-[10px] px-1.5 py-0.5 font-bold ${
-                                    script.shaiRemake.viralProbabilityScore >= 70 ? 'bg-green-500/20 text-green-400' :
-                                    script.shaiRemake.viralProbabilityScore >= 40 ? 'bg-yellow-500/20 text-yellow-400' :
-                                                                                    'bg-gray-500/20 text-gray-400'
+                                    script.shaiRemake.viralProbabilityScore >= 70
+                                      ? 'bg-green-500/20 text-green-400'
+                                      : script.shaiRemake.viralProbabilityScore >= 40
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : 'bg-gray-500/20 text-gray-400'
                                   }`}>
                                     🔥 {script.shaiRemake.viralProbabilityScore}/100
                                   </span>
@@ -427,7 +592,6 @@ export default function ContentPage() {
                             >↗</a>
                           </div>
                         </div>
-
                         {/* Stats row */}
                         <div className="flex gap-4 mt-3 pt-3 border-t border-[#1a1a1a] text-xs text-gray-600">
                           <span>♥ {fmt(script.originalPost.likesCount)}</span>
@@ -525,7 +689,6 @@ export default function ContentPage() {
       {/* ══ GENERATE TAB ═════════════════════════════════════════════════════════ */}
       {activeTab === 'generate' && (
         <div className="space-y-4">
-
           {/* ── Gen Style Tabs ── */}
           <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
             {GEN_STYLE_TABS.map(({ key, label }) => (
@@ -559,7 +722,6 @@ export default function ContentPage() {
                   Clear ×
                 </button>
               </div>
-
               {/* Generate controls */}
               <div className="flex items-center gap-3 mt-3">
                 <span className="text-gray-500 text-xs">Ideas:</span>
@@ -584,7 +746,6 @@ export default function ContentPage() {
                   {loading ? 'Generating...' : `⚡ Generate ${genStyle === 'all' ? '' : genStyle + ' '}Ideas`}
                 </button>
               </div>
-
               {/* Style hint */}
               <p className="text-gray-700 text-[10px] mt-2">
                 Generating: <span className="text-gray-400">{genStyle === 'all' ? 'All formats' : genStyle}</span>
