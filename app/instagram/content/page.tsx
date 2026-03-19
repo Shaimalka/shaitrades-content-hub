@@ -200,6 +200,8 @@ export default function ContentPage() {
     saveViralQueue(updated)
   }
 
+  // Feature 3: Find New Content - reads trackedCompetitors from localStorage,
+  // calls /api/competitors/scrape + /api/competitors/viral-scripts, appends as pending
   // ── Find New Content ──────────────────────────────────────────────────────────
   const findNewContent = async () => {
     setFinding(true)
