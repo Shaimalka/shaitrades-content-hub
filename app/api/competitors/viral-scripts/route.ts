@@ -35,6 +35,7 @@ function calcViralScore(post: any, avgScore: number): number {
 
 function generateCaption(shaiRemake: any, competitorUsername: string): string {
   const hook = shaiRemake.hook || ''
+  const script = shaiRemake.script || ''
   const cta = shaiRemake.cta || ''
   const hashtags = [
     '#daytrader', '#tradingjourney', '#futurestrading', '#stockmarket',
@@ -42,12 +43,7 @@ function generateCaption(shaiRemake: any, competitorUsername: string): string {
     '#tradingmindset', '#howtotrade', '#tradertok', '#shaitrades',
     '#rawtrader', '#lostmoney', '#tradingfromabroad', '#youngtrader',
   ].slice(0, 12).join(' ')
-  
-  return `${hook}
-
-${cta}
-
-${hashtags}`
+  return `${hook}\n\n${script}\n\n${cta}\n\n${hashtags}`
 }
 
 export async function POST(req: NextRequest) {
