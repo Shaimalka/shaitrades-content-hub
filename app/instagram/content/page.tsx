@@ -147,7 +147,6 @@ export default function ContentPage() {
       const saved = localStorage.getItem('contentGenContext')
       if (saved) setContext(JSON.parse(saved))
     } catch {}
-
     const onFocus = () => setQueue(loadViralQueue())
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
