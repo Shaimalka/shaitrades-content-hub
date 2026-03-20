@@ -147,6 +147,10 @@ export default function ContentPage() {
       const saved = localStorage.getItem('contentGenContext')
       if (saved) setContext(JSON.parse(saved))
     } catch {}
+
+    const onFocus = () => setQueue(loadViralQueue())
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [])
 
   // ── Viral Queue actions ──
@@ -240,7 +244,7 @@ export default function ContentPage() {
           const scrapeRes = await fetch('/api/competitors/scrape', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username }),
+            body: JSON.stringify({ handles: [username] }),
           })
           if (!scrapeRes.ok) continue
           const scrapeData = await scrapeRes.json()
