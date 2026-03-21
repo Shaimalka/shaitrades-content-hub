@@ -74,7 +74,8 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function SchedulerPage() {
   const router = useRouter()
-  const { storageKey } = useAccount()
+    const { activeAccount } = useAccount()
+    const storageKey = (key: string) => `${activeAccount}_${key}`
   const [drafts, setDrafts] = useState<SchedulerDraft[]>([])
   const [view, setView] = useState<'week' | 'list'>('week')
   const [weekBase, setWeekBase] = useState(new Date())
