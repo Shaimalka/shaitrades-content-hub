@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, FileText, Users, Sparkles, Calendar, TrendingUp, ChevronLeft, BarChart2 } from 'lucide-react'
 import clsx from 'clsx'
+import AccountSwitcher from '@/components/AccountSwitcher'
 
 const instagramNav = [
   { href: '/instagram', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,6 +34,9 @@ export default function Sidebar() {
           </div>
         </Link>
       </div>
+
+      {/* Account Switcher */}
+      <AccountSwitcher />
 
       <div className="px-4 pt-4 pb-2">
         <Link href="/" className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-300 transition-colors">
