@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 interface AccountContextType {
     activeAccount: string
@@ -16,7 +16,7 @@ const AccountContext = createContext<AccountContextType>({
     addAccount: () => {},
 })
 
-export function AccountProvider({ children }: { children: React.ReactNode }) {
+export function AccountProvider({ children }: { children: ReactNode }) {
     const [accounts, setAccounts] = useState<string[]>(['shaitrades', 'shaitrades2'])
     const [activeAccount, setActiveAccount] = useState('shaitrades')
 
