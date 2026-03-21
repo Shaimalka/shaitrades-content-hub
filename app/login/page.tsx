@@ -1,8 +1,6 @@
 'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, Lock, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -21,8 +19,8 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
-      const data = await res.json()
-      if (data.success) {
+      if (res.ok) {
+        sessionStorage.setItem('st_auth', 'authenticated')
         router.push('/')
         router.refresh()
       } else {
@@ -37,63 +35,41 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="w-10 h-10 bg-white flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-black" />
-          </div>
-          <div>
-            <p className="font-bold text-white text-lg tracking-tight">Shaitrades</p>
-            <p className="text-xs text-gray-500 -mt-0.5">Content Hub</p>
-          </div>
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="w-10 h-10 bg-cyan-500 flex items-center justify-center text-black font-bold text-lg">S</div>
+        <div>
+          <p className="text-white font-bold">Shaitrades</p>
+          <p className="text-gray-500 text-xs">Content Hub</p>
         </div>
-
-        {/* Login box */}
-        <div className="border border-gray-800 bg-black p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Lock className="w-4 h-4 text-gray-500" />
-            <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">// ADMIN ACCESS</span>
-          </div>
-
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            placeholder="Username"
-            autoFocus
-            className="w-full bg-black border border-gray-800 px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors mb-3"
-          />
-
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            placeholder="Password"
-            className="w-full bg-black border border-gray-800 px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-white transition-colors mb-4"
-          />
-
-          {error && (
-            <div className="flex items-center gap-2 text-red-400 text-xs mb-4">
-              <AlertCircle className="w-3 h-3" />
-              {error}
-            </div>
-          )}
-
-          <button
-            onClick={handleLogin}
-            disabled={!username || !password || loading}
-            className="w-full py-3 bg-white hover:bg-gray-100 disabled:opacity-40 text-black font-bold text-sm transition-colors"
-          >
-            {loading ? 'Verifying...' : 'Enter'}
-          </button>
-        </div>
-
-        <p className="text-center text-[10px] text-gray-700 mt-6">Authorized personnel only</p>
       </div>
+      <div className="w-full max-w-sm border border-[#1e1e1e] bg-[#0d0d0d] p-8">
+        <p className="text-gray-500 text-xs font-mono mb-6">// ADMIN ACCESS</p>
+        <input
+          type="text"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          placeholder="Username"
+          className="w-full bg-black border border-[#2a2a2a] text-white text-sm px-4 py-3 mb-3 placeholder-gray-600 focus:outline-none focus:border-gray-500"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleLogin()}
+          placeholder="Password"
+          className="w-full bg-black border border-[#2a2a2a] text-white text-sm px-4 py-3 mb-3 placeholder-gray-600 focus:outline-none focus:border-gray-500"
+        />
+        {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+        <button
+          onClick={handleLogin}
+          disabled={loading}
+          className="w-full bg-white text-black text-sm font-bold py-3 hover:bg-gray-200 disabled:opacity-50 transition-all"
+        >
+          {loading ? 'Verifying...' : 'Enter'}
+        </button>
+      </div>
+      <p className="text-gray-700 text-xs mt-6">Authorized personnel only</p>
     </div>
   )
 }
