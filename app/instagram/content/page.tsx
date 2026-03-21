@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAccount } from '@/contexts/AccountContext'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface ViralScript {
@@ -86,7 +87,7 @@ function fmt(n: number) {
 
 function loadViralQueue(): ViralScript[] {
   try {
-    const s = localStorage.getItem('viralScriptsQueue')
+    const s = localStorage.getItem(storageKey('viralScriptsQueue'))
     const data: ViralScript[] = s ? JSON.parse(s) : []
     return data.sort((a, b) => (b.shaiRemake.viralProbabilityScore ?? 0) - (a.shaiRemake.viralProbabilityScore ?? 0))
   } catch {
@@ -95,7 +96,7 @@ function loadViralQueue(): ViralScript[] {
 }
 
 function saveViralQueue(q: ViralScript[]) {
-  localStorage.setItem('viralScriptsQueue', JSON.stringify(q))
+  localStorage.setItem(storageKey('viralScriptsQueue'), JSON.stringify(q))
 }
 
 // normalise content types coming from AI so filtering is reliable
@@ -120,6 +121,7 @@ function isWithinTimeFilter(script: ViralScript, tf: TimeFilter): boolean {
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function ContentPage() {
   const router = useRouter()
+  const { storageKey } = useAccount()
 
   // ── Viral Queue state ──
   const [queue, setQueue] = useState<ViralScript[]>([])
@@ -144,7 +146,7 @@ export default function ContentPage() {
   useEffect(() => {
     setQueue(loadViralQueue())
     try {
-      const saved = localStorage.getItem('contentGenContext')
+      const saved = localStorage.getItem(storageKey('contentGenContext'))
       if (saved) setContext(JSON.parse(saved))
     } catch {}
     const onFocus = () => setQueue(loadViralQueue())
@@ -169,7 +171,7 @@ export default function ContentPage() {
 
   const sendToScheduler = (script: ViralScript) => {
     try {
-      const existing: any[] = JSON.parse(localStorage.getItem('schedulerDrafts') || '[]')
+      const existing: any[] = JSON.parse(localStorage.getItem(storageKey('schedulerDrafts')) || '[]')
       const draft = {
         id: Date.now() + Math.random(),
         contentType: script.shaiRemake.contentType,
@@ -186,7 +188,7 @@ export default function ContentPage() {
         createdAt: new Date().toISOString(),
       }
       existing.push(draft)
-      localStorage.setItem('schedulerDrafts', JSON.stringify(existing))
+      localStorage.setItem(storageKey('schedulerDrafts'), JSON.stringify(existing))
       const updated = queue.map(item =>
         item === script ? { ...item, status: 'scheduled' as const } : item
       )
@@ -212,7 +214,7 @@ export default function ContentPage() {
     setFindSummary(null)
     try {
       // Load tracked competitors from localStorage
-      const raw = localStorage.getItem('trackedCompetitors')
+      const raw = localStorage.getItem(storageKey('trackedCompetitors'))
       const competitors: any[] = raw ? JSON.parse(raw) : []
       if (competitors.length === 0) {
         setFindSummary('No tracked competitors found.')
@@ -325,7 +327,7 @@ export default function ContentPage() {
 
   const sendIdeaToScheduler = (idea: GeneratedIdea) => {
     try {
-      const existing: any[] = JSON.parse(localStorage.getItem('schedulerDrafts') || '[]')
+      const existing: any[] = JSON.parse(localStorage.getItem(storageKey('schedulerDrafts')) || '[]')
       const draft = {
         id: Date.now() + Math.random(),
         contentType: idea.contentType || genStyle || 'Reel',
@@ -342,7 +344,7 @@ export default function ContentPage() {
         createdAt: new Date().toISOString(),
       }
       existing.push(draft)
-      localStorage.setItem('schedulerDrafts', JSON.stringify(existing))
+      localStorage.setItem(storageKey('schedulerDrafts'), JSON.stringify(existing))
       router.push('/instagram/scheduler')
     } catch (e) {
       console.error(e)
@@ -722,7 +724,7 @@ export default function ContentPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => { localStorage.removeItem('contentGenContext'); setContext(null); setIdeas([]) }}
+                  onClick={() => { localStorage.removeItem(storageKey('contentGenContext')); setContext(null); setIdeas([]) }}
                   className="text-gray-700 hover:text-red-400 text-xs transition-colors"
                 >
                   Clear ×
