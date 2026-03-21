@@ -40,12 +40,12 @@ export default function AccountSwitcher() {
                                 <div className="w-5 h-5 bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
                                             <span className="text-cyan-400 text-[8px] font-bold">
                                               {activeAccount.slice(0, 2).toUpperCase()}
-                                            </span>span>
-                                </div>div>
-                                <span className="text-xs text-gray-200 font-medium truncate">{activeAccount}</span>span>
-                      </div>div>
+                                            </span>
+                                </div>
+                                <span className="text-xs text-gray-200 font-medium truncate">{activeAccount}</span>
+                      </div>
                       <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
-              </button>button>
+              </button>
         
           {open && (
                   <div className="absolute left-4 right-4 top-full mt-1 z-50 bg-[#0a0a0a] border border-gray-800 shadow-xl">
@@ -60,16 +60,16 @@ export default function AccountSwitcher() {
                                                                     <div className="w-4 h-4 bg-gray-800 flex items-center justify-center flex-shrink-0">
                                                                                         <span className="text-gray-400 text-[8px] font-bold">
                                                                                           {account.slice(0, 2).toUpperCase()}
-                                                                                          </span>span>
-                                                                    </div>div>
-                                                                    <span className="text-xs text-gray-300 truncate">{account}</span>span>
-                                                  </div>div>
+                                                                                          </span>
+                                                                    </div>
+                                                                    <span className="text-xs text-gray-300 truncate">{account}</span>
+                                                  </div>
                                     {account === activeAccount && (
                                                                       <Check className="w-3 h-3 text-cyan-400 flex-shrink-0" />
                                                                     )}
-                                  </button>button>
+                                  </button>
                                 ))}
-                            </div>div>
+                            </div>
                             <div className="border-t border-gray-800/60 p-2">
                               {adding ? (
                                   <div className="flex gap-1">
@@ -90,8 +90,8 @@ export default function AccountSwitcher() {
                                                                       className="text-xs px-2 py-1 bg-white text-black hover:bg-gray-200 font-bold transition-colors"
                                                                     >
                                                                     Add
-                                                  </button>button>
-                                  </div>div>
+                                                  </button>
+                                  </div>
                                 ) : (
                                   <button
                                                     onClick={() => setAdding(true)}
@@ -99,11 +99,11 @@ export default function AccountSwitcher() {
                                                   >
                                                   <Plus className="w-3 h-3" />
                                                   Add account
-                                  </button>button>
+                                  </button>
                                         )}
-                            </div>div>
-                  </div>div>
+                            </div>
+                  </div>
               )}
-        </div>div>
+        </div>
       )
-}</div>
+}
