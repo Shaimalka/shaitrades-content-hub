@@ -13,7 +13,7 @@ interface Post {
   videoViewCount: number
   timestamp: string
   caption: string
-  url: string
+  url: strin
   displayUrl: string
   hashtags: string[]
 }
@@ -93,7 +93,8 @@ function filterPostsByTime(posts: Post[], filter: TimeFilter): Post[] {
 
 export default function CompetitorTracker() {
   const router = useRouter()
-  const { storageKey } = useAccount()
+    const { activeAccount } = useAccount()
+    const storageKey = (key: string) => `${activeAccount}_${key}`
   const [competitors, setCompetitors] = useState<CompetitorData[]>([])
   const [inputValue, setInputValue] = useState('')
   const [bulkInput, setBulkInput] = useState('')
