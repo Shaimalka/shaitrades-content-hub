@@ -110,7 +110,8 @@ function isWithinTimeFilter(script: ViralScript, tf: TimeFilter): boolean {
 
 export default function ContentPage() {
   const router = useRouter()
-  const { storageKey } = useAccount()
+    const { activeAccount } = useAccount()
+    const storageKey = (key: string) => `${activeAccount}_${key}`
   const [queue, setQueue] = useState<ViralScript[]>([])
   const [activeTab, setActiveTab] = useState<'viral' | 'generate'>('viral')
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all')
