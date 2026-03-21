@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAccount } from '@/contexts/AccountContext'
 
 interface Post {
   id: string
@@ -92,6 +93,7 @@ function filterPostsByTime(posts: Post[], filter: TimeFilter): Post[] {
 
 export default function CompetitorTracker() {
   const router = useRouter()
+  const { storageKey } = useAccount()
   const [competitors, setCompetitors] = useState<CompetitorData[]>([])
   const [inputValue, setInputValue] = useState('')
   const [bulkInput, setBulkInput] = useState('')
@@ -169,7 +171,7 @@ export default function CompetitorTracker() {
   // Load tracked competitor usernames from localStorage on mount (runs after scrapeCompetitor is defined)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const saved = localStorage.getItem('trackedCompetitors')
+    const saved = localStorage.getItem(storageKey('trackedCompetitors'))
     if (saved) {
       try {
         const usernames: string[] = JSON.parse(saved)
@@ -183,7 +185,7 @@ export default function CompetitorTracker() {
     const activeUsernames = competitors
       .filter(c => !c.error)
       .map(c => c.username)
-    localStorage.setItem('trackedCompetitors', JSON.stringify(activeUsernames))
+    localStorage.setItem(storageKey('trackedCompetitors'), JSON.stringify(activeUsernames))
   }, [competitors])
   const handleSingleAdd = () => {
     if (!inputValue.trim()) return
@@ -241,7 +243,7 @@ export default function CompetitorTracker() {
       analysis: comp.analysis || '',
       sentAt: new Date().toISOString(),
     }
-    localStorage.setItem('contentGenContext', JSON.stringify(payload))
+    localStorage.setItem(storageKey('contentGenContext'), JSON.stringify(payload))
     router.push('/instagram/content')
   }
 
@@ -269,9 +271,9 @@ export default function CompetitorTracker() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Extraction failed')
-      const existing: any[] = JSON.parse(localStorage.getItem('viralScriptsQueue') || '[]')
+      const existing: any[] = JSON.parse(localStorage.getItem(storageKey('viralScriptsQueue')) || '[]')
       const filtered = existing.filter((s: any) => s.competitorUsername !== competitor.username)
-      localStorage.setItem('viralScriptsQueue', JSON.stringify([...data.viralScripts, ...filtered]))
+      localStorage.setItem(storageKey('viralScriptsQueue'), JSON.stringify([...data.viralScripts, ...filtered]))
       router.push('/instagram/content')
     } catch (err: any) {
       alert('Failed to extract viral scripts: ' + (err as Error).message)
