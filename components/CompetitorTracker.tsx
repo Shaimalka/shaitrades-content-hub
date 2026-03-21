@@ -13,7 +13,7 @@ interface Post {
   videoViewCount: number
   timestamp: string
   caption: string
-  url: strin
+  url: string
   displayUrl: string
   hashtags: string[]
 }
