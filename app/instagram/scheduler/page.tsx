@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAccount } from '@/contexts/AccountContext'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -44,11 +45,11 @@ const TYPE_COLORS: Record<string, string> = {
   Image:    'text-gray-400',
 }
 
-function loadDrafts(): SchedulerDraft[] {
-  try { return JSON.parse(localStorage.getItem('schedulerDrafts') || '[]') } catch { return [] }
+function loadDrafts(key: string): SchedulerDraft[] {
+  try { return JSON.parse(localStorage.getItem(key) || '[]') } catch { return [] }
 }
-function saveDrafts(d: SchedulerDraft[]) {
-  localStorage.setItem('schedulerDrafts', JSON.stringify(d))
+function saveDrafts(key: string, d: SchedulerDraft[]) {
+  localStorage.setItem(key, JSON.stringify(d))
 }
 
 function getWeekDays(baseDate: Date): Date[] {
@@ -73,6 +74,7 @@ const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function SchedulerPage() {
   const router = useRouter()
+  const { storageKey } = useAccount()
   const [drafts, setDrafts] = useState<SchedulerDraft[]>([])
   const [view, setView] = useState<'week' | 'list'>('week')
   const [weekBase, setWeekBase] = useState(new Date())
@@ -81,7 +83,7 @@ export default function SchedulerPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | SchedulerDraft['status']>('all')
 
   useEffect(() => {
-    setDrafts(loadDrafts())
+    setDrafts(loadDrafts(storageKey('schedulerDrafts')))
   }, [])
 
   const weekDays = getWeekDays(weekBase)
@@ -91,13 +93,13 @@ export default function SchedulerPage() {
   const updateDraft = (id: number, changes: Partial<SchedulerDraft>) => {
     const updated = drafts.map(d => d.id === id ? { ...d, ...changes } : d)
     setDrafts(updated)
-    saveDrafts(updated)
+    saveDrafts(storageKey('schedulerDrafts'), updated)
   }
 
   const deleteDraft = (id: number) => {
     const updated = drafts.filter(d => d.id !== id)
     setDrafts(updated)
-    saveDrafts(updated)
+    saveDrafts(storageKey('schedulerDrafts'), updated)
     if (editingId === id) setEditingId(null)
     if (expandedId === id) setExpandedId(null)
   }
