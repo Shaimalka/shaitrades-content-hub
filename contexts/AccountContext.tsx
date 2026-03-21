@@ -1,81 +1,51 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
-export interface Account {
-  id: string
-  name: string
+interface AccountContextType {
+    activeAccount: string
+    accounts: string[]
+    switchAccount: (name: string) => void
+    addAccount: (name: string) => void
 }
 
-const DEFAULT_ACCOUNTS: Account[] = [
-  { id: 'shaitrades', name: 'shaitrades' },
-  { id: 'shaitrades2', name: 'shaitrades2' },
-]
-
-interface AccountContextValue {
-  accounts: Account[]
-  activeAccount: Account
-  setActiveAccount: (account: Account) => void
-  switchAccount: (name: string) => void
-  addAccount: (name: string) => void
-  storageKey: (baseKey: string) => string
-}
-
-const AccountContext = createContext<AccountContextValue | null>(null)
+const AccountContext = createContext<AccountContextType>({
+    activeAccount: 'shaitrades',
+    accounts: ['shaitrades', 'shaitrades2'],
+    switchAccount: () => {},
+    addAccount: () => {},
+})
 
 export function AccountProvider({ children }: { children: React.ReactNode }) {
-  const [accounts, setAccounts] = useState<Account[]>(DEFAULT_ACCOUNTS)
-  const [activeAccount, setActiveAccountState] = useState<Account>(DEFAULT_ACCOUNTS[0])
+    const [accounts, setAccounts] = useState<string[]>(['shaitrades', 'shaitrades2'])
+    const [activeAccount, setActiveAccount] = useState('shaitrades')
 
   useEffect(() => {
-    try {
-      const savedAccounts = localStorage.getItem('shaitrades_accounts')
-      if (savedAccounts) {
-        const parsed: Account[] = JSON.parse(savedAccounts)
-        if (parsed.length > 0) setAccounts(parsed)
-      }
-    } catch {}
-
-    try {
-      const savedActive = localStorage.getItem('activeAccount')
-      if (savedActive) {
-        const parsed: Account = JSON.parse(savedActive)
-        setActiveAccountState(parsed)
-      }
-    } catch {}
+        const saved = localStorage.getItem('activeAccount')
+        if (saved) setActiveAccount(saved)
+        const savedAccounts = localStorage.getItem('accounts')
+        if (savedAccounts) setAccounts(JSON.parse(savedAccounts))
   }, [])
 
-  const setActiveAccount = (account: Account) => {
-    setActiveAccountState(account)
-    localStorage.setItem('activeAccount', JSON.stringify(account))
-  }
-
   const switchAccount = (name: string) => {
-    const found = accounts.find(a => a.name === name || a.id === name)
-    if (found) setActiveAccount(found)
+        setActiveAccount(name)
+        localStorage.setItem('activeAccount', name)
+        window.location.reload()
   }
 
   const addAccount = (name: string) => {
-    const trimmed = name.trim()
-    if (!trimmed) return
-    const id = trimmed.toLowerCase().replace(/\s+/g, '-')
-    const newAccount: Account = { id, name: trimmed }
-    const updated = [...accounts, newAccount]
-    setAccounts(updated)
-    localStorage.setItem('shaitrades_accounts', JSON.stringify(updated))
+        const updated = [...accounts, name]
+        setAccounts(updated)
+        localStorage.setItem('accounts', JSON.stringify(updated))
   }
 
-  const storageKey = (baseKey: string) => activeAccount.id + '_' + baseKey
-
-  return React.createElement(
-    AccountContext.Provider,
-    { value: { accounts, activeAccount, setActiveAccount, switchAccount, addAccount, storageKey } },
-    children
-  )
+  return (
+        <AccountContext.Provider value={{ activeAccount, accounts, switchAccount, addAccount }}>
+          {children}
+        </AccountContext.Provider>AccountContext.Provider>
+      )
 }
 
-export function useAccount(): AccountContextValue {
-  const ctx = useContext(AccountContext)
-  if (!ctx) throw new Error('useAccount must be used within AccountProvider')
-  return ctx
+export function useAccount() {
+    return useContext(AccountContext)
 }
