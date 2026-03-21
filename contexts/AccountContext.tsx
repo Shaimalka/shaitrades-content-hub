@@ -42,7 +42,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   return (
         <AccountContext.Provider value={{ activeAccount, accounts, switchAccount, addAccount }}>
           {children}
-        </AccountContext.Provider>AccountContext.Provider>
+        </AccountContext.Provider>
       )
 }
 
