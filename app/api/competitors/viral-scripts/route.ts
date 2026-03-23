@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// ── Shai's brand profile for scoring ──────────────────────────────────────────
 const SHAI_PROFILE = {
   age: 23,
   from: 'Las Vegas',
@@ -50,14 +49,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Competitor and posts required' }, { status: 400 })
     }
 
+    const followerCount = competitor.followersCount || 0
+
     // ── Filter to Reels and Carousels only ────────────────────────────────────
-    const filtered = posts.filter((p: any) => {
+    const reelsAndCarousels = posts.filter((p: any) => {
       const type = (p.type || '').toLowerCase()
       return type === 'reel' || type === 'video' || type === 'carousel' || type === 'sidecar'
     })
 
-    if (!filtered.length) {
+    if (!reelsAndCarousels.length) {
       return NextResponse.json({ error: 'No Reels or Carousel posts found for this competitor' }, { status: 400 })
+    }
+
+    // ── Filter to 5%+ engagement rate only ───────────────────────────────────
+    const filtered = reelsAndCarousels.filter((p: any) => {
+      if (!followerCount) return true // if no follower count, don't filter out
+      const engagementRate = ((p.likesCount || 0) + (p.commentsCount || 0)) / followerCount * 100
+      return engagementRate >= 5
+    })
+
+    if (!filtered.length) {
+      return NextResponse.json({ 
+        error: 'No posts met the 5% engagement rate threshold. This competitor may have low engagement or follower count is missing.' 
+      }, { status: 400 })
     }
 
     const scored = [...filtered].map((p: any) => ({
@@ -70,12 +84,13 @@ export async function POST(req: NextRequest) {
 
     const postsContext = top10.map((p: any, i: number) => {
       const multiplier = avgScore > 0 ? (p.score / avgScore).toFixed(1) : '1.0'
+      const engRate = followerCount ? (((p.likesCount || 0) + (p.commentsCount || 0)) / followerCount * 100).toFixed(1) : 'N/A'
       const captionFull = (p.caption || '(no caption)').slice(0, 600)
       const dateFmt = p.timestamp
         ? new Date(p.timestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
         : 'unknown date'
       return [
-        'POST #' + (i + 1) + ' [' + multiplier + 'x avg engagement]',
+        'POST #' + (i + 1) + ' [' + multiplier + 'x avg | ' + engRate + '% engagement rate]',
         'Type: ' + (p.type || 'Reel'),
         'Likes: ' + (p.likesCount || 0) + ' | Comments: ' + (p.commentsCount || 0) + (p.videoViewCount ? ' | Views: ' + p.videoViewCount : ''),
         'Posted: ' + dateFmt,
@@ -100,11 +115,11 @@ WHO SHAI IS:
 - Voice: short punchy sentences, personal storytelling, real numbers, no hype
 - Audience: 18-30 year old beginner-intermediate traders who want real talk, not guru content
 
-IMPORTANT: You are ONLY analyzing Reels and Carousel posts. No static image posts are included.
+IMPORTANT: You are ONLY analyzing Reels and Carousel posts that achieved 5%+ engagement rate — these are genuinely viral posts.
 - For Reels: focus on spoken hook, voiceover script, and pacing
 - For Carousels: focus on slide-by-slide structure, first slide hook, and swipe momentum
 
-YOUR TASK: Analyze the top ${top10.length} most viral Reels and Carousel posts from @${competitor.username} (${(competitor.followersCount || 0).toLocaleString()} followers). For each post:
+YOUR TASK: Analyze the top ${top10.length} most viral Reels and Carousel posts from @${competitor.username} (${followerCount.toLocaleString()} followers). For each post:
 1. Extract/reconstruct the post's script or slide structure
 2. Identify WHY it went viral
 3. Remake it as Shai's own version — same viral structure, Shai's real story
@@ -155,7 +170,6 @@ Return a JSON array of exactly ${top10.length} objects. Return ONLY the JSON arr
       return NextResponse.json({ error: 'Failed to parse viral scripts' }, { status: 500 })
     }
 
-    // Attach metadata + viralProbabilityScore + captionWithHashtags
     viralScripts = viralScripts.map((item: any, i: number) => {
       const original = top10[i] || {}
       const viralProbabilityScore = calcViralScore(original, avgScore)
