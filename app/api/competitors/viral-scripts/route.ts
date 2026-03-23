@@ -16,20 +16,17 @@ const SHAI_PROFILE = {
 
 function calcViralScore(post: any, avgScore: number): number {
   const engMultiplier = avgScore > 0 ? post.score / avgScore : 1
-  // Engagement multiplier: 0-40 pts
   const engScore = Math.min(40, Math.round(engMultiplier * 15))
-  
-  // Hook emotional strength: 0-30 pts based on type
+
   const caption = (post.caption || '').toLowerCase()
   const emotionalKeywords = ['lost','quit','broke','$','profit','fail','honest','real','cry','fear','anxiety','nervous','scared','fired','debt','wrong','mistake','regret','hustle','grind','journey','truth']
   const emotionalHits = emotionalKeywords.filter(k => caption.includes(k)).length
   const hookScore = Math.min(30, emotionalHits * 5)
-  
-  // Brand fit: 0-30 pts — trading + lifestyle + youth + Thailand/travel
+
   const brandKeywords = ['trade','trading','trader','market','futures','stocks','chart','profit','loss','income','money','freedom','lifestyle','travel','thailand','abroad','expat','young','23','journey','real','authentic']
   const brandHits = brandKeywords.filter(k => caption.includes(k)).length
   const brandScore = Math.min(30, brandHits * 4)
-  
+
   return Math.min(100, engScore + hookScore + brandScore)
 }
 
@@ -53,7 +50,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Competitor and posts required' }, { status: 400 })
     }
 
-    const scored = [...posts].map((p: any) => ({
+    // ── Filter to Reels and Carousels only ────────────────────────────────────
+    const filtered = posts.filter((p: any) => {
+      const type = (p.type || '').toLowerCase()
+      return type === 'reel' || type === 'video' || type === 'carousel' || type === 'sidecar'
+    })
+
+    if (!filtered.length) {
+      return NextResponse.json({ error: 'No Reels or Carousel posts found for this competitor' }, { status: 400 })
+    }
+
+    const scored = [...filtered].map((p: any) => ({
       ...p,
       score: (p.likesCount || 0) + (p.commentsCount || 0) * 2 + (p.videoViewCount || 0) * 0.1,
     }))
@@ -69,7 +76,7 @@ export async function POST(req: NextRequest) {
         : 'unknown date'
       return [
         'POST #' + (i + 1) + ' [' + multiplier + 'x avg engagement]',
-        'Type: ' + (p.type || 'Image'),
+        'Type: ' + (p.type || 'Reel'),
         'Likes: ' + (p.likesCount || 0) + ' | Comments: ' + (p.commentsCount || 0) + (p.videoViewCount ? ' | Views: ' + p.videoViewCount : ''),
         'Posted: ' + dateFmt,
         'Hashtags: ' + ((p.hashtags || []).length > 0 ? (p.hashtags || []).slice(0, 5).join(', ') : 'none'),
@@ -93,37 +100,41 @@ WHO SHAI IS:
 - Voice: short punchy sentences, personal storytelling, real numbers, no hype
 - Audience: 18-30 year old beginner-intermediate traders who want real talk, not guru content
 
-YOUR TASK: Analyze the top 10 most viral posts from @${competitor.username} (${(competitor.followersCount || 0).toLocaleString()} followers). For each post:
-1. Extract/reconstruct the post's script
+IMPORTANT: You are ONLY analyzing Reels and Carousel posts. No static image posts are included.
+- For Reels: focus on spoken hook, voiceover script, and pacing
+- For Carousels: focus on slide-by-slide structure, first slide hook, and swipe momentum
+
+YOUR TASK: Analyze the top ${top10.length} most viral Reels and Carousel posts from @${competitor.username} (${(competitor.followersCount || 0).toLocaleString()} followers). For each post:
+1. Extract/reconstruct the post's script or slide structure
 2. Identify WHY it went viral
 3. Remake it as Shai's own version — same viral structure, Shai's real story
 
-TOP 10 VIRAL POSTS FROM @${competitor.username}:
+TOP ${top10.length} VIRAL REELS & CAROUSELS FROM @${competitor.username}:
 ${postsContext}
 
-For EACH of the 10 posts, output this JSON structure:
+For EACH post, output this JSON structure:
 {
   "postNumber": 1,
   "originalPost": {
     "url": "post url",
-    "type": "Reel/Carousel/Image",
+    "type": "Reel/Carousel",
     "likesCount": 0,
     "commentsCount": 0,
     "videoViewCount": 0,
     "engagementMultiplier": "Xx avg",
-    "reconstructedScript": "What the post likely said/showed — 2-4 sentences.",
+    "reconstructedScript": "For Reels: what was likely said. For Carousels: what each slide likely showed. 2-4 sentences.",
     "whyViral": "One sentence: core reason this post outperformed"
   },
   "shaiRemake": {
-    "contentType": "Reel/Carousel/Single Image",
+    "contentType": "Reel or Carousel",
     "hook": "Exact first line — punchy, scroll-stopping, personal. A real moment, real number, or vulnerable admission in Shai's voice.",
-    "script": "Full word-for-word script in Shai's voice. For Reel: spoken voiceover. For Carousel: each slide separated by [SLIDE X:]. Minimum 120 words, personal, honest, ready to film. Include Shai's real backstory where relevant.",
+    "script": "For Reel: full word-for-word voiceover script in Shai's voice, minimum 120 words. For Carousel: each slide separated by [SLIDE X:], minimum 6 slides. Personal, honest, ready to film or post.",
     "cta": "Exact CTA line — natural, not salesy, in Shai's voice",
     "viralStructure": "One sentence describing the viral structure used (e.g., 'confession + lesson + resolution')"
   }
 }
 
-Return a JSON array of exactly 10 objects. Return ONLY the JSON array, nothing else.`
+Return a JSON array of exactly ${top10.length} objects. Return ONLY the JSON array, nothing else.`
 
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-5',
@@ -159,7 +170,7 @@ Return a JSON array of exactly 10 objects. Return ONLY the JSON array, nothing e
           likesCount: original.likesCount || 0,
           commentsCount: original.commentsCount || 0,
           videoViewCount: original.videoViewCount || 0,
-          type: original.type || 'Image',
+          type: original.type || 'Reel',
         },
         shaiRemake: {
           ...item.shaiRemake,
