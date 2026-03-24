@@ -265,16 +265,17 @@ export default function ContentPage() {
   }
 
   return (
+    <div className="cyber-bg-grid">
     <div className="space-y-6 p-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white tracking-tight">Content Generator</h1>
-          <p className="text-gray-500 text-sm mt-0.5">AI-powered hooks, scripts, and CTAs</p>
+          <p className="text-muted text-sm mt-0.5">AI-powered hooks, scripts, and CTAs</p>
         </div>
         <div className="flex gap-1">
           {(['viral', 'generate'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`text-xs px-4 py-1.5 font-medium transition-all ${activeTab === tab ? 'bg-white text-black' : 'bg-transparent text-gray-500 border border-[#333] hover:border-gray-500'}`}>
+              className={`text-xs px-4 py-1.5 font-medium transition-all ${activeTab === tab ? 'bg-white text-black' : 'bg-transparent text-muted border border-[#333] hover:border-gray-500'}`}>
               {tab === 'viral' ? '🔥 Viral Queue' + (queue.length > 0 ? ' (' + queue.length + ')' : '') : '⚡ Generate'}
             </button>
           ))}
@@ -287,15 +288,15 @@ export default function ContentPage() {
             <div className="flex gap-1">
               {TIME_FILTER_TABS.map(({ key, label }) => (
                 <button key={key} onClick={() => setTimeFilter(key)}
-                  className={`text-xs px-3 py-1.5 font-medium transition-all ${timeFilter === key ? 'bg-white text-black' : 'text-gray-500 border border-[#333] hover:border-gray-500'}`}>
+                  className={`text-xs px-3 py-1.5 font-medium transition-all ${timeFilter === key ? 'bg-white text-black' : 'text-muted border border-[#333] hover:border-gray-500'}`}>
                   {label}
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-2">
-              {findSummary && <span className="text-[10px] text-gray-500">{findSummary}</span>}
+              {findSummary && <span className="text-[10px] text-muted">{findSummary}</span>}
               <button onClick={findNewContent} disabled={finding}
-                className="text-xs px-3 py-1.5 border border-[#333] text-gray-400 hover:border-white hover:text-white disabled:opacity-50 transition-all">
+                className="text-xs px-3 py-1.5 border border-[#333] text-[var(--text-secondary)] hover:border-white hover:text-white disabled:opacity-50 transition-all">
                 {finding ? '⏳ Scanning...' : '🔍 Find New Content'}
               </button>
             </div>
@@ -303,7 +304,7 @@ export default function ContentPage() {
           <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
             {CONTENT_TYPE_TABS.map(({ key, label, icon }) => (
               <button key={key} onClick={() => setContentTypeTab(key)}
-                className={`flex items-center gap-1.5 text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${contentTypeTab === key ? 'border-white text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                className={`flex items-center gap-1.5 text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${contentTypeTab === key ? 'border-white text-white' : 'border-transparent text-muted hover:text-[var(--text-primary)]'}`}>
                 <span>{icon}</span><span>{label}</span>
                 <span className="text-[9px] text-gray-600 ml-0.5">{typeCount(key)}</span>
               </button>
@@ -313,19 +314,19 @@ export default function ContentPage() {
             <div className="border border-dashed border-[#222] p-12 text-center">
               <p className="text-gray-600 text-sm mb-3">No viral scripts yet.</p>
               <p className="text-gray-700 text-xs mb-4">Go to Competitors, pick a tracked account, and click 🔥 Extract 10 Viral Scripts.</p>
-              <button onClick={() => router.push('/instagram/competitors')} className="text-xs px-4 py-2 border border-[#333] text-gray-400 hover:border-white hover:text-white transition-all">→ Go to Competitors</button>
+              <button onClick={() => router.push('/instagram/competitors')} className="text-xs px-4 py-2 border border-[#333] text-[var(--text-secondary)] hover:border-white hover:text-white transition-all">→ Go to Competitors</button>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <div className="flex gap-3 text-xs text-gray-500">
-                  <span className="text-white font-bold">{pendingCount}</span> pending · <span className="text-green-400 font-bold">{approvedCount}</span> approved · <span className="text-cyan-400 font-bold">{scheduledCount}</span> scheduled
+                <div className="flex gap-3 text-xs text-muted">
+                  <span className="text-white font-bold">{pendingCount}</span> pending · <span className="text-neon-green font-bold">{approvedCount}</span> approved · <span className="text-neon-cyan font-bold">{scheduledCount}</span> scheduled
                 </div>
                 <div className="flex items-center gap-2">
                   {scheduledCount > 0 && <button onClick={clearScheduled} className="text-[10px] text-gray-600 hover:text-red-400 transition-colors">clear scheduled</button>}
                   {(['all', 'pending', 'approved'] as const).map(f => (
                     <button key={f} onClick={() => setFilter(f)}
-                      className={`text-xs px-2.5 py-1 transition-all ${filter === f ? 'bg-white text-black font-medium' : 'text-gray-500 border border-[#333] hover:border-gray-500'}`}>
+                      className={`text-xs px-2.5 py-1 transition-all ${filter === f ? 'bg-white text-black font-medium' : 'text-muted border border-[#333] hover:border-gray-500'}`}>
                       {f}
                     </button>
                   ))}
@@ -340,9 +341,9 @@ export default function ContentPage() {
                 {filteredQueue.map((script) => {
                   const realIdx = queue.indexOf(script)
                   const isExpanded = expandedId === realIdx
-                  const statusColor = script.status === 'scheduled' ? 'text-cyan-400 border-cyan-400/30' : script.status === 'approved' ? 'text-green-400 border-green-400/30' : 'text-gray-500 border-[#333]'
+                  const statusColor = script.status === 'scheduled' ? 'text-neon-cyan border-cyan-400/30' : script.status === 'approved' ? 'text-neon-green border-green-400/30' : 'text-muted border-[#333]'
                   const normType = normaliseType(script.shaiRemake.contentType)
-                  const typeColor = normType === 'Reel' ? 'text-pink-400' : normType === 'Carousel' ? 'text-cyan-400' : 'text-gray-400'
+                  const typeColor = normType === 'Reel' ? 'text-neon-magenta' : normType === 'Carousel' ? 'text-neon-cyan' : 'text-[var(--text-secondary)]'
                   return (
                     <div key={realIdx} className={`bg-[#0d0d0d] border ${script.status === 'scheduled' ? 'border-cyan-500/20' : script.status === 'approved' ? 'border-green-500/20' : 'border-[#1e1e1e]'} transition-colors`}>
                       <div className="p-4">
@@ -360,7 +361,7 @@ export default function ContentPage() {
                                 <span className="text-gray-600 text-[10px]">@{script.competitorUsername}</span>
                                 <span className="text-gray-700 text-[10px]">{script.originalPost.engagementMultiplier} avg</span>
                                 {script.shaiRemake.viralProbabilityScore !== undefined && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 font-bold ${script.shaiRemake.viralProbabilityScore >= 70 ? 'bg-green-500/20 text-green-400' : script.shaiRemake.viralProbabilityScore >= 40 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>🔥 {script.shaiRemake.viralProbabilityScore}/100</span>
+                                  <span className={`text-[10px] px-1.5 py-0.5 font-bold ${script.shaiRemake.viralProbabilityScore >= 70 ? 'bg-green-500/20 text-neon-green' : script.shaiRemake.viralProbabilityScore >= 40 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-[var(--text-secondary)]'}`}>🔥 {script.shaiRemake.viralProbabilityScore}/100</span>
                                 )}
                               </div>
                               <p className="text-white text-sm font-medium leading-tight truncate">{script.shaiRemake.hook}</p>
@@ -383,7 +384,7 @@ export default function ContentPage() {
                         <div className="border-t border-[#1a1a1a] divide-y divide-[#1a1a1a]">
                           <div className="p-4">
                             <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-2">📹 Original Post Script (reconstructed)</p>
-                            <p className="text-gray-500 text-xs leading-relaxed bg-[#080808] p-3 border border-[#1a1a1a]">{script.originalPost.reconstructedScript}</p>
+                            <p className="text-muted text-xs leading-relaxed bg-[#080808] p-3 border border-[#1a1a1a]">{script.originalPost.reconstructedScript}</p>
                           </div>
                           <div className="p-4">
                             <div className="flex items-center justify-between mb-2">
@@ -397,17 +398,17 @@ export default function ContentPage() {
                               <p className="text-[10px] text-gray-600 uppercase tracking-widest">📝 Full Script</p>
                               <button onClick={() => copy(script.shaiRemake.script)} className="text-[10px] text-gray-700 hover:text-white">copy</button>
                             </div>
-                            <div className="text-gray-300 text-sm leading-relaxed bg-[#080808] p-3 border border-[#1a1a1a] whitespace-pre-wrap max-h-64 overflow-y-auto">{script.shaiRemake.script}</div>
+                            <div className="text-[var(--text-primary)] text-sm leading-relaxed bg-[#080808] p-3 border border-[#1a1a1a] whitespace-pre-wrap max-h-64 overflow-y-auto">{script.shaiRemake.script}</div>
                           </div>
                           <div className="p-4">
                             <div className="flex items-center justify-between mb-2">
                               <p className="text-[10px] text-gray-600 uppercase tracking-widest">🎯 CTA</p>
                               <button onClick={() => copy(script.shaiRemake.cta)} className="text-[10px] text-gray-700 hover:text-white">copy</button>
                             </div>
-                            <p className="text-gray-300 text-sm bg-[#080808] p-3 border border-[#1a1a1a]">{script.shaiRemake.cta}</p>
+                            <p className="text-[var(--text-primary)] text-sm bg-[#080808] p-3 border border-[#1a1a1a]">{script.shaiRemake.cta}</p>
                           </div>
                           <div className="p-4 flex gap-2">
-                            <button onClick={() => copy(script.shaiRemake.hook + '\n\n' + script.shaiRemake.script + '\n\n' + script.shaiRemake.cta)} className="flex-1 py-2 border border-[#333] text-gray-400 hover:border-gray-500 hover:text-white text-xs transition-all">Copy Full Script</button>
+                            <button onClick={() => copy(script.shaiRemake.hook + '\n\n' + script.shaiRemake.script + '\n\n' + script.shaiRemake.cta)} className="flex-1 py-2 border border-[#333] text-[var(--text-secondary)] hover:border-gray-500 hover:text-white text-xs transition-all">Copy Full Script</button>
                             {script.status === 'pending' && (
                               <>
                                 <button onClick={() => rejectScript(realIdx)} className="px-4 py-2 border border-red-900 text-red-500 hover:bg-red-900/20 text-xs transition-all">✕ Skip</button>
@@ -434,7 +435,7 @@ export default function ContentPage() {
           <div className="flex gap-1 border-b border-[#1a1a1a] pb-0">
             {GEN_STYLE_TABS.map(({ key, label }) => (
               <button key={key} onClick={() => setGenStyle(key)}
-                className={`text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${genStyle === key ? 'border-white text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                className={`text-xs px-4 py-2 font-medium border-b-2 transition-all -mb-px ${genStyle === key ? 'border-white text-white' : 'border-transparent text-muted hover:text-[var(--text-primary)]'}`}>
                 {label}
               </button>
             ))}
@@ -444,26 +445,26 @@ export default function ContentPage() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="text-white font-semibold text-sm">@{context.competitorUsername}</p>
-                  <p className="text-gray-500 text-xs">{context.topPosts.length} posts loaded · sent {new Date(context.sentAt).toLocaleDateString()}</p>
+                  <p className="text-muted text-xs">{context.topPosts.length} posts loaded · sent {new Date(context.sentAt).toLocaleDateString()}</p>
                 </div>
                 <button onClick={() => { localStorage.removeItem(storageKey('contentGenContext')); setContext(null); setIdeas([]) }} className="text-gray-700 hover:text-red-400 text-xs transition-colors">Clear ×</button>
               </div>
               <div className="flex items-center gap-3 mt-3">
-                <span className="text-gray-500 text-xs">Ideas:</span>
+                <span className="text-muted text-xs">Ideas:</span>
                 {[3, 5, 10].map(n => (
-                  <button key={n} onClick={() => setCount(n)} className={`w-9 h-7 text-xs font-medium transition-all ${count === n ? 'bg-white text-black' : 'bg-transparent text-gray-500 border border-[#333] hover:border-gray-500'}`}>{n}</button>
+                  <button key={n} onClick={() => setCount(n)} className={`w-9 h-7 text-xs font-medium transition-all ${count === n ? 'bg-white text-black' : 'bg-transparent text-muted border border-[#333] hover:border-gray-500'}`}>{n}</button>
                 ))}
                 <button onClick={generate} disabled={loading} className="flex-1 py-1.5 bg-white hover:bg-gray-200 disabled:opacity-50 text-black text-xs font-bold transition-all">
                   {loading ? 'Generating...' : '⚡ Generate ' + (genStyle === 'all' ? '' : genStyle + ' ') + 'Ideas'}
                 </button>
               </div>
-              <p className="text-gray-700 text-[10px] mt-2">Generating: <span className="text-gray-400">{genStyle === 'all' ? 'All formats' : genStyle}</span> — switch the tab above to change format</p>
+              <p className="text-gray-700 text-[10px] mt-2">Generating: <span className="text-[var(--text-secondary)]">{genStyle === 'all' ? 'All formats' : genStyle}</span> — switch the tab above to change format</p>
             </div>
           ) : (
             <div className="border border-dashed border-[#222] p-10 text-center">
               <p className="text-gray-600 text-sm mb-3">No competitor context loaded.</p>
               <p className="text-gray-700 text-xs mb-4">Go to Competitors → click "Send to Content Gen" on any analyzed competitor.</p>
-              <button onClick={() => router.push('/instagram/competitors')} className="text-xs px-4 py-2 border border-[#333] text-gray-400 hover:border-white hover:text-white transition-all">→ Go to Competitors</button>
+              <button onClick={() => router.push('/instagram/competitors')} className="text-xs px-4 py-2 border border-[#333] text-[var(--text-secondary)] hover:border-white hover:text-white transition-all">→ Go to Competitors</button>
             </div>
           )}
           {ideas.length > 0 && (
@@ -473,7 +474,7 @@ export default function ContentPage() {
                 <div key={i} className="bg-[#0d0d0d] border border-[#1e1e1e]">
                   <div className="p-4 border-b border-[#1a1a1a] flex items-center gap-3">
                     <span className="text-gray-600 text-xs">#{i + 1}</span>
-                    <span className="text-[10px] text-gray-500 border border-[#333] px-1.5 py-0.5">{idea.contentType || genStyle || 'Reel'}</span>
+                    <span className="text-[10px] text-muted border border-[#333] px-1.5 py-0.5">{idea.contentType || genStyle || 'Reel'}</span>
                     <span className="text-gray-600 text-xs truncate">{idea.inspiredBy}</span>
                   </div>
                   <div className="p-4 space-y-3">
@@ -483,14 +484,14 @@ export default function ContentPage() {
                     </div>
                     <div>
                       <div className="flex justify-between mb-1"><span className="text-[10px] text-gray-600 uppercase tracking-widest">Script</span><button onClick={() => copy(idea.script)} className="text-[10px] text-gray-700 hover:text-white">copy</button></div>
-                      <div className="text-gray-300 text-sm leading-relaxed bg-[#080808] p-3 border border-[#1a1a1a] whitespace-pre-wrap max-h-48 overflow-y-auto">{idea.script}</div>
+                      <div className="text-[var(--text-primary)] text-sm leading-relaxed bg-[#080808] p-3 border border-[#1a1a1a] whitespace-pre-wrap max-h-48 overflow-y-auto">{idea.script}</div>
                     </div>
                     <div>
                       <div className="flex justify-between mb-1"><span className="text-[10px] text-gray-600 uppercase tracking-widest">CTA</span><button onClick={() => copy(idea.cta)} className="text-[10px] text-gray-700 hover:text-white">copy</button></div>
-                      <p className="text-gray-300 text-sm bg-[#080808] p-3 border border-[#1a1a1a]">{idea.cta}</p>
+                      <p className="text-[var(--text-primary)] text-sm bg-[#080808] p-3 border border-[#1a1a1a]">{idea.cta}</p>
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button onClick={() => copy(idea.hook + '\n\n' + idea.script + '\n\n' + idea.cta)} className="flex-1 py-2 border border-[#333] text-gray-500 hover:border-gray-500 hover:text-white text-xs transition-all">Copy Full</button>
+                      <button onClick={() => copy(idea.hook + '\n\n' + idea.script + '\n\n' + idea.cta)} className="flex-1 py-2 border border-[#333] text-muted hover:border-gray-500 hover:text-white text-xs transition-all">Copy Full</button>
                       <button onClick={() => sendIdeaToScheduler(idea)} className="px-6 py-2 bg-white text-black hover:bg-gray-200 text-xs font-bold transition-all">→ Schedule</button>
                     </div>
                   </div>
@@ -500,6 +501,7 @@ export default function ContentPage() {
           )}
         </div>
       )}
+    </div>
     </div>
   )
 }
