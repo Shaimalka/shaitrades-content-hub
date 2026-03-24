@@ -1,38 +1,58 @@
-import { LucideIcon } from 'lucide-react'
-import clsx from 'clsx'
+import { ReactNode } from 'react'
+
+const ACCENT_COLORS: Record<string, string> = {
+  cyan:    'var(--neon-cyan)',
+  magenta: 'var(--neon-magenta)',
+  green:   'var(--neon-green)',
+  amber:   'var(--neon-amber)',
+  purple:  '#c084fc',
+}
 
 interface StatCardProps {
   label: string
-  value: string | number
-  change?: string
-  positive?: boolean
-  icon: LucideIcon
-  color?: string
+  value: ReactNode
+  subtext?: string
+  accent?: 'cyan' | 'magenta' | 'green' | 'amber' | 'purple'
+  className?: string
+  size?: 'sm' | 'md' | 'lg'
 }
 
-export default function StatCard({ label, value, change, positive, icon: Icon, color = 'cyan' }: StatCardProps) {
-  const colorMap: Record<string, string> = {
-    cyan: 'text-cyan-400 bg-cyan-500/10',
-    green: 'text-green-400 bg-green-500/10',
-    purple: 'text-purple-400 bg-purple-500/10',
-    orange: 'text-orange-400 bg-orange-500/10',
-    pink: 'text-pink-400 bg-pink-500/10',
-  }
+const VALUE_SIZES = { sm: '1.25rem', md: '1.625rem', lg: '2.25rem' }
+
+export function StatCard({
+  label, value, subtext,
+  accent = 'cyan', className = '', size = 'md',
+}: StatCardProps) {
+  const color = ACCENT_COLORS[accent] ?? 'var(--neon-cyan)'
+  const isMagenta = accent === 'magenta'
 
   return (
-    <div className="bg-black border border-gray-800 p-5 hover:border-gray-700 transition-colors">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-gray-400">{label}</span>
-        <div className={clsx('p-2', colorMap[color])}>
-          <Icon className={clsx('w-4 h-4', colorMap[color].split(' ')[0])} />
-        </div>
+    <div className={`stat-card ${isMagenta ? 'stat-card-magenta' : ''} ${className}`}>
+      <div style={{ position: 'absolute', top: '10px', right: '10px', width: '5px', height: '5px', borderRadius: '50%', background: color, opacity: 0.5, boxShadow: `0 0 6px ${color}` }} />
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.7rem', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.04em', marginBottom: '0.5rem', textTransform: 'uppercase' as const }}>
+        {label}
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {change && (
-        <p className={clsx('text-xs mt-1', positive ? 'text-green-400' : 'text-red-400')}>
-          {positive ? '↑' : '↓'} {change}
-        </p>
-      )}
+      <div className="metric-value" style={{ fontSize: VALUE_SIZES[size], color, textShadow: `0 0 12px ${color}40`, marginBottom: subtext ? '0.3rem' : 0 }}>
+        {value}
+      </div>
+      {subtext && <div className="metric-label">{subtext}</div>}
     </div>
   )
 }
+
+interface StatGridProps {
+  children: ReactNode
+  cols?: 2 | 3 | 4 | 5
+  className?: string
+}
+
+export function StatGrid({ children, cols = 4, className = '' }: StatGridProps) {
+  const gridCols: Record<number, string> = { 2: 'repeat(2,1fr)', 3: 'repeat(3,1fr)', 4: 'repeat(4,1fr)', 5: 'repeat(5,1fr)' }
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: gridCols[cols] ?? 'repeat(4,1fr)', gap: '0.75rem' }} className={className}>
+      {children}
+    </div>
+  )
+}
+
+export default StatCard
