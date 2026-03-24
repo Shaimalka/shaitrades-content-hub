@@ -2,111 +2,126 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, Users, Sparkles, Calendar, TrendingUp, ChevronLeft, BarChart2 } from 'lucide-react'
-import clsx from 'clsx'
-import AccountSwitcher from '@/components/AccountSwitcher'
+import {
+  LayoutDashboard, Users, FileText, Sparkles,
+  CalendarDays, BarChart2, ChevronLeft, Sun, Moon
+} from 'lucide-react'
+import { useTheme } from './ThemeProvider'
 
-const instagramNav = [
-  { href: '/instagram', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/instagram/competitors', label: 'Competitors', icon: Users },
-  { href: '/instagram/reports', label: 'Weekly Report', icon: FileText },
-  { href: '/instagram/content', label: 'Content Gen', icon: Sparkles },
-  { href: '/instagram/scheduler', label: 'Scheduler', icon: Calendar },
+const INSTAGRAM_NAV = [
+  { href: '/instagram',             label: 'Dashboard',     icon: LayoutDashboard },
+  { href: '/instagram/competitors', label: 'Competitors',   icon: Users           },
+  { href: '/instagram/reports',     label: 'Weekly Report', icon: FileText        },
+  { href: '/instagram/content',     label: 'Content Gen',   icon: Sparkles        },
+  { href: '/instagram/scheduler',   label: 'Scheduler',     icon: CalendarDays    },
 ]
 
-const tiktokNav = [
+const TIKTOK_NAV = [
   { href: '/tiktok/analytics', label: 'Analytics', icon: BarChart2 },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const { toggleTheme, isDark } = useTheme()
 
   return (
-    <aside className="w-64 bg-black border-r border-gray-800 flex flex-col shrink-0 overflow-y-auto">
-      <div className="p-6 border-b border-gray-800">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 bg-cyan-500 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-black" />
+    <aside className="cyber-sidebar">
+
+      {/* Logo */}
+      <div className="sidebar-logo">
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
+          <div className="logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M3 17l4-8 4 4 3-6 4 10" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
           <div>
-            <p className="font-bold text-sm text-white">Shaitrades</p>
-            <p className="text-xs text-gray-500">Content Hub</p>
+            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+              Shaitrades
+            </div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 400, fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Content Hub
+            </div>
           </div>
         </Link>
       </div>
 
-      {/* Account Switcher */}
-      <AccountSwitcher />
+      {/* Scrollable nav */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem 0' }}>
 
-      <div className="px-4 pt-4 pb-2">
-        <Link href="/" className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-300 transition-colors">
-          <ChevronLeft className="w-3 h-3" />
-          All Platforms
-        </Link>
-      </div>
+        {/* Back link */}
+        <div style={{ padding: '0.25rem 0.625rem 0.5rem' }}>
+          <Link href="/" className="nav-item" style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+            <ChevronLeft size={13} style={{ flexShrink: 0 }} />
+            <span>All Platforms</span>
+          </Link>
+        </div>
 
-      {/* Instagram Section */}
-      <div className="px-4 pt-3 pb-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm">📸</span>
-          <span className="text-xs font-bold text-white tracking-wide">INSTAGRAM</span>
-          <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+        {/* Instagram */}
+        <div className="sidebar-nav-section">
+          <div className="sidebar-section-label">
+            <span style={{ fontSize: '1rem' }}>📸</span>
+            <span>Instagram</span>
+            <div className="live-dot" style={{ marginLeft: 'auto' }} />
+          </div>
+          <nav>
+            {INSTAGRAM_NAV.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className={`nav-item ${pathname === href ? 'active' : ''}`}>
+                <span className="nav-item-icon"><Icon size={14} strokeWidth={2} /></span>
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <hr className="cyber-divider" style={{ margin: '0.25rem 0.75rem' }} />
+
+        {/* TikTok */}
+        <div className="sidebar-nav-section">
+          <div className="sidebar-section-label">
+            <span style={{ fontSize: '1rem' }}>🎵</span>
+            <span>TikTok</span>
+            <div className="live-dot" style={{ marginLeft: 'auto' }} />
+          </div>
+          <nav>
+            {TIKTOK_NAV.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className={`nav-item ${pathname === href ? 'active' : ''}`}>
+                <span className="nav-item-icon"><Icon size={14} strokeWidth={2} /></span>
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
       </div>
-      <nav className="px-4 pb-2 space-y-1">
-        {instagramNav.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all',
-              pathname === href
-                ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-gray-900'
-            )}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </Link>
-        ))}
-      </nav>
 
-      {/* TikTok Section */}
-      <div className="px-4 pt-3 pb-1 border-t border-gray-800/50 mt-2">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm">🎵</span>
-          <span className="text-xs font-bold text-white tracking-wide">TIKTOK</span>
-          <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+      {/* Footer */}
+      <div className="sidebar-profile">
+        {/* Theme toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem', padding: '0.25rem 0' }}>
+          <Sun size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+          <button
+            onClick={toggleTheme}
+            className={`theme-toggle ${isDark ? 'dark-mode' : ''}`}
+            aria-label="Toggle theme"
+          />
+          <Moon size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.58rem', color: 'var(--text-muted)', letterSpacing: '0.06em', marginLeft: 'auto' }}>
+            {isDark ? 'DARK' : 'LIGHT'}
+          </span>
         </div>
-      </div>
-      <nav className="px-4 pb-2 space-y-1">
-        {tiktokNav.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all',
-              pathname === href
-                ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-gray-900'
-            )}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </Link>
-        ))}
-      </nav>
 
-      <div className="flex-1" />
-
-      <div className="p-4 border-t border-gray-800">
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-xs font-bold">
+        {/* Profile */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.375rem', borderRadius: '8px', background: 'rgba(0,242,255,0.04)', border: '1px solid var(--border-subtle)' }}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--neon-cyan), #0060ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 8px rgba(0,242,255,0.3)', fontSize: '0.65rem', fontWeight: 700, color: '#fff', fontFamily: 'Montserrat, sans-serif' }}>
             ST
           </div>
-          <div>
-            <p className="text-sm font-medium text-white">@shaitrades</p>
-            <p className="text-xs text-gray-600">Creator Account</p>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              @shaitrades
+            </div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.58rem', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
+              CREATOR ACCOUNT
+            </div>
           </div>
         </div>
       </div>
