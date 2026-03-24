@@ -82,7 +82,7 @@ function timeSlot(d: Date): string {
 function SectionHeader({ children }: { children: string }) {
   return (
     <div className="flex items-center gap-3 mb-4 mt-10">
-      <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{'// '}{children}</span>
+      <span className="font-mono text-xs text-muted tracking-widest uppercase">{'// '}{children}</span>
       <div className="flex-1 h-px bg-gray-800" />
     </div>
   )
@@ -92,10 +92,10 @@ function SectionHeader({ children }: { children: string }) {
 
 function MiniStat({ label, value, sub, color = 'text-white' }: { label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="bg-black border border-gray-800 p-4">
-      <p className="text-xs text-gray-500 mb-1 truncate">{label}</p>
+    <div className="cyber-panel p-4">
+      <p className="text-xs text-muted mb-1 truncate">{label}</p>
       <p className={`text-xl font-bold ${color}`}>{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-muted mt-1">{sub}</p>}
     </div>
   )
 }
@@ -105,7 +105,7 @@ function MiniStat({ label, value, sub, color = 'text-white' }: { label: string; 
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-gray-900 border border-gray-700 px-3 py-2 text-xs">
+    <div className="cyber-panel border border-gray-700 px-3 py-2 text-xs">
       <p className="text-gray-400">{label}</p>
       <p className="text-white font-bold">{payload[0].value.toLocaleString()}</p>
     </div>
@@ -347,14 +347,14 @@ export default function InstagramDashboard() {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-20 bg-gray-900" />
+          <div className="h-20 cyber-panel" />
           <div className="grid grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-gray-900" />)}
+            {[...Array(4)].map((_, i) => <div key={i} className="h-24 cyber-panel" />)}
           </div>
           <div className="grid grid-cols-5 gap-4">
-            {[...Array(5)].map((_, i) => <div key={i} className="h-24 bg-gray-900" />)}
+            {[...Array(5)].map((_, i) => <div key={i} className="h-24 cyber-panel" />)}
           </div>
-          <div className="h-64 bg-gray-900" />
+          <div className="h-64 cyber-panel" />
         </div>
       </div>
     )
@@ -363,23 +363,23 @@ export default function InstagramDashboard() {
   // ─── RENDER ─────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto">
+    <div className="cyber-bg-grid"><div className="p-8 max-w-[1400px] mx-auto">
 
       {/* ═══ ANALYSIS MODAL ═══ */}
       {analyzePost && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/80 p-4 pt-16">
-          <div className="w-full max-w-2xl bg-black border border-gray-800 relative">
-            <button onClick={() => setAnalyzePost(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+          <div className="w-full max-w-2xl cyber-panel relative">
+            <button onClick={() => setAnalyzePost(null)} className="absolute top-4 right-4 text-muted hover:text-white">
               <X className="w-5 h-5" />
             </button>
 
             <div className="p-6 border-b border-gray-800">
-              <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{'// '}POST ANALYSIS</span>
+              <span className="font-mono text-xs text-muted tracking-widest uppercase">{'// '}POST ANALYSIS</span>
             </div>
 
             {analyzing ? (
               <div className="p-12 text-center">
-                <Sparkles className="w-8 h-8 text-cyan-400 mx-auto mb-4 animate-pulse" />
+                <Sparkles className="w-8 h-8 text-neon-cyan mx-auto mb-4 animate-pulse" />
                 <p className="text-gray-400 text-sm">Claude is analyzing this post...</p>
               </div>
             ) : analysisData ? (
@@ -388,20 +388,20 @@ export default function InstagramDashboard() {
                 <div>
                   <p className="font-mono text-[10px] text-gray-600 mb-2">POST METADATA</p>
                   <div className="grid grid-cols-3 gap-3 text-xs">
-                    <div className="bg-gray-900 p-3"><span className="text-gray-500">Date</span><br /><span className="text-white">{new Date(analyzePost.timestamp).toLocaleDateString()}</span></div>
-                    <div className="bg-gray-900 p-3"><span className="text-gray-500">Type</span><br /><span className="text-white">{analyzePost.media_type === 'VIDEO' ? 'Reel' : 'Photo/Carousel'}</span></div>
-                    <div className="bg-gray-900 p-3"><span className="text-gray-500">Engagement</span><br /><span className="text-white">{analyzePost.engagement.toFixed(2)}%</span></div>
+                    <div className="cyber-panel p-3"><span className="text-muted">Date</span><br /><span className="text-white">{new Date(analyzePost.timestamp).toLocaleDateString()}</span></div>
+                    <div className="cyber-panel p-3"><span className="text-muted">Type</span><br /><span className="text-white">{analyzePost.media_type === 'VIDEO' ? 'Reel' : 'Photo/Carousel'}</span></div>
+                    <div className="cyber-panel p-3"><span className="text-muted">Engagement</span><br /><span className="text-white">{analyzePost.engagement.toFixed(2)}%</span></div>
                   </div>
                 </div>
 
                 {/* Hook analysis */}
                 <div>
                   <p className="font-mono text-[10px] text-gray-600 mb-2">HOOK ANALYSIS</p>
-                  <div className="bg-gray-900 p-4">
-                    <p className="text-sm text-cyan-400 mb-2">&ldquo;{analysisData.hook_text}&rdquo;</p>
+                  <div className="cyber-panel p-4">
+                    <p className="text-sm text-neon-cyan mb-2">&ldquo;{analysisData.hook_text}&rdquo;</p>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs text-gray-500">Rating:</span>
-                      <span className={`text-sm font-bold ${analysisData.hook_rating >= 7 ? 'text-green-400' : analysisData.hook_rating >= 5 ? 'text-amber-400' : 'text-red-400'}`}>
+                      <span className="text-xs text-muted">Rating:</span>
+                      <span className={`text-sm font-bold ${analysisData.hook_rating >= 7 ? 'text-neon-green' : analysisData.hook_rating >= 5 ? 'text-amber-400' : 'text-red-400'}`}>
                         {analysisData.hook_rating}/10
                       </span>
                     </div>
@@ -412,7 +412,7 @@ export default function InstagramDashboard() {
                 {/* Caption breakdown */}
                 <div>
                   <p className="font-mono text-[10px] text-gray-600 mb-2">CAPTION BREAKDOWN</p>
-                  <div className="bg-gray-900 p-4 space-y-3">
+                  <div className="cyber-panel p-4 space-y-3">
                     <div>
                       <p className="text-[10px] text-gray-600 mb-1">FULL CAPTION</p>
                       <p className="text-xs text-gray-300 max-h-32 overflow-y-auto">{analyzePost.caption || '(no caption)'}</p>
@@ -424,7 +424,7 @@ export default function InstagramDashboard() {
                       ))}
                     </div>
                     <div className="flex gap-6">
-                      <div><p className="text-[10px] text-gray-600">CTA</p><p className="text-xs text-cyan-400">{analysisData.caption_cta}</p></div>
+                      <div><p className="text-[10px] text-gray-600">CTA</p><p className="text-xs text-neon-cyan">{analysisData.caption_cta}</p></div>
                       <div><p className="text-[10px] text-gray-600">HASHTAGS</p><p className="text-xs text-gray-400">{analysisData.caption_hashtags?.join(', ') || 'None'}</p></div>
                     </div>
                   </div>
@@ -433,21 +433,21 @@ export default function InstagramDashboard() {
                 {/* Engagement breakdown */}
                 <div>
                   <p className="font-mono text-[10px] text-gray-600 mb-2">ENGAGEMENT BREAKDOWN</p>
-                  <div className="bg-gray-900 p-4">
+                  <div className="cyber-panel p-4">
                     <div className="grid grid-cols-3 gap-3 mb-3 text-center">
                       <div>
-                        <p className="text-lg font-bold text-pink-400">{analyzePost.like_count.toLocaleString()}</p>
-                        <p className="text-[10px] text-gray-500">Likes</p>
+                        <p className="text-lg font-bold text-neon-magenta">{analyzePost.like_count.toLocaleString()}</p>
+                        <p className="text-[10px] text-muted">Likes</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-blue-400">{analyzePost.comments_count.toLocaleString()}</p>
-                        <p className="text-[10px] text-gray-500">Comments</p>
+                        <p className="text-[10px] text-muted">Comments</p>
                       </div>
                       <div>
-                        <p className={`text-lg font-bold ${analysisData.vs_average === 'outperformed' ? 'text-green-400' : analysisData.vs_average === 'underperformed' ? 'text-red-400' : 'text-amber-400'}`}>
+                        <p className={`text-lg font-bold ${analysisData.vs_average === 'outperformed' ? 'text-neon-green' : analysisData.vs_average === 'underperformed' ? 'text-red-400' : 'text-amber-400'}`}>
                           {analysisData.vs_average}
                         </p>
-                        <p className="text-[10px] text-gray-500">vs Average</p>
+                        <p className="text-[10px] text-muted">vs Average</p>
                       </div>
                     </div>
                     <p className="text-xs text-gray-400">{analysisData.vs_explanation}</p>
@@ -461,7 +461,7 @@ export default function InstagramDashboard() {
                     <p className="text-sm text-gray-300 mb-3">{analysisData.content_intelligence}</p>
                     <p className="text-[10px] text-gray-600 mb-2">WHAT TO REPLICATE</p>
                     {analysisData.replicate_tips?.map((t, i) => (
-                      <p key={i} className="text-xs text-cyan-400 mb-1">→ {t}</p>
+                      <p key={i} className="text-xs text-neon-cyan mb-1">→ {t}</p>
                     ))}
                   </div>
                 </div>
@@ -472,7 +472,7 @@ export default function InstagramDashboard() {
                   disabled={addedToReport}
                   className={`w-full py-3 font-bold text-sm transition-colors flex items-center justify-center gap-2 ${
                     addedToReport
-                      ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                      ? 'bg-green-500/10 border border-green-500/20 text-neon-green'
                       : 'bg-cyan-500 hover:bg-cyan-400 text-black'
                   }`}
                 >
@@ -491,7 +491,7 @@ export default function InstagramDashboard() {
                     <p className="text-xs text-red-400 font-mono break-all">{analysisError}</p>
                   </div>
                 )}
-                <button onClick={() => analyzePost && runAnalysis(analyzePost)} className="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-500/20 px-3 py-1.5">
+                <button onClick={() => analyzePost && runAnalysis(analyzePost)} className="text-xs text-neon-cyan hover:text-cyan-300 border border-cyan-500/20 px-3 py-1.5">
                   Retry
                 </button>
               </div>
@@ -503,7 +503,7 @@ export default function InstagramDashboard() {
       {/* ═══════════════════════════════════════════════════════════════════
           1. HEADER
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-black border border-gray-800 p-5 mb-6">
+      <div className="cyber-panel p-5 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {profile?.profile_picture_url ? (
@@ -514,7 +514,7 @@ export default function InstagramDashboard() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold text-white">@{profile?.username || 'shaitrading'}</h1>
-                <span className="bg-cyan-500/10 text-cyan-400 text-xs px-2 py-0.5 border border-cyan-500/20">Creator</span>
+                <span className="bg-cyan-500/10 text-neon-cyan text-xs px-2 py-0.5 border border-cyan-500/20">Creator</span>
               </div>
               <div className="flex items-center gap-4 mt-1 text-sm text-gray-400">
                 <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {followers.toLocaleString()} followers</span>
@@ -525,7 +525,7 @@ export default function InstagramDashboard() {
           </div>
           <div className="flex items-center gap-4">
             {lastRefresh && (
-              <span className="text-xs text-gray-500 flex items-center gap-1">
+              <span className="text-xs text-muted flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {lastRefresh.toLocaleTimeString()}
               </span>
@@ -541,38 +541,38 @@ export default function InstagramDashboard() {
       {/* ═══ 2. GROWTH METRICS ═══ */}
       <SectionHeader>GROWTH METRICS</SectionHeader>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MiniStat label="Followers Gained (Week)" value={`+${Math.round(followers * 0.008)}`} sub="estimated from growth rate" color="text-green-400" />
-        <MiniStat label="Followers Gained (Month)" value={`+${Math.round(followers * 0.035)}`} sub="estimated from growth rate" color="text-green-400" />
-        <MiniStat label="Growth Rate (WoW)" value={`${(0.8).toFixed(1)}%`} sub="week over week" color="text-cyan-400" />
+        <MiniStat label="Followers Gained (Week)" value={`+${Math.round(followers * 0.008)}`} sub="estimated from growth rate" color="text-neon-green" />
+        <MiniStat label="Followers Gained (Month)" value={`+${Math.round(followers * 0.035)}`} sub="estimated from growth rate" color="text-neon-green" />
+        <MiniStat label="Growth Rate (WoW)" value={`${(0.8).toFixed(1)}%`} sub="week over week" color="text-neon-cyan" />
         <MiniStat label="Accounts Reached (Week)" value={fmt(Math.round(avgReach * 7 * 0.4))} sub="estimated from engagement" color="text-purple-400" />
       </div>
 
       {/* ═══ 3. SUMMARY STATS ═══ */}
       <SectionHeader>{`SUMMARY STATS · LAST ${posts.length} POSTS`}</SectionHeader>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <MiniStat label="Avg Likes / Post" value={fmt(avgLikes)} color="text-pink-400" />
+        <MiniStat label="Avg Likes / Post" value={fmt(avgLikes)} color="text-neon-magenta" />
         <MiniStat label="Avg Comments / Post" value={fmt(avgComments)} color="text-blue-400" />
         <MiniStat label="Avg Reach / Post" value={fmt(avgReach)} sub="estimated" color="text-purple-400" />
         <MiniStat label="Avg Saves / Post" value={fmt(avgSaves)} sub="estimated" color="text-amber-400" />
-        <MiniStat label="Avg Engagement Rate" value={`${avgEngagement.toFixed(2)}%`} sub="of followers" color="text-green-400" />
+        <MiniStat label="Avg Engagement Rate" value={`${avgEngagement.toFixed(2)}%`} sub="of followers" color="text-neon-green" />
       </div>
 
       {/* ═══ 4. REEL PERFORMANCE ═══ */}
       <SectionHeader>{`REEL PERFORMANCE · ${reels.length} REELS`}</SectionHeader>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <MiniStat label="Avg Reel Duration" value="~30s" sub="estimated avg" color="text-cyan-400" />
+        <MiniStat label="Avg Reel Duration" value="~30s" sub="estimated avg" color="text-neon-cyan" />
         <MiniStat label="Total Watch Time" value={fmt(totalReelViews * 20)} sub="est. seconds" color="text-purple-400" />
         <MiniStat label="Total Reel Views" value={fmt(totalReelViews)} sub="estimated" color="text-white" />
         <MiniStat label="Avg Views / Reel" value={fmt(estViewsPerReel)} sub="estimated" color="text-amber-400" />
-        <MiniStat label="Avg Engagement / Reel" value={`${reelAvgEng.toFixed(2)}%`} sub={`${fmt(reelAvgLikes)} likes · ${fmt(reelAvgComments)} comments`} color="text-green-400" />
+        <MiniStat label="Avg Engagement / Reel" value={`${reelAvgEng.toFixed(2)}%`} sub={`${fmt(reelAvgLikes)} likes · ${fmt(reelAvgComments)} comments`} color="text-neon-green" />
       </div>
 
       {/* ═══ 5. TOP & BOTTOM PERFORMERS ═══ */}
       <SectionHeader>TOP &amp; BOTTOM PERFORMERS</SectionHeader>
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs text-gray-500">Sort by:</span>
+        <span className="text-xs text-muted">Sort by:</span>
         {(['like_count', 'comments_count', 'engagement'] as SortKey[]).map(k => (
-          <button key={k} onClick={() => setPerfSort(k)} className={`text-xs px-2.5 py-1 transition-colors ${perfSort === k ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-gray-300 border border-gray-800'}`}>
+          <button key={k} onClick={() => setPerfSort(k)} className={`text-xs px-2.5 py-1 transition-colors ${perfSort === k ? 'bg-cyan-500/20 text-neon-cyan border border-cyan-500/30' : 'text-muted hover:text-gray-300'}`}>
             {k === 'like_count' ? 'Likes' : k === 'comments_count' ? 'Comments' : 'Engagement'}
           </button>
         ))}
@@ -580,8 +580,8 @@ export default function InstagramDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <ArrowUp className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-medium text-green-400">Top 3 Performers</span>
+            <ArrowUp className="w-4 h-4 text-neon-green" />
+            <span className="text-sm font-medium text-neon-green">Top 3 Performers</span>
           </div>
           <div className="space-y-3">
             {top3.map((p, i) => (
@@ -604,7 +604,7 @@ export default function InstagramDashboard() {
 
       {/* ═══ 6. ENGAGEMENT OVER TIME ═══ */}
       <SectionHeader>ENGAGEMENT OVER TIME · LAST 30 DAYS</SectionHeader>
-      <div className="bg-black border border-gray-800 p-5">
+      <div className="cyber-panel p-5">
         {engOverTime.length > 0 ? (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={engOverTime} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
@@ -622,15 +622,15 @@ export default function InstagramDashboard() {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-gray-500 text-sm text-center py-10">No posts in the last 30 days</p>
+          <p className="text-muted text-sm text-center py-10">No posts in the last 30 days</p>
         )}
       </div>
 
       {/* ═══ 7. BEST TIME TO POST ═══ */}
       <SectionHeader>BEST TIME TO POST</SectionHeader>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-black border border-gray-800 p-5">
-          <p className="text-xs text-gray-500 mb-4 font-mono">BY DAY OF WEEK</p>
+        <div className="cyber-panel p-5">
+          <p className="text-xs text-muted mb-4 font-mono">BY DAY OF WEEK</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={byDay} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
               <XAxis dataKey="day" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -644,12 +644,12 @@ export default function InstagramDashboard() {
             </BarChart>
           </ResponsiveContainer>
           <p className="text-xs text-center mt-2">
-            <span className="text-green-400 font-medium">{bestDay?.day}</span>
-            <span className="text-gray-500"> performs best · avg {bestDay?.avg.toLocaleString()} engagement</span>
+            <span className="text-neon-green font-medium">{bestDay?.day}</span>
+            <span className="text-muted"> performs best · avg {bestDay?.avg.toLocaleString()} engagement</span>
           </p>
         </div>
-        <div className="bg-black border border-gray-800 p-5">
-          <p className="text-xs text-gray-500 mb-4 font-mono">BY TIME SLOT</p>
+        <div className="cyber-panel p-5">
+          <p className="text-xs text-muted mb-4 font-mono">BY TIME SLOT</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={byTime} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
               <XAxis dataKey="slot" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -663,8 +663,8 @@ export default function InstagramDashboard() {
             </BarChart>
           </ResponsiveContainer>
           <p className="text-xs text-center mt-2">
-            <span className="text-green-400 font-medium">{bestTime?.slot}</span>
-            <span className="text-gray-500"> performs best · avg {bestTime?.avg.toLocaleString()} engagement</span>
+            <span className="text-neon-green font-medium">{bestTime?.slot}</span>
+            <span className="text-muted"> performs best · avg {bestTime?.avg.toLocaleString()} engagement</span>
           </p>
         </div>
       </div>
@@ -672,17 +672,17 @@ export default function InstagramDashboard() {
       {/* ═══ 8. ALL POSTS GRID ═══ */}
       <SectionHeader>{`ALL POSTS · ${posts.length} TOTAL`}</SectionHeader>
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs text-gray-500">Sort:</span>
+        <span className="text-xs text-muted">Sort:</span>
         {([['like_count', 'Likes'], ['comments_count', 'Comments'], ['engagement', 'Engagement'], ['timestamp', 'Recent']] as [SortKey, string][]).map(([k, label]) => (
-          <button key={k} onClick={() => setGridSort(k)} className={`text-xs px-2.5 py-1 transition-colors ${gridSort === k ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-gray-300 border border-gray-800'}`}>
+          <button key={k} onClick={() => setGridSort(k)} className={`text-xs px-2.5 py-1 transition-colors ${gridSort === k ? 'bg-cyan-500/20 text-neon-cyan border border-cyan-500/30' : 'text-muted hover:text-gray-300'}`}>
             {label}
           </button>
         ))}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         {gridPosts.map(p => (
-          <a key={p.id} href={p.permalink} target="_blank" rel="noopener noreferrer" className="group relative bg-black border border-gray-800 overflow-hidden hover:border-gray-600 transition-colors">
-            <div className="aspect-square bg-gray-900 relative">
+          <a key={p.id} href={p.permalink} target="_blank" rel="noopener noreferrer" className="group relative cyber-panel overflow-hidden hover:border-gray-600 transition-colors">
+            <div className="aspect-square cyber-panel relative">
               {p.thumbnail_url || (p.media_type !== 'VIDEO' && p.media_url) ? (
                 <img src={'/api/proxy-image?url=' + encodeURIComponent(p.thumbnail_url || p.media_url)} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -694,10 +694,10 @@ export default function InstagramDashboard() {
             </div>
             <div className="p-2.5">
               <div className="flex items-center justify-between text-xs text-gray-400">
-                <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-pink-400" />{p.like_count.toLocaleString()}</span>
+                <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-neon-magenta" />{p.like_count.toLocaleString()}</span>
                 <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3 text-blue-400" />{p.comments_count.toLocaleString()}</span>
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">{engagementRate(p, followers).toFixed(2)}% ER</p>
+              <p className="text-[10px] text-muted mt-1">{engagementRate(p, followers).toFixed(2)}% ER</p>
             </div>
           </a>
         ))}
@@ -705,13 +705,13 @@ export default function InstagramDashboard() {
 
       {/* ═══ 9. CALENDAR VIEW ═══ */}
       <SectionHeader>CALENDAR VIEW</SectionHeader>
-      <div className="bg-black border border-gray-800 p-5">
+      <div className="cyber-panel p-5">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="p-1.5 hover:bg-gray-900 text-gray-400">
+          <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))} className="p-1.5 hover:cyber-panel text-gray-400">
             <ChevronLeft className="w-4 h-4" />
           </button>
           <span className="text-sm font-medium text-white">{calMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-          <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="p-1.5 hover:bg-gray-900 text-gray-400">
+          <button onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))} className="p-1.5 hover:cyber-panel text-gray-400">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -728,7 +728,7 @@ export default function InstagramDashboard() {
             const hasPost = !!dayPosts
             const totalEng = dayPosts?.reduce((s, p) => s + p.like_count + p.comments_count, 0) || 0
             return (
-              <div key={day} className={`aspect-square flex flex-col items-center justify-center text-xs transition-colors ${hasPost ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-gray-900/50 text-gray-600'}`}>
+              <div key={day} className={`aspect-square flex flex-col items-center justify-center text-xs transition-colors ${hasPost ? 'bg-green-500/10 border border-green-500/20 text-neon-green' : 'cyber-panel/50 text-gray-600'}`}>
                 <span className="font-medium">{day}</span>
                 {hasPost && (
                   <>
@@ -741,15 +741,16 @@ export default function InstagramDashboard() {
           })}
         </div>
         <div className="grid grid-cols-5 gap-3 mt-4 pt-4 border-t border-gray-800">
-          <div className="text-center"><p className="text-lg font-bold text-white">{calStats.totalPosts}</p><p className="text-[10px] text-gray-500">Posts</p></div>
-          <div className="text-center"><p className="text-lg font-bold text-white">{calStats.daysWithPosts}</p><p className="text-[10px] text-gray-500">Days Active</p></div>
-          <div className="text-center"><p className="text-lg font-bold text-white">{calStats.postsPerDay}</p><p className="text-[10px] text-gray-500">Posts/Active Day</p></div>
-          <div className="text-center"><p className="text-lg font-bold text-pink-400">{calStats.totalLikes.toLocaleString()}</p><p className="text-[10px] text-gray-500">Total Likes</p></div>
-          <div className="text-center"><p className="text-lg font-bold text-blue-400">{calStats.totalComments.toLocaleString()}</p><p className="text-[10px] text-gray-500">Total Comments</p></div>
+          <div className="text-center"><p className="text-lg font-bold text-white">{calStats.totalPosts}</p><p className="text-[10px] text-muted">Posts</p></div>
+          <div className="text-center"><p className="text-lg font-bold text-white">{calStats.daysWithPosts}</p><p className="text-[10px] text-muted">Days Active</p></div>
+          <div className="text-center"><p className="text-lg font-bold text-white">{calStats.postsPerDay}</p><p className="text-[10px] text-muted">Posts/Active Day</p></div>
+          <div className="text-center"><p className="text-lg font-bold text-neon-magenta">{calStats.totalLikes.toLocaleString()}</p><p className="text-[10px] text-muted">Total Likes</p></div>
+          <div className="text-center"><p className="text-lg font-bold text-blue-400">{calStats.totalComments.toLocaleString()}</p><p className="text-[10px] text-muted">Total Comments</p></div>
         </div>
       </div>
 
       <div className="h-12" />
+    </div>
     </div>
   )
 }
@@ -764,12 +765,12 @@ function PerformerCard({ post, rank, followers, variant, onAnalyze }: {
   onAnalyze: () => void
 }) {
   const border = variant === 'top' ? 'border-green-500/20 hover:border-green-500/40' : 'border-red-500/20 hover:border-red-500/40'
-  const badge = variant === 'top' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+  const badge = variant === 'top' ? 'bg-green-500/10 text-neon-green' : 'bg-red-500/10 text-red-400'
 
   return (
-    <div className={`bg-black border ${border} p-4 transition-colors`}>
+    <div className={`cyber-panel border ${border} p-4 transition-colors`}>
       <div className="flex items-start gap-3">
-        <div className="w-16 h-16 bg-gray-900 overflow-hidden shrink-0">
+        <div className="w-16 h-16 cyber-panel overflow-hidden shrink-0">
           {post.thumbnail_url || (post.media_type !== 'VIDEO' && post.media_url) ? (
             <img src={'/api/proxy-image?url=' + encodeURIComponent(post.thumbnail_url || post.media_url)} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -779,20 +780,20 @@ function PerformerCard({ post, rank, followers, variant, onAnalyze }: {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className={`text-[10px] font-bold px-1.5 py-0.5 ${badge}`}>#{rank}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 ${post.media_type === 'VIDEO' ? 'bg-pink-500/10 text-pink-400' : 'bg-blue-500/10 text-blue-400'}`}>
+            <span className={`text-[10px] px-1.5 py-0.5 ${post.media_type === 'VIDEO' ? 'bg-pink-500/10 text-neon-magenta' : 'bg-blue-500/10 text-blue-400'}`}>
               {post.media_type === 'VIDEO' ? 'REEL' : 'POST'}
             </span>
-            <a href={post.permalink} target="_blank" rel="noopener noreferrer" className="ml-auto text-gray-500 hover:text-cyan-400">
+            <a href={post.permalink} target="_blank" rel="noopener noreferrer" className="ml-auto text-muted hover:text-neon-cyan">
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
           <p className="text-xs text-gray-300 line-clamp-2 mb-2">{post.caption || '(no caption)'}</p>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-pink-400" />{post.like_count.toLocaleString()}</span>
+          <div className="flex items-center gap-3 text-xs text-muted">
+            <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-neon-magenta" />{post.like_count.toLocaleString()}</span>
             <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3 text-blue-400" />{post.comments_count.toLocaleString()}</span>
-            <span className={`font-medium ${variant === 'top' ? 'text-green-400' : 'text-red-400'}`}>{post.engagement.toFixed(2)}% ER</span>
+            <span className={`font-medium ${variant === 'top' ? 'text-neon-green' : 'text-red-400'}`}>{post.engagement.toFixed(2)}% ER</span>
           </div>
-          <button onClick={onAnalyze} className="mt-2 flex items-center gap-1.5 text-[10px] text-cyan-400 hover:text-cyan-300 transition-colors border border-cyan-500/20 px-2 py-1 bg-cyan-500/5">
+          <button onClick={onAnalyze} className="mt-2 flex items-center gap-1.5 text-[10px] text-neon-cyan hover:text-cyan-300 transition-colors border border-cyan-500/20 px-2 py-1 bg-cyan-500/5">
             <Sparkles className="w-3 h-3" />
             Analyze
           </button>
