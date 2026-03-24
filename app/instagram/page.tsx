@@ -138,7 +138,7 @@ export default function InstagramDashboard() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/instagram/stats')
+      const res = await fetch('/api/instagram/stats', { cache: 'no-store' })
       const json = await res.json()
       setProfile(json.profile)
       setPosts(json.posts || [])
@@ -513,7 +513,7 @@ export default function InstagramDashboard() {
             )}
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-white">@{profile?.username || 'shaitrades'}</h1>
+                <h1 className="text-xl font-bold text-white">@{profile?.username || 'shaitrading'}</h1>
                 <span className="bg-cyan-500/10 text-cyan-400 text-xs px-2 py-0.5 border border-cyan-500/20">Creator</span>
               </div>
               <div className="flex items-center gap-4 mt-1 text-sm text-gray-400">
