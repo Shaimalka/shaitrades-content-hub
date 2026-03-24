@@ -25,10 +25,10 @@ interface SchedulerDraft {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  scripted: 'text-gray-400 border-gray-700',
+  scripted: 'text-[var(--text-secondary)] border-gray-700',
   filmed:   'text-purple-400 border-purple-500/30',
-  ready:    'text-cyan-400 border-cyan-500/30',
-  posted:   'text-green-400 border-green-500/30',
+  ready:    'text-neon-cyan border-cyan-500/30',
+  posted:   'text-neon-green border-green-500/30',
 }
 
 const STATUS_BG: Record<string, string> = {
@@ -39,10 +39,10 @@ const STATUS_BG: Record<string, string> = {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  Reel:     'text-pink-400',
-  Carousel: 'text-cyan-400',
+  Reel:     'text-neon-magenta',
+  Carousel: 'text-neon-cyan',
   Story:    'text-purple-400',
-  Image:    'text-gray-400',
+  Image:    'text-[var(--text-secondary)]',
 }
 
 function loadDrafts(key: string): SchedulerDraft[] {
@@ -134,7 +134,7 @@ export default function SchedulerPage() {
     const save = () => { updateDraft(draft.id, local); setEditingId(null) }
 
     return (
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 p-4">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center cyber-panel/80 p-4">
         <div className="bg-[#0a0a0a] border border-[#2a2a2a] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-4 border-b border-[#1a1a1a] sticky top-0 bg-[#0a0a0a]">
             <h3 className="text-white text-sm font-bold">Edit Post</h3>
@@ -211,7 +211,7 @@ export default function SchedulerPage() {
               Delete
             </button>
             <button onClick={() => setEditingId(null)}
-              className="flex-1 py-2 border border-[#333] text-gray-400 hover:border-gray-500 text-xs transition-all">
+              className="flex-1 py-2 border border-[#333] text-[var(--text-secondary)] hover:border-gray-500 text-xs transition-all">
               Cancel
             </button>
             <button onClick={save}
@@ -233,7 +233,7 @@ export default function SchedulerPage() {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-              <span className={`text-[10px] font-medium ${TYPE_COLORS[draft.contentType] || 'text-gray-400'}`}>{draft.contentType}</span>
+              <span className={`text-[10px] font-medium ${TYPE_COLORS[draft.contentType] || 'text-[var(--text-secondary)]'}`}>{draft.contentType}</span>
               <button onClick={() => cycleStatus(draft)}
                 className={`text-[9px] border px-1.5 py-0.5 transition-all ${STATUS_COLORS[draft.status]}`}>
                 {draft.status}
@@ -258,13 +258,13 @@ export default function SchedulerPage() {
         {!compact && (
           <div>
             <button onClick={() => setExpandedId(expandedId === draft.id ? null : draft.id)}
-              className="text-[10px] text-gray-700 hover:text-gray-400 mt-2">
+              className="text-[10px] text-gray-700 hover:text-[var(--text-secondary)] mt-2">
               {expandedId === draft.id ? '▲ hide script' : '▼ view script'}
             </button>
             {expandedId === draft.id && (
               <div className="mt-2 space-y-2 border-t border-[#1a1a1a] pt-2">
-                <div className="text-gray-400 text-xs leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto bg-[#080808] p-2 border border-[#1a1a1a]">{draft.script}</div>
-                <div className="text-gray-500 text-xs bg-[#080808] p-2 border border-[#1a1a1a]">{draft.cta}</div>
+                <div className="text-[var(--text-secondary)] text-xs leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto bg-[#080808] p-2 border border-[#1a1a1a]">{draft.script}</div>
+                <div className="text-muted text-xs bg-[#080808] p-2 border border-[#1a1a1a]">{draft.cta}</div>
                 {draft.originalUrl && (
                   <a href={draft.originalUrl} target="_blank" rel="noopener noreferrer"
                     className="text-[10px] text-gray-700 hover:text-white block">
@@ -281,6 +281,7 @@ export default function SchedulerPage() {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
+    <div className="cyber-bg-grid">
     <div className="p-6 space-y-6 max-w-5xl">
       {/* Edit Panel */}
       {editingId !== null && (
@@ -291,17 +292,17 @@ export default function SchedulerPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white tracking-tight">Post Scheduler</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Plan, script, film, post — all in one place</p>
+          <p className="text-muted text-sm mt-0.5">Plan, script, film, post — all in one place</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => router.push('/instagram/content')}
-            className="text-xs px-3 py-1.5 border border-[#333] text-gray-400 hover:border-white hover:text-white transition-all">
+            className="text-xs px-3 py-1.5 border border-[#333] text-[var(--text-secondary)] hover:border-white hover:text-white transition-all">
             + From Content Gen
           </button>
           <div className="flex gap-1">
             {(['week', 'list'] as const).map(v => (
               <button key={v} onClick={() => setView(v)}
-                className={`text-xs px-3 py-1.5 font-medium transition-all ${view === v ? 'bg-white text-black' : 'bg-transparent text-gray-500 border border-[#333] hover:border-gray-500'}`}>
+                className={`text-xs px-3 py-1.5 font-medium transition-all ${view === v ? 'bg-white text-black' : 'bg-transparent text-muted border border-[#333] hover:border-gray-500'}`}>
                 {v === 'week' ? '📅 Week' : '☰ List'}
               </button>
             ))}
@@ -311,7 +312,7 @@ export default function SchedulerPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-3">
-        {([['scripted', counts.scripted, 'text-gray-400'], ['filmed', counts.filmed, 'text-purple-400'], ['ready', counts.ready, 'text-cyan-400'], ['posted', counts.posted, 'text-green-400']] as const).map(([label, count, color]) => (
+        {([['scripted', counts.scripted, 'text-[var(--text-secondary)]'], ['filmed', counts.filmed, 'text-purple-400'], ['ready', counts.ready, 'text-neon-cyan'], ['posted', counts.posted, 'text-neon-green']] as const).map(([label, count, color]) => (
           <div key={label} className="bg-[#0d0d0d] border border-[#1a1a1a] p-3 text-center">
             <p className={`text-xl font-bold ${color}`}>{count}</p>
             <p className="text-gray-600 text-xs uppercase tracking-widest mt-0.5">{label}</p>
@@ -325,7 +326,7 @@ export default function SchedulerPage() {
           <p className="text-gray-600 text-sm mb-2">No posts in your scheduler yet.</p>
           <p className="text-gray-700 text-xs mb-5">Generate viral scripts → approve them → click "Schedule" to add them here.</p>
           <button onClick={() => router.push('/instagram/content')}
-            className="text-xs px-5 py-2 border border-[#333] text-gray-400 hover:border-white hover:text-white transition-all">
+            className="text-xs px-5 py-2 border border-[#333] text-[var(--text-secondary)] hover:border-white hover:text-white transition-all">
             → Go to Content Gen
           </button>
         </div>
@@ -340,7 +341,7 @@ export default function SchedulerPage() {
               className="text-xs text-gray-600 hover:text-white px-2 py-1 border border-[#333] hover:border-gray-500 transition-all">
               ← Prev
             </button>
-            <span className="text-gray-400 text-xs flex-1 text-center">
+            <span className="text-[var(--text-secondary)] text-xs flex-1 text-center">
               Week of {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
             <button onClick={() => setWeekBase(new Date())}
@@ -371,7 +372,7 @@ export default function SchedulerPage() {
                     {dayPosts.map(post => (
                       <div key={post.id} onClick={() => setEditingId(post.id)}
                         className={`cursor-pointer p-1.5 border ${STATUS_BG[post.status]} ${STATUS_COLORS[post.status].split(' ')[1]} hover:opacity-80 transition-all`}>
-                        <p className={`text-[9px] font-medium ${TYPE_COLORS[post.contentType] || 'text-gray-400'} mb-0.5`}>{post.contentType}</p>
+                        <p className={`text-[9px] font-medium ${TYPE_COLORS[post.contentType] || 'text-[var(--text-secondary)]'} mb-0.5`}>{post.contentType}</p>
                         <p className="text-[10px] text-white leading-tight line-clamp-2">{post.hook}</p>
                         {post.scheduledTime && <p className="text-[9px] text-gray-600 mt-0.5">{post.scheduledTime}</p>}
                       </div>
@@ -403,7 +404,7 @@ export default function SchedulerPage() {
           <div className="flex items-center gap-2">
             {(['all', 'scripted', 'filmed', 'ready', 'posted'] as const).map(f => (
               <button key={f} onClick={() => setFilterStatus(f)}
-                className={`text-xs px-2.5 py-1 transition-all ${filterStatus === f ? 'bg-white text-black font-medium' : 'text-gray-500 border border-[#333] hover:border-gray-500'}`}>
+                className={`text-xs px-2.5 py-1 transition-all ${filterStatus === f ? 'bg-white text-black font-medium' : 'text-muted border border-[#333] hover:border-gray-500'}`}>
                 {f}
               </button>
             ))}
@@ -433,6 +434,7 @@ export default function SchedulerPage() {
           }
         </div>
       )}
+    </div>
     </div>
   )
 }
