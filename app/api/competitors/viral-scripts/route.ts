@@ -52,12 +52,12 @@ export async function POST(req: NextRequest) {
     const filtered = reelsAndCarousels.filter((p: any) => {
       if (!followerCount) return true
       const engagementRate = ((p.likesCount || 0) + (p.commentsCount || 0)) / followerCount * 100
-      return engagementRate >= 5
+      return engagementRate >= 2.5
     })
 
     if (!filtered.length) {
       return NextResponse.json({
-        error: 'No posts met the 5% engagement rate threshold. This competitor may have low engagement or follower count is missing.'
+        error: 'No posts met the 2.5% engagement rate threshold. This competitor may have low engagement or follower count is missing.'
       }, { status: 400 })
     }
 
