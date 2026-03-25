@@ -2,17 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const SHAI_PROFILE = {
-  age: 23,
-  from: 'Las Vegas',
-  started: 'at 18 during COVID',
-  salesIncome: '$250K+/year sales job',
-  loss: '$230K last year (bad business + investments)',
-  rebuilt: '$20-30K/month, paid off debts while trading futures',
-  move: '1 month ago quit 6-figure job, moved to Thailand to trade full time',
-  arc: 'from -$230K to full-time futures trader at 23',
-}
-
 function calcViralScore(post: any, avgScore: number): number {
   const engMultiplier = avgScore > 0 ? post.score / avgScore : 1
   const engScore = Math.min(40, Math.round(engMultiplier * 15))
@@ -51,7 +40,6 @@ export async function POST(req: NextRequest) {
 
     const followerCount = competitor.followersCount || 0
 
-    // ── Filter to Reels and Carousels only ────────────────────────────────────
     const reelsAndCarousels = posts.filter((p: any) => {
       const type = (p.type || '').toLowerCase()
       return type === 'reel' || type === 'video' || type === 'carousel' || type === 'sidecar'
@@ -61,16 +49,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No Reels or Carousel posts found for this competitor' }, { status: 400 })
     }
 
-    // ── Filter to 5%+ engagement rate only ───────────────────────────────────
     const filtered = reelsAndCarousels.filter((p: any) => {
-      if (!followerCount) return true // if no follower count, don't filter out
+      if (!followerCount) return true
       const engagementRate = ((p.likesCount || 0) + (p.commentsCount || 0)) / followerCount * 100
       return engagementRate >= 5
     })
 
     if (!filtered.length) {
-      return NextResponse.json({ 
-        error: 'No posts met the 5% engagement rate threshold. This competitor may have low engagement or follower count is missing.' 
+      return NextResponse.json({
+        error: 'No posts met the 5% engagement rate threshold. This competitor may have low engagement or follower count is missing.'
       }, { status: 400 })
     }
 
@@ -100,34 +87,58 @@ export async function POST(req: NextRequest) {
       ].join('\n')
     }).join('\n\n---\n\n')
 
-    const prompt = `You are a viral content strategist for Shai Malka (@shaitrades) — a raw, honest futures trader.
+    const prompt = `You are the content strategist and head scriptwriter for ShaiTrades (@shaitrades). Your job is to analyze what's working for competitors and create original scripts that sound 100% like Shai — not like a reskin of someone else's content.
 
 WHO SHAI IS:
-- 23 years old from Las Vegas
-- Started trading at 18 during COVID
-- Got a high-paying sales job ($250K+/year) and got distracted from trading
-- Lost $230K last year through a bad business and investments
-- Went back to sales, made $20-30K/month, paid off all debts while trading futures
-- 1 month ago quit his 6-figure job, left the USA, moved to Thailand to trade full-time
-- Journey: from -$230K to full-time trader at 23
-- Trades US futures markets from Thailand (2-3 AM local time)
-- Brand: honest, raw, vulnerable — shows losses AND wins
-- Voice: short punchy sentences, personal storytelling, real numbers, no hype
-- Audience: 18-30 year old beginner-intermediate traders who want real talk, not guru content
+- 23 years old, Las Vegas. Started trading at 18 during COVID
+- Quit a $250K/year sales job 1 month ago, moved to Thailand to trade NQ/ES futures full time
+- Trades at 2-3 AM Thailand time. Lives the freedom lifestyle abroad
+- Has been through real losses and real wins — uses the story as credibility, not as his whole identity
+- Brand: raw, real, no filter. Shows the actual life, not a highlight reel
 
-IMPORTANT: You are ONLY analyzing Reels and Carousel posts that achieved 5%+ engagement rate — these are genuinely viral posts.
-- For Reels: focus on spoken hook, voiceover script, and pacing
-- For Carousels: focus on slide-by-slide structure, first slide hook, and swipe momentum
+VOICE RULES (non-negotiable):
+- Short sentences. Punchy. Never corporate or "finance educator" energy
+- Talks TO the viewer like a friend who just figured something out
+- Uses "you" constantly. Makes everything feel personal
+- Confident but not arrogant. Self-aware. Occasionally self-deprecating
+- NEVER says: "In today's video", "Make sure to like and subscribe", "It's important to note", "As a trader"
+- Slang and fragments are fine. Run-ons are fine if they sound natural
+- Signature energy: urgency underneath everything. "You have 1 life."
+- If a script is tied to a current market move, cultural moment, or platform trend — flag it. Time-sensitive content posted late is dead content.
 
-YOUR TASK: Analyze the top ${top10.length} most viral Reels and Carousel posts from @${competitor.username} (${followerCount.toLocaleString()} followers). For each post:
-1. Extract/reconstruct the post's script or slide structure
-2. Identify WHY it went viral
-3. Remake it as Shai's own version — same viral structure, Shai's real story
+TARGET AUDIENCES (rotate — don't target the same one every time):
+1. Broke 20-something who wants out of their job
+2. 9-5 guy curious about trading but hasn't started
+3. Lifestyle / freedom seeker — wants the life trading buys
+4. Trader who's stuck at a ceiling and wants the real edge
 
-TOP ${top10.length} VIRAL REELS & CAROUSELS FROM @${competitor.username}:
+EMOTIONS TO HIT (at least 2 per script):
+- Inspired / motivated — they want to take action immediately after watching
+- Like they found a secret — feels like insider info they weren't supposed to hear
+- Entertained + educated — learned something real but it didn't feel like a lesson
+
+CONTENT ANGLES (rotate — do NOT default to the loss story every time):
+- Hot takes on trading psychology most people get wrong
+- "Nobody talks about this but..." insider mechanics
+- Day-in-the-life / POV lifestyle moments from Thailand
+- The mindset gap between break-even traders and profitable ones
+- Myths traders believe that are actually killing their accounts
+- What Shai is actually doing/thinking/watching in the markets right now
+- The reality of trading from abroad (time zones, lifestyle, discipline)
+
+SCRIPT LENGTH — assign based on what the content needs:
+- PUNCHY (15-30 sec): One idea, one punch, ruthlessly short. 50-80 words max
+- STANDARD (45-75 sec): Hook + insight + landing. 100-150 words
+- STORY (90-120 sec): Full narrative arc. Use sparingly. 180-220 words
+
+YOUR TASK: Analyze the top ${top10.length} most viral posts from @${competitor.username}. For each post:
+1. Identify the core viral structure and WHY it worked
+2. Create an ORIGINAL script for Shai using that same structure — but with his real voice, his real life, his real angles. Not a direct reskin.
+
+TOP ${top10.length} VIRAL POSTS FROM @${competitor.username} (${followerCount.toLocaleString()} followers):
 ${postsContext}
 
-For EACH post, output this JSON structure:
+For EACH post output this JSON structure:
 {
   "postNumber": 1,
   "originalPost": {
@@ -137,15 +148,23 @@ For EACH post, output this JSON structure:
     "commentsCount": 0,
     "videoViewCount": 0,
     "engagementMultiplier": "Xx avg",
-    "reconstructedScript": "For Reels: what was likely said. For Carousels: what each slide likely showed. 2-4 sentences.",
-    "whyViral": "One sentence: core reason this post outperformed"
+    "reconstructedScript": "What was likely said or shown. 2-3 sentences.",
+    "whyViral": "One sentence: the core reason this outperformed"
   },
   "shaiRemake": {
     "contentType": "Reel or Carousel",
-    "hook": "Exact first line — punchy, scroll-stopping, personal. A real moment, real number, or vulnerable admission in Shai's voice.",
-    "script": "For Reel: full word-for-word voiceover script in Shai's voice, minimum 120 words. For Carousel: each slide separated by [SLIDE X:], minimum 6 slides. Personal, honest, ready to film or post.",
-    "cta": "Exact CTA line — natural, not salesy, in Shai's voice",
-    "viralStructure": "One sentence describing the viral structure used (e.g., 'confession + lesson + resolution')"
+    "format": "Face-to-cam or POV lifestyle",
+    "length": "Punchy / Standard / Story",
+    "audience": "Which of the 4 audiences this targets",
+    "emotions": "Which 2-3 emotions this hits",
+    "hook": "First 2-3 seconds. Pattern interrupt. Bold claim, question, or one-liner that makes no sense without watching more.",
+    "script": "Full script in Shai's voice. Camera directions in [brackets] if needed. No filler. Every word earns its place.",
+    "cta": "Natural CTA in Shai's voice. Never forced.",
+    "viralStructure": "One sentence: the structure borrowed from the competitor",
+    "trendFlag": {
+      "isTrendSensitive": true,
+      "reason": "One sentence: why this needs to be posted soon or what trend it's tied to. null if not time-sensitive."
+    }
   }
 }
 
