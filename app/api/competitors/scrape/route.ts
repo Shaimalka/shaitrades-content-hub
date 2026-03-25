@@ -140,7 +140,7 @@ export async function POST(request: Request) {
 
           body: JSON.stringify({
 
-            directUrls: postUrls,
+            usernames: chunk,
 
             resultsLimit: 100,
 
