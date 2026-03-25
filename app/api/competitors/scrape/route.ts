@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     }
 
     const apifyToken = process.env.APIFY_API_KE
+    console.log('APIFY_API_KEY present:', !!apifyToken, 'length:', apifyToken?.length)
 
     if (!apifyToken) {
 
