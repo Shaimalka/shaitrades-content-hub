@@ -124,95 +124,100 @@ export async function POST(request: Request) {
 
       const profileItems: any[] = Array.isArray(profileRawData) ? profileRawData : (profileRawData?.items || [])
 
-      // Step 2: Get posts using post scraper for each username
+      // Step 2: Get posts using post scraper for each username in the chunk
+      const postItems: any[] = []
 
-      const postUrls = chunk.map(u => `https://www.instagram.com/${u}/`)
+      for (const username of chunk) {
 
-      const postRes = await fetch(
+        const postRes = await fetch(
 
-        `https://api.apify.com/v2/acts/apify~instagram-post-scraper/runs?token=${apifyToken}`,
+          `https://api.apify.com/v2/acts/apify~instagram-post-scraper/runs?token=${apifyToken}`,
 
-        {
+          {
 
-          method: 'POST',
+            method: 'POST',
 
-          headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
 
-          body: JSON.stringify({
+            body: JSON.stringify({
 
-            directUrls: chunk.map((u: string) => `https://www.instagram.com/${u}/`),
+              username: username,
 
-            resultsLimit: 100,
+              resultsLimit: 100,
 
-          }),
+            }),
+
+          }
+
+        )
+
+        if (!postRes.ok) {
+
+          const err = await postRes.text()
+
+          return NextResponse.json({ error: `Failed to start post scraper: ${err}` }, { status: 500 })
 
         }
 
-      )
+        const postRunData = await postRes.json()
 
-      if (!postRes.ok) {
+        const postRunId = postRunData.data?.id
 
-        const err = await postRes.text()
+        if (!postRunId) {
 
-        return NextResponse.json({ error: `Failed to start post scraper: ${err}` }, { status: 500 })
+          return NextResponse.json({ error: 'No run ID returned from post scraper' }, { status: 500 })
+
+        }
+
+        // Poll post scraper
+
+        let postStatus = 'RUNNING'
+
+        let postAttempts = 0
+
+        while (postAttempts < 60 && (postStatus === 'RUNNING' || postStatus === 'READY' || postStatus === 'ABORTING')) {
+
+          await new Promise(r => setTimeout(r, 5000))
+
+          const statusRes = await fetch(`https://api.apify.com/v2/actor-runs/${postRunId}?token=${apifyToken}`)
+
+          const statusData = await statusRes.json()
+
+          postStatus = statusData.data?.status || 'FAILED'
+
+          postAttempts++
+
+          if (postStatus === 'SUCCEEDED' || postStatus === 'FAILED' || postStatus === 'ABORTED' || postStatus === 'TIMED-OUT') break
+
+        }
+
+        if (postStatus !== 'SUCCEEDED') {
+
+          return NextResponse.json({ error: `Post scraper ended with status: ${postStatus}` }, { status: 500 })
+
+        }
+
+        const postRunDetailsRes = await fetch(`https://api.apify.com/v2/actor-runs/${postRunId}?token=${apifyToken}`)
+
+        const postRunDetails = await postRunDetailsRes.json()
+
+        const postDatasetId = postRunDetails.data?.defaultDatasetId
+
+        const postItemsUrl = postDatasetId
+
+          ? `https://api.apify.com/v2/datasets/${postDatasetId}/items?token=${apifyToken}&limit=200`
+
+          : `https://api.apify.com/v2/actor-runs/${postRunId}/dataset/items?token=${apifyToken}&limit=200`
+
+        const postDataRes = await fetch(postItemsUrl)
+
+        const postRawData = await postDataRes.json()
+
+        const userPostItems: any[] = Array.isArray(postRawData) ? postRawData : (postRawData?.items || [])
+
+        postItems.push(...userPostItems)
 
       }
-
-      const postRunData = await postRes.json()
-
-      const postRunId = postRunData.data?.id
-
-      if (!postRunId) {
-
-        return NextResponse.json({ error: 'No run ID returned from post scraper' }, { status: 500 })
-
-      }
-
-      // Poll post scraper
-
-      let postStatus = 'RUNNING'
-
-      let postAttempts = 0
-
-      while (postAttempts < 60 && (postStatus === 'RUNNING' || postStatus === 'READY' || postStatus === 'ABORTING')) {
-
-        await new Promise(r => setTimeout(r, 5000))
-
-        const statusRes = await fetch(`https://api.apify.com/v2/actor-runs/${postRunId}?token=${apifyToken}`)
-
-        const statusData = await statusRes.json()
-
-        postStatus = statusData.data?.status || 'FAILED'
-
-        postAttempts++
-
-        if (postStatus === 'SUCCEEDED' || postStatus === 'FAILED' || postStatus === 'ABORTED' || postStatus === 'TIMED-OUT') break
-
-      }
-
-      if (postStatus !== 'SUCCEEDED') {
-
-        return NextResponse.json({ error: `Post scraper ended with status: ${postStatus}` }, { status: 500 })
-
-      }
-
-      const postRunDetailsRes = await fetch(`https://api.apify.com/v2/actor-runs/${postRunId}?token=${apifyToken}`)
-
-      const postRunDetails = await postRunDetailsRes.json()
-
-      const postDatasetId = postRunDetails.data?.defaultDatasetId
-
-      const postItemsUrl = postDatasetId
-
-        ? `https://api.apify.com/v2/datasets/${postDatasetId}/items?token=${apifyToken}&limit=200`
-
-        : `https://api.apify.com/v2/actor-runs/${postRunId}/dataset/items?token=${apifyToken}&limit=200`
-
-      const postDataRes = await fetch(postItemsUrl)
-
-      const postRawData = await postDataRes.json()
-
-      const postItems: any[] = Array.isArray(postRawData) ? postRawData : (postRawData?.items || [])
 
       console.log('Post scraper items count:', postItems.length)
 
