@@ -5,14 +5,13 @@ export async function POST(request: Request) {
   try {
 
     const { handles } = await request.json()
-
     if (!handles || handles.length === 0) {
 
       return NextResponse.json({ error: 'No handles provided' }, { status: 400 })
 
     }
 
-    const apifyToken = process.env.APIFY_API_KEY
+    const apifyToken = process.env.APIFY_API_KE
 
     if (!apifyToken) {
 
@@ -140,7 +139,7 @@ export async function POST(request: Request) {
 
           body: JSON.stringify({
 
-            usernames: chunk,
+            directUrls: chunk.map((u: string) => `https://www.instagram.com/${u}/`),
 
             resultsLimit: 100,
 
