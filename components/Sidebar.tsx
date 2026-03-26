@@ -3,21 +3,33 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Users, FileText, Sparkles,
-  CalendarDays, BarChart2, ChevronLeft, Sun, Moon
+  LayoutDashboard,
+  Users,
+  FileText,
+  Sparkles,
+  CalendarDays,
+  BarChart2,
+  Youtube,
+  ChevronLeft,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
 const INSTAGRAM_NAV = [
   { href: '/instagram',             label: 'Dashboard',     icon: LayoutDashboard },
-  { href: '/instagram/competitors', label: 'Competitors',   icon: Users           },
-  { href: '/instagram/reports',     label: 'Weekly Report', icon: FileText        },
-  { href: '/instagram/content',     label: 'Content Gen',   icon: Sparkles        },
-  { href: '/instagram/scheduler',   label: 'Scheduler',     icon: CalendarDays    },
+  { href: '/instagram/competitors', label: 'Competitors',   icon: Users },
+  { href: '/instagram/reports',     label: 'Weekly Report', icon: FileText },
+  { href: '/instagram/content',     label: 'Content Gen',   icon: Sparkles },
+  { href: '/instagram/scheduler',   label: 'Scheduler',     icon: CalendarDays },
 ]
 
 const TIKTOK_NAV = [
   { href: '/tiktok/analytics', label: 'Analytics', icon: BarChart2 },
+]
+
+const YOUTUBE_NAV = [
+  { href: '/youtube', label: 'Analytics', icon: BarChart2 },
 ]
 
 export default function Sidebar() {
@@ -92,6 +104,26 @@ export default function Sidebar() {
             ))}
           </nav>
         </div>
+
+        <hr className="cyber-divider" style={{ margin: '0.25rem 0.75rem' }} />
+
+        {/* YouTube */}
+        <div className="sidebar-nav-section">
+          <div className="sidebar-section-label">
+            <Youtube size={16} style={{ color: '#ff0000', flexShrink: 0 }} />
+            <span>YouTube</span>
+            <div className="live-dot" style={{ marginLeft: 'auto' }} />
+          </div>
+          <nav>
+            {YOUTUBE_NAV.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className={`nav-item ${pathname === href ? 'active' : ''}`}>
+                <span className="nav-item-icon"><Icon size={14} strokeWidth={2} /></span>
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+
       </div>
 
       {/* Footer */}
@@ -109,7 +141,6 @@ export default function Sidebar() {
             {isDark ? 'DARK' : 'LIGHT'}
           </span>
         </div>
-
         {/* Profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.375rem', borderRadius: '8px', background: 'rgba(0,242,255,0.04)', border: '1px solid var(--border-subtle)' }}>
           <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--neon-cyan), #0060ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 8px rgba(0,242,255,0.3)', fontSize: '0.65rem', fontWeight: 700, color: '#fff', fontFamily: 'Montserrat, sans-serif' }}>
@@ -125,6 +156,7 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
+
     </aside>
   )
 }
