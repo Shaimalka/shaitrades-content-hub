@@ -12,8 +12,7 @@ import {
   Legend,
 } from 'recharts'
 
-// Types
-
+// ── Types ────────────────────────────────────────────────────────────────────
 interface YouTubeVideo {
   videoId: string
   title: string
@@ -41,8 +40,7 @@ interface YouTubeStats {
   bestPostingTimes: BestPostingTime[]
 }
 
-// Helpers
-
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number): string {
   if (!n) return '0'
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
@@ -61,8 +59,7 @@ function timeAgo(dateStr: string): string {
   return Math.floor(days / 365) + 'y ago'
 }
 
-// Custom Tooltip
-
+// ── Custom Tooltip ───────────────────────────────────────────────────────────
 const DarkTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
@@ -75,26 +72,35 @@ const DarkTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-// StatCard
-
-function StatCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
+// ── StatCard ─────────────────────────────────────────────────────────────────
+function StatCard({
+  label,
+  value,
+  sub,
+  accentColor = 'text-white',
+  borderColor = 'border-[#1e1e1e]',
+}: {
+  label: string
+  value: string
+  sub?: string
+  accentColor?: string
+  borderColor?: string
+}) {
   return (
-    <div className={`bg-[#0d0d0d] border p-5 ${accent ? 'border-red-500/30' : 'border-[#1e1e1e]'}`}>
+    <div className={`bg-[#0d0d0d] border p-4 ${borderColor}`}>
       <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">{label}</p>
-      <p className={`text-2xl font-bold ${accent ? 'text-red-400' : 'text-white'}`}>{value}</p>
+      <p className={`text-2xl font-bold ${accentColor}`}>{value}</p>
       {sub && <p className="text-gray-600 text-xs mt-1 font-mono">{sub}</p>}
     </div>
   )
 }
 
-// Main Page
-
+// ── Main Page ────────────────────────────────────────────────────────────────
 export default function YouTubeAnalyticsPage() {
   const [data, setData] = useState<YouTubeStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
-
   const [aiInsight, setAiInsight] = useState<string[] | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
@@ -139,8 +145,7 @@ export default function YouTubeAnalyticsPage() {
     }
   }, [data])
 
-  // Derived chart data
-
+  // ── Derived chart data ──────────────────────────────────────────────────
   const topPostsChart = (() => {
     if (!data?.videos?.length) return []
     return [...data.videos]
@@ -163,6 +168,7 @@ export default function YouTubeAnalyticsPage() {
     ? Math.max(...data.bestPostingTimes.map(t => t.totalViews))
     : 1
 
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="p-6 space-y-8 max-w-6xl">
 
@@ -191,7 +197,7 @@ export default function YouTubeAnalyticsPage() {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-[#0d0d0d] border border-[#1e1e1e] p-5 h-20 animate-pulse" />
+              <div key={i} className="bg-[#0d0d0d] border border-[#1e1e1e] p-4 h-20 animate-pulse" />
             ))}
           </div>
           <div className="bg-[#0d0d0d] border border-[#1e1e1e] h-64 animate-pulse" />
@@ -216,81 +222,101 @@ export default function YouTubeAnalyticsPage() {
       {data && !loading && (
         <div className="space-y-8">
 
-          {/* Channel Stats */}
-          <div className="grid grid-cols-3 gap-4">
+          {/* ── Channel Stats ── */}
+          <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
+            // CHANNEL STATS
+          </p>
+          <div className="grid grid-cols-3 gap-4 -mt-6">
             <StatCard
               label="Subscribers"
               value={fmt(data.channel.subscriberCount)}
               sub="Total subscribers"
-              accent
+              accentColor="text-red-400"
+              borderColor="border-red-500/30"
             />
             <StatCard
               label="Total Views"
               value={fmt(data.channel.viewCount)}
               sub="Lifetime channel views"
+              accentColor="text-cyan-400"
+              borderColor="border-cyan-500/20"
             />
             <StatCard
               label="Videos Published"
               value={fmt(data.channel.videoCount)}
               sub="Total uploads"
+              accentColor="text-fuchsia-400"
+              borderColor="border-fuchsia-500/20"
             />
           </div>
 
-          {/* Best Performing Video */}
+          {/* ── Best Performing Video ── */}
           {bestVideo && (
-            <div className="bg-[#0d0d0d] border border-red-500/30 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-red-400 text-xs font-bold uppercase tracking-widest">
-                  #1 Best Performing Video
-                </span>
-              </div>
-              <div className="flex gap-4">
-                {bestVideo.thumbnailUrl && (
-                  <a
-                    href={`https://youtube.com/watch?v=${bestVideo.videoId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0"
-                  >
-                    <div className="relative w-40 aspect-video overflow-hidden bg-[#111] border border-[#222]">
-                      <img
-                        src={bestVideo.thumbnailUrl}
-                        alt="Top video thumbnail"
-                        className="w-full h-full object-cover"
-                      />
+            <>
+              <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
+                // BEST PERFORMING VIDEO
+              </p>
+              <div className="bg-[#0d0d0d] border border-red-500/30 p-5 -mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-red-400 text-xs font-bold uppercase tracking-widest">
+                    #1 Best Performing Video
+                  </span>
+                </div>
+                <div className="flex gap-4">
+                  {bestVideo.thumbnailUrl && (
+                    <a
+                      href={`https://youtube.com/watch?v=${bestVideo.videoId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0"
+                    >
+                      <div className="relative w-40 aspect-video overflow-hidden bg-[#111] border border-[#222]">
+                        <img
+                          src={bestVideo.thumbnailUrl}
+                          alt="Top video thumbnail"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </a>
+                  )}
+                  <div className="flex flex-col justify-between flex-1">
+                    <div>
+                      <p className="text-white text-base font-semibold leading-snug mb-2">
+                        {bestVideo.title}
+                      </p>
+                      <p className="text-gray-500 text-xs mb-3">
+                        Published {timeAgo(bestVideo.publishedAt)} &middot;{' '}
+                        {new Date(bestVideo.publishedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+                      <div className="flex gap-4 text-xs">
+                        <span className="text-red-400 font-bold">{fmt(bestVideo.viewCount)} views</span>
+                        <span className="text-amber-400">👍 {fmt(bestVideo.likeCount)}</span>
+                        <span className="text-emerald-400">💬 {fmt(bestVideo.commentCount)}</span>
+                      </div>
                     </div>
-                  </a>
-                )}
-                <div className="flex flex-col justify-between flex-1">
-                  <div>
-                    <p className="text-white text-base font-semibold leading-snug mb-2">
-                      {bestVideo.title}
-                    </p>
-                    <p className="text-gray-500 text-xs mb-3">
-                      Published {timeAgo(bestVideo.publishedAt)} &middot; {new Date(bestVideo.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                    <div className="flex gap-4 text-xs">
-                      <span className="text-red-400 font-bold">{fmt(bestVideo.viewCount)} views</span>
-                      <span className="text-amber-400">👍 {fmt(bestVideo.likeCount)}</span>
-                      <span className="text-emerald-400">💬 {fmt(bestVideo.commentCount)}</span>
-                    </div>
+                    <a
+                      href={`https://youtube.com/watch?v=${bestVideo.videoId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex text-xs px-3 py-1.5 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors w-fit"
+                    >
+                      Watch on YouTube &rarr;
+                    </a>
                   </div>
-                  <a
-                    href={`https://youtube.com/watch?v=${bestVideo.videoId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex text-xs px-3 py-1.5 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors w-fit"
-                  >
-                    Watch on YouTube &rarr;
-                  </a>
                 </div>
               </div>
-            </div>
+            </>
           )}
 
-          {/* Video Performance Table */}
-          <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5">
-            <h2 className="text-white text-sm font-bold mb-1">Last 10 Videos</h2>
+          {/* ── Last 10 Videos ── */}
+          <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
+            // LAST 10 VIDEOS
+          </p>
+          <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5 -mt-6">
             <p className="text-gray-500 text-xs mb-4">Sorted by most recent publish date</p>
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
@@ -349,26 +375,18 @@ export default function YouTubeAnalyticsPage() {
             </div>
           </div>
 
-          {/* Views and Engagement Bar Chart */}
-          <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5">
-            <h2 className="text-white text-sm font-bold mb-1">Views &amp; Engagement per Video</h2>
+          {/* ── Views & Engagement Chart ── */}
+          <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
+            // VIEWS &amp; ENGAGEMENT PER VIDEO
+          </p>
+          <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5 -mt-6">
             <p className="text-gray-500 text-xs mb-4">Sorted by view count (top 10)</p>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topPostsChart} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fill: '#6b7280', fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: '#6b7280', fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={fmt}
-                  />
+                  <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={fmt} />
                   <Tooltip content={<DarkTooltip />} />
                   <Legend wrapperStyle={{ color: '#6b7280', fontSize: 11 }} />
                   <Bar dataKey="views" name="Views" fill="#ef4444" radius={[2, 2, 0, 0]} maxBarSize={40} />
@@ -379,55 +397,62 @@ export default function YouTubeAnalyticsPage() {
             </div>
           </div>
 
-          {/* Best Posting Times */}
+          {/* ── Best Posting Times ── */}
           {data.bestPostingTimes?.length > 0 && (
-            <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5">
-              <h2 className="text-white text-sm font-bold mb-1">Best Posting Times</h2>
-              <p className="text-gray-500 text-xs mb-5">
-                Derived from top videos &mdash; day &amp; hour with highest cumulative views
+            <>
+              <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
+                // BEST POSTING TIMES
               </p>
-              <div className="space-y-3">
-                {data.bestPostingTimes.map((slot, idx) => {
-                  const widthPct = maxPostingViews > 0
-                    ? Math.round((slot.totalViews / maxPostingViews) * 100)
-                    : 0
-                  const isTop = idx === 0
-                  return (
-                    <div key={slot.day + '-' + slot.hour} className="flex items-center gap-4">
-                      <div className="w-28 shrink-0 text-right">
-                        <span className={`text-xs font-bold ${isTop ? 'text-red-400' : 'text-gray-400'}`}>
-                          {slot.day}
-                        </span>
-                        <span className="text-gray-600 text-xs ml-1">{slot.hour}</span>
-                      </div>
-                      <div className="flex-1 relative h-6 bg-[#111] border border-[#1e1e1e]">
-                        <div
-                          className={`h-full transition-all ${isTop ? 'bg-red-500/40' : 'bg-red-500/20'}`}
-                          style={{ width: widthPct + '%' }}
-                        />
-                        <div
-                          className={`absolute inset-0 flex items-center px-2 text-[10px] font-mono ${isTop ? 'text-red-300' : 'text-gray-500'}`}
-                        >
-                          {fmt(slot.totalViews)} views
-                          {isTop && <span className="ml-2 text-red-400 font-bold">&larr; BEST</span>}
+              <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5 -mt-6">
+                <p className="text-gray-500 text-xs mb-5">
+                  Derived from top videos &mdash; day &amp; hour with highest cumulative views
+                </p>
+                <div className="space-y-3">
+                  {data.bestPostingTimes.map((slot, idx) => {
+                    const widthPct = maxPostingViews > 0
+                      ? Math.round((slot.totalViews / maxPostingViews) * 100)
+                      : 0
+                    const isTop = idx === 0
+                    return (
+                      <div key={slot.day + '-' + slot.hour} className="flex items-center gap-4">
+                        <div className="w-28 shrink-0 text-right">
+                          <span className={`text-xs font-bold ${isTop ? 'text-red-400' : 'text-gray-400'}`}>
+                            {slot.day}
+                          </span>
+                          <span className="text-gray-600 text-xs ml-1">{slot.hour}</span>
+                        </div>
+                        <div className="flex-1 relative h-6 bg-[#111] border border-[#1e1e1e]">
+                          <div
+                            className={`h-full transition-all ${isTop ? 'bg-red-500/40' : 'bg-red-500/20'}`}
+                            style={{ width: widthPct + '%' }}
+                          />
+                          <div className={`absolute inset-0 flex items-center px-2 text-[10px] font-mono ${isTop ? 'text-red-300' : 'text-gray-500'}`}>
+                            {fmt(slot.totalViews)} views
+                            {isTop && <span className="ml-2 text-red-400 font-bold">&larr; BEST</span>}
+                          </div>
+                        </div>
+                        <div className="w-16 text-right text-gray-600 text-[10px] font-mono shrink-0">
+                          {slot.videoCount} video{slot.videoCount !== 1 ? 's' : ''}
                         </div>
                       </div>
-                      <div className="w-16 text-right text-gray-600 text-[10px] font-mono shrink-0">
-                        {slot.videoCount} video{slot.videoCount !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            </>
           )}
 
-          {/* AI Weekly Insights */}
-          <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5">
+          {/* ── AI Weekly Insights ── */}
+          <p className="text-gray-500 text-[10px] font-mono uppercase tracking-widest">
+            // AI WEEKLY INSIGHTS
+          </p>
+          <div className="bg-[#0d0d0d] border border-[#1e1e1e] p-5 -mt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-white text-sm font-bold">AI Weekly Insights</h2>
-                <p className="text-gray-500 text-xs mt-0.5">Powered by Claude &mdash; analyzes top &amp; bottom performers</p>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  Powered by Claude &mdash; analyzes top &amp; bottom performers
+                </p>
               </div>
               <button
                 onClick={fetchAiInsight}
@@ -437,11 +462,9 @@ export default function YouTubeAnalyticsPage() {
                 {aiLoading ? 'Analyzing...' : '✶ Get AI Insight'}
               </button>
             </div>
-
             {aiError && (
               <p className="text-red-400 text-xs">Error: {aiError}</p>
             )}
-
             {aiInsight && aiInsight.length > 0 && (
               <div className="bg-[#111] border border-[#222] p-4 space-y-3">
                 {aiInsight.map((bullet, i) => (
@@ -456,7 +479,6 @@ export default function YouTubeAnalyticsPage() {
                 ))}
               </div>
             )}
-
             {!aiInsight && !aiLoading && !aiError && (
               <p className="text-gray-600 text-xs">
                 Click &quot;Get AI Insight&quot; to analyze your YouTube performance with Claude.
