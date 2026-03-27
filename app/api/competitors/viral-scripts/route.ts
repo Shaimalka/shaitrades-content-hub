@@ -218,15 +218,15 @@ Return a JSON array of exactly ${top10.length} objects. Return ONLY the JSON arr
     })
 
     const rawText = message.content[0].type === 'text' ? message.content[0].text : '[]'
-    const jsonMatch = rawText.match(/\[\s\S\]*\]/)
-    if (!jsonMatch) {
-      return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
-    }
+    console.log('[viral-scripts] Raw AI response:', rawText)
+
+    const raw = rawText.replace(/```json|```/g, '').trim()
 
     let viralScripts: any[]
     try {
-      viralScripts = JSON.parse(jsonMatch[0])
+      viralScripts = JSON.parse(raw)
     } catch (e) {
+      console.error('[viral-scripts] JSON.parse failed. Raw text was:', rawText)
       return NextResponse.json({ error: 'Failed to parse viral scripts' }, { status: 500 })
     }
 
