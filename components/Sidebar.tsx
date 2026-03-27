@@ -13,15 +13,21 @@ import {
   ChevronLeft,
   Sun,
   Moon,
+  BookOpen,
+  Target,
+  Activity,
+  Heart,
+  NotebookPen,
+  Wallet,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
 const INSTAGRAM_NAV = [
-  { href: '/instagram',             label: 'Dashboard',     icon: LayoutDashboard },
-  { href: '/instagram/competitors', label: 'Competitors',   icon: Users },
-  { href: '/instagram/reports',     label: 'Weekly Report', icon: FileText },
-  { href: '/instagram/content',     label: 'Content Gen',   icon: Sparkles },
-  { href: '/instagram/scheduler',   label: 'Scheduler',     icon: CalendarDays },
+  { href: '/instagram', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/instagram/competitors', label: 'Competitors', icon: Users },
+  { href: '/instagram/reports', label: 'Weekly Report', icon: FileText },
+  { href: '/instagram/content', label: 'Content Gen', icon: Sparkles },
+  { href: '/instagram/scheduler', label: 'Scheduler', icon: CalendarDays },
 ]
 
 const TIKTOK_NAV = [
@@ -32,13 +38,21 @@ const YOUTUBE_NAV = [
   { href: '/youtube', label: 'Analytics', icon: BarChart2 },
 ]
 
+const LIFE_NAV = [
+  { href: '/life/trading', label: 'Trading Journal', icon: BookOpen },
+  { href: '/life/goals', label: 'Goals', icon: Target },
+  { href: '/life/habits', label: 'Habits', icon: Activity },
+  { href: '/life/health', label: 'Health', icon: Heart },
+  { href: '/life/journal', label: 'Daily Journal', icon: NotebookPen },
+  { href: '/life/finance', label: 'Finance', icon: Wallet },
+]
+
 export default function Sidebar() {
   const pathname = usePathname()
   const { toggleTheme, isDark } = useTheme()
 
   return (
     <aside className="cyber-sidebar">
-
       {/* Logo */}
       <div className="sidebar-logo">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
@@ -60,7 +74,6 @@ export default function Sidebar() {
 
       {/* Scrollable nav */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem 0' }}>
-
         {/* Back link */}
         <div style={{ padding: '0.25rem 0.625rem 0.5rem' }}>
           <Link href="/" className="nav-item" style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
@@ -124,6 +137,23 @@ export default function Sidebar() {
           </nav>
         </div>
 
+        <hr className="cyber-divider" style={{ margin: '0.25rem 0.75rem' }} />
+
+        {/* Life Hub */}
+        <div className="sidebar-nav-section">
+          <div className="sidebar-section-label">
+            <span style={{ fontSize: '1rem' }}>⚡</span>
+            <span>Life Hub</span>
+          </div>
+          <nav>
+            {LIFE_NAV.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className={`nav-item ${pathname === href ? 'active' : ''}`}>
+                <span className="nav-item-icon"><Icon size={14} strokeWidth={2} /></span>
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {/* Footer */}
@@ -131,11 +161,7 @@ export default function Sidebar() {
         {/* Theme toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem', padding: '0.25rem 0' }}>
           <Sun size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <button
-            onClick={toggleTheme}
-            className={`theme-toggle ${isDark ? 'dark-mode' : ''}`}
-            aria-label="Toggle theme"
-          />
+          <button onClick={toggleTheme} className={`theme-toggle ${isDark ? 'dark-mode' : ''}`} aria-label="Toggle theme" />
           <Moon size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.58rem', color: 'var(--text-muted)', letterSpacing: '0.06em', marginLeft: 'auto' }}>
             {isDark ? 'DARK' : 'LIGHT'}
@@ -156,7 +182,6 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
-
     </aside>
   )
 }
