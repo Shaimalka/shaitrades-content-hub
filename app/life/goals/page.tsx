@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Target, Plus, Trash2, CheckCircle } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
@@ -31,7 +31,7 @@ const CAT_COLORS: Record<string, string> = {
   Personal: '#ffb400',
 }
 
-export default function GoalsPage() {
+function GoalsInner() {
   const searchParams = useSearchParams()
   const [goals, setGoals] = useState<Goal[]>([])
   const [checkins, setCheckins] = useState<CheckIn[]>([])
@@ -270,5 +270,13 @@ export default function GoalsPage() {
         defaultOpen={chatOpen}
       />
     </div>
+  )
+}
+
+export default function GoalsPage() {
+  return (
+    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+      <GoalsInner />
+    </Suspense>
   )
 }
