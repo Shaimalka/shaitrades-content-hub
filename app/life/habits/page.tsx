@@ -1,77 +1,243 @@
-// HABITS
-import { Activity, Sun, Moon, Flame, RotateCcw, CheckSquare } from 'lucide-react'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { CheckSquare, Plus, Trash2, Flame } from 'lucide-react'
+import LifeHubChat from '@/components/LifeHubChat'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+
+type Habit = {
+  id: string
+  name: string
+  emoji: string
+  frequency: 'daily' | 'weekly'
+  createdAt: string
+}
+
+type Completions = Record<string, Record<string, boolean>>
+
+function getLast30Days(): string[] {
+  const days = []
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    days.push(d.toISOString().split('T')[0])
+  }
+  return days
+}
+
+function getStreak(habitId: string, completions: Completions): number {
+  const today = new Date()
+  let streak = 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const dateStr = d.toISOString().split('T')[0]
+    if (completions[dateStr]?.[habitId]) {
+      streak++
+    } else {
+      break
+    }
+  }
+  return streak
+}
 
 export default function HabitsPage() {
+  const searchParams = useSearchParams()
+  const [habits, setHabits] = useState<Habit[]>([])
+  const [completions, setCompletions] = useState<Completions>({})
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [chatOpen] = useState(searchParams.get('chat') === '1')
+  const [form, setForm] = useState({ name: '', emoji: '✅', frequency: 'daily' as 'daily' | 'weekly' })
+
+  const today = new Date().toISOString().split('T')[0]
+  const last30 = getLast30Days()
+
+  useEffect(() => {
+    fetch('/api/life/habits').then(r => r.json()).then(d => {
+      setHabits(d.habits || [])
+      setCompletions(d.completions || {})
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
+
+  async function toggleHabit(habitId: string, date: string) {
+    const res = await fetch('/api/life/habits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'toggle', date, habitId }),
+    })
+    const data = await res.json()
+    setCompletions(data.completions || {})
+  }
+
+  async function addHabit(e: React.FormEvent) {
+    e.preventDefault()
+    const res = await fetch('/api/life/habits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    const data = await res.json()
+    setHabits(data.habits || [])
+    setShowForm(false)
+    setForm({ name: '', emoji: '✅', frequency: 'daily' })
+  }
+
+  async function deleteHabit(id: string) {
+    const res = await fetch('/api/life/habits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id }),
+    })
+    const data = await res.json()
+    setHabits(data.habits || [])
+  }
+
+  const todayCompleted = habits.filter(h => completions[today]?.[h.id]).length
+  const EMOJIS = ['✅', '💪', '📚', '🏃', '🧘', '💧', '🥗', '😴', '✍️', '🎯', '🧠', '💊']
+
   return (
     <div className="cyber-bg-grid min-h-screen">
-      <div className="p-8 max-w-[1200px] mx-auto">
+      <div className="max-w-[1000px] mx-auto p-6">
 
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="font-mono text-xs tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>{'// '}HABITS</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border-panel)' }} />
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
+            <span className="section-label">HABITS</span>
+            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Habit Tracker</h1>
           </div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)', fontFamily: 'Montserrat, sans-serif' }}>
-            Habits
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-            Daily habit stack — morning routines, consistency streaks, and discipline metrics
-          </p>
+          <div className="flex items-center gap-3">
+            {habits.length > 0 && (
+              <div className="text-xs font-mono px-3 py-1.5 rounded-lg" style={{ background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.2)', color: '#00f2ff' }}>
+                {todayCompleted}/{habits.length} today
+              </div>
+            )}
+            <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2">
+              <Plus size={14} /> New Habit
+            </button>
+          </div>
         </div>
 
-        {/* Coming Soon Card */}
-        <div className="cyber-panel p-8 mb-6" style={{ borderColor: 'rgba(0,255,136,0.2)' }}>
-          <div className="flex items-start gap-6">
-            <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,136,0.05))', border: '1px solid rgba(0,255,136,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Activity size={24} style={{ color: 'var(--neon-green)' }} />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Habit Tracker</h2>
-                <span className="badge-pill badge-green">COMING SOON</span>
+        {/* Add Habit Form */}
+        {showForm && (
+          <div className="cyber-panel p-5 mb-6">
+            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW HABIT</h3>
+            <form onSubmit={addHabit} className="flex flex-wrap gap-3 items-end">
+              <div>
+                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>EMOJI</label>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {EMOJIS.map(e => (
+                    <button key={e} type="button" onClick={() => setForm(f => ({ ...f, emoji: e }))}
+                      className={`w-8 h-8 text-sm rounded transition-all ${form.emoji === e ? 'ring-1 ring-cyan-400 bg-cyan-400/10' : 'opacity-50 hover:opacity-80'}`}>
+                      {e}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-                Build and track your daily habit stack. Morning routine, workout, market prep, content creation — see your streak counts, heatmaps, and weekly completion rate at a glance.
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { icon: Sun, label: 'Morning Stack', desc: 'Wake-up, gym, market prep' },
-                  { icon: Moon, label: 'Evening Stack', desc: 'Journal, review, wind-down' },
-                  { icon: Flame, label: 'Streaks', desc: 'Consecutive day counters' },
-                  { icon: RotateCcw, label: 'Habit Heatmap', desc: 'GitHub-style completion grid' },
-                  { icon: CheckSquare, label: 'Daily Checklist', desc: 'One-tap habit check-off' },
-                  { icon: Activity, label: 'Consistency Score', desc: 'Rolling 30-day average' },
-                ].map(({ icon: Icon, label, desc }) => (
-                  <div key={label} className="cyber-panel p-4" style={{ background: 'rgba(0,255,136,0.03)' }}>
-                    <Icon size={16} style={{ color: 'var(--neon-green)', marginBottom: '0.5rem' }} />
-                    <p className="text-xs font-semibold mb-1" style={{ color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace' }}>{label}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+              <div className="flex-1 min-w-[200px]">
+                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>HABIT NAME</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="cyber-input w-full" placeholder="e.g. Morning workout" required />
+              </div>
+              <div>
+                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>FREQUENCY</label>
+                <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value as 'daily' | 'weekly' }))}
+                  className="cyber-input">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+              <button type="submit" className="btn-cyber-primary">Add</button>
+              <button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button>
+            </form>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
+        ) : habits.length === 0 ? (
+          <div className="cyber-panel p-8 text-center">
+            <CheckSquare size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
+            <p className="text-xs font-mono mb-3" style={{ color: 'var(--text-muted)' }}>No habits created yet.</p>
+            <button onClick={() => setShowForm(true)} className="btn-cyber-primary">Create Your First Habit</button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {habits.map(habit => {
+              const streak = getStreak(habit.id, completions)
+              const todayDone = completions[today]?.[habit.id] || false
+              const weekRate = (() => {
+                let done = 0
+                for (let i = 0; i < 7; i++) {
+                  const d = new Date(); d.setDate(d.getDate() - i)
+                  if (completions[d.toISOString().split('T')[0]]?.[habit.id]) done++
+                }
+                return Math.round((done / 7) * 100)
+              })()
+
+              return (
+                <div key={habit.id} className="cyber-panel p-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    <button
+                      onClick={() => toggleHabit(habit.id, today)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all duration-200 ${todayDone ? 'border-green-400 bg-green-400/20' : 'border-gray-600 hover:border-cyan-400'}`}
+                    >
+                      {todayDone ? <span className="text-green-400">✓</span> : null}
+                    </button>
+                    <span className="text-xl">{habit.emoji}</span>
+                    <div className="flex-1">
+                      <p className={`text-sm font-semibold ${todayDone ? 'line-through opacity-60' : ''}`} style={{ color: 'var(--text-primary)' }}>
+                        {habit.name}
+                      </p>
+                      <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                        {habit.frequency} · {weekRate}% this week
+                      </p>
+                    </div>
+                    {streak > 0 && (
+                      <div className="flex items-center gap-1 text-xs font-mono" style={{ color: '#00ff88' }}>
+                        <Flame size={12} />{streak}
+                      </div>
+                    )}
+                    <button onClick={() => deleteHabit(habit.id)} className="opacity-30 hover:opacity-70">
+                      <Trash2 size={12} style={{ color: '#ff00e5' }} />
+                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  {/* 30-day heatmap */}
+                  <div className="flex gap-0.5 flex-wrap">
+                    {last30.map(date => {
+                      const done = completions[date]?.[habit.id]
+                      return (
+                        <button
+                          key={date}
+                          onClick={() => toggleHabit(habit.id, date)}
+                          title={date}
+                          className="w-5 h-5 rounded-sm transition-all hover:scale-110"
+                          style={{
+                            background: done ? '#00f2ff' : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${done ? 'rgba(0,242,255,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </div>
-
-        {/* Placeholder streak cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Gym Streak', value: '—', sub: 'days', color: 'var(--neon-green)' },
-            { label: 'Morning Routine', value: '—', sub: 'days', color: 'var(--neon-cyan)' },
-            { label: 'Market Prep', value: '—', sub: 'days', color: 'var(--neon-amber)' },
-            { label: 'Content Posted', value: '—', sub: 'days', color: 'var(--neon-magenta)' },
-          ].map(({ label, value, sub, color }) => (
-            <div key={label} className="cyber-panel p-5 text-center">
-              <Flame size={18} style={{ color, margin: '0 auto 0.5rem' }} />
-              <p className="text-2xl font-bold mb-0.5" style={{ color, fontFamily: 'JetBrains Mono, monospace' }}>{value}</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{sub}</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
-            </div>
-          ))}
-        </div>
-
+        )}
       </div>
+
+      <LifeHubChat
+        section="habits"
+        apiRoute="/api/life/habits/chat"
+        contextData={{ habits, completions }}
+        systemPrompt="You are a habit tracking AI. Analyze consistency and streaks."
+        defaultOpen={chatOpen}
+      />
     </div>
   )
 }
