@@ -10,7 +10,7 @@ const KEY = 'life:trading:logs'
 
 export async function GET() {
   try {
-    const logs = await redis.get<any[]>(KEY) || []
+    const logs = await redis.get('life:trading:logs') || []
     return NextResponse.json({ logs })
   } catch (e) {
     return NextResponse.json({ logs: [] })
@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { action, entry } = body
-
-    const logs = await redis.get<any[]>(KEY) || []
+    const logs: any[] = (await redis.get('life:trading:logs') as any[]) || []
 
     if (action === 'delete' && entry?.id) {
       const updated = logs.filter((l: any) => l.id !== entry.id)
@@ -41,10 +40,8 @@ export async function POST(req: NextRequest) {
       pnl: Math.round(pnl * 100) / 100,
       createdAt: new Date().toISOString(),
     }
-
     const updated = [...logs, newEntry]
     await redis.set(KEY, updated)
-
     return NextResponse.json({ success: true, logs: updated })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
