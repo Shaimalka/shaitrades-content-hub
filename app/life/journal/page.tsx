@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { BookOpen, Plus, ChevronDown, ChevronRight } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
@@ -33,7 +33,7 @@ const MOOD_EMOJIS: Record<string, string> = {
   Grateful: '🙏',
 }
 
-export default function JournalPage() {
+function JournalInner() {
   const searchParams = useSearchParams()
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -229,5 +229,13 @@ export default function JournalPage() {
         defaultOpen={chatOpen}
       />
     </div>
+  )
+}
+
+export default function JournalPage() {
+  return (
+    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+      <JournalInner />
+    </Suspense>
   )
 }
