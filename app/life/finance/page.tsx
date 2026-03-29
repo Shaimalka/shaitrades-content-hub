@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { DollarSign, Plus, Trash2, TrendingUp, TrendingDown } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
@@ -20,7 +20,7 @@ type FinanceEntry = {
 const INCOME_SOURCES = ['Trading', 'Content', 'Other']
 const EXPENSE_CATEGORIES = ['Software', 'Education', 'Travel', 'Equipment', 'Other']
 
-export default function FinancePage() {
+function FinanceInner() {
   const searchParams = useSearchParams()
   const [income, setIncome] = useState<FinanceEntry[]>([])
   const [expenses, setExpenses] = useState<FinanceEntry[]>([])
@@ -263,5 +263,13 @@ export default function FinancePage() {
         defaultOpen={chatOpen}
       />
     </div>
+  )
+}
+
+export default function FinancePage() {
+  return (
+    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+      <FinanceInner />
+    </Suspense>
   )
 }
