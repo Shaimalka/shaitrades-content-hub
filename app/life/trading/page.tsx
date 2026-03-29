@@ -54,7 +54,7 @@ function TradingJournalInner() {
   const losses = trades.filter(t => t.pnl < 0)
   const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0
   const rr = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
-  const sortedDates = [...new Set(trades.map(t => t.date))].sort().reverse()
+  const sortedDates = Array.from(new Set(trades.map(t => t.date))).sort().reverse()
   let streak = 0
   for (const d of sortedDates) {
     const dayPnl = trades.filter(t => t.date === d).reduce((s, t) => s + t.pnl, 0)
