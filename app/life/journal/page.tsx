@@ -1,81 +1,233 @@
-// DAILY JOURNAL
-import { NotebookPen, Sun, Sunset, Lightbulb, ThumbsUp, AlertCircle } from 'lucide-react'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { BookOpen, Plus, ChevronDown, ChevronRight } from 'lucide-react'
+import LifeHubChat from '@/components/LifeHubChat'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+
+type JournalEntry = {
+  id: string
+  date: string
+  morningFocus: string
+  eveningLearning: string
+  freeWrite: string
+  mood: 'Focused' | 'Anxious' | 'Motivated' | 'Tired' | 'Grateful'
+  createdAt: string
+  updatedAt?: string
+}
+
+const MOODS = ['Focused', 'Anxious', 'Motivated', 'Tired', 'Grateful'] as const
+const MOOD_COLORS: Record<string, string> = {
+  Focused: '#00f2ff',
+  Anxious: '#ff00e5',
+  Motivated: '#00ff88',
+  Tired: '#ffb400',
+  Grateful: '#ff88ff',
+}
+const MOOD_EMOJIS: Record<string, string> = {
+  Focused: '🎯',
+  Anxious: '😰',
+  Motivated: '🚀',
+  Tired: '😴',
+  Grateful: '🙏',
+}
 
 export default function JournalPage() {
+  const searchParams = useSearchParams()
+  const [entries, setEntries] = useState<JournalEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [chatOpen] = useState(searchParams.get('chat') === '1')
+
+  const today = new Date().toISOString().split('T')[0]
+  const todayEntry = entries.find(e => e.date === today)
+
+  const [form, setForm] = useState({
+    date: today,
+    morningFocus: '',
+    eveningLearning: '',
+    freeWrite: '',
+    mood: 'Focused' as JournalEntry['mood'],
+  })
+
+  useEffect(() => {
+    fetch('/api/life/journal').then(r => r.json()).then(d => {
+      setEntries(d.entries || [])
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (todayEntry) {
+      setForm({
+        date: todayEntry.date,
+        morningFocus: todayEntry.morningFocus || '',
+        eveningLearning: todayEntry.eveningLearning || '',
+        freeWrite: todayEntry.freeWrite || '',
+        mood: todayEntry.mood || 'Focused',
+      })
+    }
+  }, [todayEntry?.id])
+
+  async function saveEntry(e: React.FormEvent) {
+    e.preventDefault()
+    const res = await fetch('/api/life/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry: { ...form, id: todayEntry?.id } }),
+    })
+    const data = await res.json()
+    setEntries(data.entries || [])
+  }
+
+  const pastEntries = entries.filter(e => e.date !== today).sort((a, b) => b.date.localeCompare(a.date))
+
   return (
     <div className="cyber-bg-grid min-h-screen">
-      <div className="p-8 max-w-[1200px] mx-auto">
+      <div className="max-w-[900px] mx-auto p-6">
 
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="font-mono text-xs tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>{'// '}DAILY JOURNAL</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border-panel)' }} />
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
+            <span className="section-label">DAILY JOURNAL</span>
+            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Journal</h1>
           </div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)', fontFamily: 'Montserrat, sans-serif' }}>
-            Daily Journal
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-            Morning intentions, evening reflections, mindset notes — private and unfiltered
-          </p>
+          <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+            {entries.length} entries
+          </div>
         </div>
 
-        {/* Coming Soon Card */}
-        <div className="cyber-panel p-8 mb-6" style={{ borderColor: 'rgba(0,242,255,0.2)', background: 'linear-gradient(135deg, rgba(0,242,255,0.03), rgba(255,0,229,0.03))' }}>
-          <div className="flex items-start gap-6">
-            <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: 'linear-gradient(135deg, rgba(0,242,255,0.2), rgba(255,0,229,0.1))', border: '1px solid rgba(0,242,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <NotebookPen size={24} style={{ color: 'var(--neon-cyan)' }} />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Daily Journal</h2>
-                <span className="badge-pill badge-cyan">COMING SOON</span>
-              </div>
-              <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-                A private space to write every day. Morning pages, evening wind-down, mindset check-ins. Not for content — for you. The people who win long-term are the ones who know what&apos;s actually going on inside.
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { icon: Sun, label: 'Morning Entry', desc: 'Intentions, mood, focus word' },
-                  { icon: Sunset, label: 'Evening Entry', desc: 'Reflection, what went well' },
-                  { icon: Lightbulb, label: 'Insights', desc: 'Tag breakthrough moments' },
-                  { icon: ThumbsUp, label: 'Gratitude Log', desc: '3 things daily' },
-                  { icon: AlertCircle, label: 'Mental Flags', desc: 'Spot patterns in low days' },
-                  { icon: NotebookPen, label: 'Free Write', desc: 'Unstructured stream of thought' },
-                ].map(({ icon: Icon, label, desc }) => (
-                  <div key={label} className="cyber-panel p-4" style={{ background: 'rgba(0,242,255,0.03)' }}>
-                    <Icon size={16} style={{ color: 'var(--neon-cyan)', marginBottom: '0.5rem' }} />
-                    <p className="text-xs font-semibold mb-1" style={{ color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace' }}>{label}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{desc}</p>
-                  </div>
+        {/* Today's Entry */}
+        <div className="cyber-panel p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="section-label">TODAY · {today}</h3>
+            {todayEntry && (
+              <span className="badge-pill" style={{ color: MOOD_COLORS[todayEntry.mood], borderColor: MOOD_COLORS[todayEntry.mood] + '40', background: MOOD_COLORS[todayEntry.mood] + '12' }}>
+                {MOOD_EMOJIS[todayEntry.mood]} {todayEntry.mood}
+              </span>
+            )}
+          </div>
+
+          <form onSubmit={saveEntry} className="space-y-4">
+            {/* Mood */}
+            <div>
+              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>MOOD TAG</label>
+              <div className="flex flex-wrap gap-2">
+                {MOODS.map(mood => (
+                  <button key={mood} type="button"
+                    onClick={() => setForm(f => ({ ...f, mood }))}
+                    className="px-3 py-1.5 text-xs font-mono font-semibold rounded-full transition-all"
+                    style={{
+                      color: form.mood === mood ? MOOD_COLORS[mood] : 'var(--text-muted)',
+                      borderColor: form.mood === mood ? MOOD_COLORS[mood] + '60' : 'var(--border-subtle)',
+                      background: form.mood === mood ? MOOD_COLORS[mood] + '15' : 'transparent',
+                      border: '1px solid',
+                    }}>
+                    {MOOD_EMOJIS[mood]} {mood}
+                  </button>
                 ))}
               </div>
             </div>
-          </div>
+
+            {/* Morning Focus */}
+            <div>
+              <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                🌅 MORNING — What's my #1 focus today?
+              </label>
+              <input value={form.morningFocus} onChange={e => setForm(f => ({ ...f, morningFocus: e.target.value }))}
+                className="cyber-input w-full" placeholder="My #1 focus today is..." />
+            </div>
+
+            {/* Evening Learning */}
+            <div>
+              <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                🌙 EVENING — What did I learn today?
+              </label>
+              <input value={form.eveningLearning} onChange={e => setForm(f => ({ ...f, eveningLearning: e.target.value }))}
+                className="cyber-input w-full" placeholder="Today I learned..." />
+            </div>
+
+            {/* Free Write */}
+            <div>
+              <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                ✍️ FREE WRITE
+              </label>
+              <textarea value={form.freeWrite} onChange={e => setForm(f => ({ ...f, freeWrite: e.target.value }))}
+                className="cyber-input w-full h-32 resize-none" placeholder="Write anything on your mind..." />
+            </div>
+
+            <button type="submit" className="btn-cyber-primary">
+              {todayEntry ? 'Update Entry' : 'Save Entry'}
+            </button>
+          </form>
         </div>
 
-        {/* Recent entries placeholder */}
-        <div className="cyber-panel p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono text-xs tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>{'// '}RECENT ENTRIES</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border-panel)' }} />
+        {/* Past Entries */}
+        {pastEntries.length > 0 && (
+          <div>
+            <h3 className="section-label mb-4">PAST ENTRIES</h3>
+            <div className="space-y-2">
+              {pastEntries.map(entry => {
+                const isExpanded = expanded === entry.id
+                const preview = entry.morningFocus || entry.freeWrite || entry.eveningLearning || ''
+                return (
+                  <div key={entry.id} className="cyber-panel overflow-hidden">
+                    <button
+                      onClick={() => setExpanded(isExpanded ? null : entry.id)}
+                      className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{entry.date}</span>
+                        <span className="badge-pill text-[10px]" style={{ color: MOOD_COLORS[entry.mood], borderColor: MOOD_COLORS[entry.mood] + '40', background: MOOD_COLORS[entry.mood] + '12' }}>
+                          {MOOD_EMOJIS[entry.mood]} {entry.mood}
+                        </span>
+                        <span className="text-xs truncate max-w-[300px]" style={{ color: 'var(--text-secondary)' }}>
+                          {preview.slice(0, 80)}{preview.length > 80 ? '...' : ''}
+                        </span>
+                      </div>
+                      {isExpanded ? <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} /> : <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />}
+                    </button>
+                    {isExpanded && (
+                      <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                        {entry.morningFocus && (
+                          <div className="pt-3">
+                            <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🌅 FOCUS</p>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{entry.morningFocus}</p>
+                          </div>
+                        )}
+                        {entry.eveningLearning && (
+                          <div>
+                            <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🌙 LEARNED</p>
+                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{entry.eveningLearning}</p>
+                          </div>
+                        )}
+                        {entry.freeWrite && (
+                          <div>
+                            <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✍️ FREE WRITE</p>
+                            <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--text-secondary)' }}>{entry.freeWrite}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
-          <div className="space-y-3">
-            {['Today', 'Yesterday', '2 days ago'].map((day) => (
-              <div key={day} className="cyber-panel p-4 flex items-center gap-4" style={{ opacity: 0.4 }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(0,242,255,0.08)', border: '1px solid var(--border-panel)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <NotebookPen size={14} style={{ color: 'var(--neon-cyan)' }} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace' }}>{day}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No entry yet</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
 
+        {loading && <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>}
       </div>
+
+      <LifeHubChat
+        section="journal"
+        apiRoute="/api/life/journal/chat"
+        contextData={{ entries: entries.slice(-30) }}
+        systemPrompt="You are a personal journal AI. Analyze themes, emotions, and patterns in journal entries."
+        defaultOpen={chatOpen}
+      />
     </div>
   )
 }
