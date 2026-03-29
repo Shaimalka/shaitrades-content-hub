@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Heart, Plus, Trash2 } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
@@ -23,7 +23,7 @@ type Settings = {
   currentUnit?: 'lbs' | 'kg'
 }
 
-export default function HealthPage() {
+function HealthInner() {
   const searchParams = useSearchParams()
   const [logs, setLogs] = useState<HealthLog[]>([])
   const [settings, setSettings] = useState<Settings>({})
@@ -278,5 +278,13 @@ export default function HealthPage() {
         defaultOpen={chatOpen}
       />
     </div>
+  )
+}
+
+export default function HealthPage() {
+  return (
+    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+      <HealthInner />
+    </Suspense>
   )
 }
