@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { CheckSquare, Plus, Trash2, Flame } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
@@ -42,7 +42,7 @@ function getStreak(habitId: string, completions: Completions): number {
   return streak
 }
 
-export default function HabitsPage() {
+function HabitsInner() {
   const searchParams = useSearchParams()
   const [habits, setHabits] = useState<Habit[]>([])
   const [completions, setCompletions] = useState<Completions>({})
@@ -239,5 +239,13 @@ export default function HabitsPage() {
         defaultOpen={chatOpen}
       />
     </div>
+  )
+}
+
+export default function HabitsPage() {
+  return (
+    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+      <HabitsInner />
+    </Suspense>
   )
 }
