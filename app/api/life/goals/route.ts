@@ -6,14 +6,13 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
-const KEY = 'life:goals'
-
 export async function GET() {
   try {
-    const goals = await redis.get<any[]>(KEY) || []
-    return NextResponse.json({ goals })
+    const goals = await redis.get('life:goals') || []
+    const checkins = await redis.get('life:goals:checkins') || []
+    return NextResponse.json({ goals, checkins })
   } catch (e) {
-    return NextResponse.json({ goals: [] })
+    return NextResponse.json({ goals: [], checkins: [] })
   }
 }
 
@@ -22,25 +21,52 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { action, entry } = body
 
-    const goals = await redis.get<any[]>(KEY) || []
-
-    if (action === 'delete' && entry?.id) {
-      const updated = goals.filter((g: any) => g.id !== entry.id)
-      await redis.set(KEY, updated)
-      return NextResponse.json({ success: true, goals: updated })
+    if (action === 'checkin') {
+      const checkins: any[] = (await redis.get('life:goals:checkins') as any[]) || []
+      const newCheckin = {
+        id: Date.now().toString(),
+        date: new Date().toISOString().split('T')[0],
+        text: entry.text,
+        createdAt: new Date().toISOString(),
+      }
+      checkins.push(newCheckin)
+      await redis.set('life:goals:checkins', checkins)
+      const goals = await redis.get('life:goals') || []
+      return NextResponse.json({ goals, checkins })
     }
 
-    const newEntry = {
-      ...entry,
+    if (action === 'delete') {
+      const goals: any[] = (await redis.get('life:goals') as any[]) || []
+      const updated = goals.filter((g: any) => g.id !== entry.id)
+      await redis.set('life:goals', updated)
+      const checkins = await redis.get('life:goals:checkins') || []
+      return NextResponse.json({ goals: updated, checkins })
+    }
+
+    if (action === 'update') {
+      const goals: any[] = (await redis.get('life:goals') as any[]) || []
+      const updated = goals.map((g: any) => g.id === entry.id ? { ...g, ...entry } : g)
+      await redis.set('life:goals', updated)
+      const checkins = await redis.get('life:goals:checkins') || []
+      return NextResponse.json({ goals: updated, checkins })
+    }
+
+    const goals: any[] = (await redis.get('life:goals') as any[]) || []
+    const newGoal = {
       id: Date.now().toString(),
+      title: entry.title,
+      category: entry.category,
+      target: parseFloat(entry.target),
+      current: parseFloat(entry.current || 0),
+      deadline: entry.deadline,
+      notes: entry.notes || '',
       createdAt: new Date().toISOString(),
     }
-
-    const updated = [...goals, newEntry]
-    await redis.set(KEY, updated)
-
-    return NextResponse.json({ success: true, goals: updated })
+    goals.push(newGoal)
+    await redis.set('life:goals', goals)
+    const checkins = await redis.get('life:goals:checkins') || []
+    return NextResponse.json({ goals, checkins })
   } catch (e) {
-    return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to save goal' }, { status: 500 })
   }
 }
