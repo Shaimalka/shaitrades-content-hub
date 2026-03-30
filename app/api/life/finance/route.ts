@@ -2,71 +2,64 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
+const INCOME_KEY = 'life:finance:income'
+const EXPENSES_KEY = 'life:finance:expenses'
+
 export async function GET() {
-  try {
-    const income = await redis.get('life:finance:income') || []
-    const expenses = await redis.get('life:finance:expenses') || []
-    return NextResponse.json({ income, expenses })
-  } catch (e) {
-    return NextResponse.json({ income: [], expenses: [] })
-  }
+    try {
+          const income = await redis.get(INCOME_KEY) || []
+                const expenses = await redis.get(EXPENSES_KEY) || []
+                      return NextResponse.json({ income, expenses })
+    } catch (e) {
+          return NextResponse.json({ income: [], expenses: [] })
+    }
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    const { action, entry, type } = body
+    try {
+          const body = await req.json()
+          const { action, entry, type } = body
+          const income: any[] = (await redis.get(INCOME_KEY) as any[]) || []
+                const expenses: any[] = (await redis.get(EXPENSES_KEY) as any[]) || []
 
-    if (action === 'delete') {
+                      if (action === 'delete' && entry?.id) {
+                              if (type === 'income') {
+                                        const updated = income.filter((item: any) => item.id !== entry.id)
+                                        await redis.set(INCOME_KEY, updated)
+                                        return NextResponse.json({ success: true, income: updated, expenses })
+                              } else {
+                                        const updated = expenses.filter((item: any) => item.id !== entry.id)
+                                        await redis.set(EXPENSES_KEY, updated)
+                                        return NextResponse.json({ success: true, income, expenses: updated })
+                              }
+                      }
+
       if (type === 'income') {
-        const income: any[] = (await redis.get('life:finance:income') as any[]) || []
-        const updated = income.filter((i: any) => i.id !== entry.id)
-        await redis.set('life:finance:income', updated)
-        const expenses = await redis.get('life:finance:expenses') || []
-        return NextResponse.json({ income: updated, expenses })
+              const newIncome = {
+                        ...entry,
+                        id: Date.now().toString(),
+                        amount: parseFloat(entry.amount) || 0,
+                        createdAt: new Date().toISOString(),
+              }
+              const updated = [...income, newIncome]
+              await redis.set(INCOME_KEY, updated)
+              return NextResponse.json({ success: true, income: updated, expenses })
       } else {
-        const expenses: any[] = (await redis.get('life:finance:expenses') as any[]) || []
-        const updated = expenses.filter((e: any) => e.id !== entry.id)
-        await redis.set('life:finance:expenses', updated)
-        const income = await redis.get('life:finance:income') || []
-        return NextResponse.json({ income, expenses: updated })
+              const newExpense = {
+                        ...entry,
+                        id: Date.now().toString(),
+                        amount: parseFloat(entry.amount) || 0,
+                        createdAt: new Date().toISOString(),
+              }
+              const updated = [...expenses, newExpense]
+              await redis.set(EXPENSES_KEY, updated)
+              return NextResponse.json({ success: true, income, expenses: updated })
       }
+    } catch (e) {
+          return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
     }
-
-    if (type === 'income') {
-      const income: any[] = (await redis.get('life:finance:income') as any[]) || []
-      const newIncome = {
-        id: Date.now().toString(),
-        date: entry.date || new Date().toISOString().split('T')[0],
-        source: entry.source || 'Other',
-        amount: parseFloat(entry.amount) || 0,
-        notes: entry.notes || '',
-        createdAt: new Date().toISOString(),
-      }
-      income.push(newIncome)
-      await redis.set('life:finance:income', income)
-      const expenses = await redis.get('life:finance:expenses') || []
-      return NextResponse.json({ income, expenses })
-    } else {
-      const expenses: any[] = (await redis.get('life:finance:expenses') as any[]) || []
-      const newExpense = {
-        id: Date.now().toString(),
-        date: entry.date || new Date().toISOString().split('T')[0],
-        category: entry.category || 'Other',
-        amount: parseFloat(entry.amount) || 0,
-        notes: entry.notes || '',
-        createdAt: new Date().toISOString(),
-      }
-      expenses.push(newExpense)
-      await redis.set('life:finance:expenses', expenses)
-      const income = await redis.get('life:finance:income') || []
-      return NextResponse.json({ income, expenses })
-    }
-  } catch (e) {
-    return NextResponse.json({ error: 'Failed to save finance entry' }, { status: 500 })
-  }
 }
