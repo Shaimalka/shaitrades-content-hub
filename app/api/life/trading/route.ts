@@ -12,7 +12,7 @@ const KEY = 'life:trading:logs'
 
 export async function GET() {
   try {
-    const logs = await redis.get('life:trading:logs') || []
+    const logs = await redis.get(KEY) || []
     return NextResponse.json({ logs })
   } catch (e) {
     return NextResponse.json({ logs: [] })
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { action, entry } = body
-    const logs: any[] = (await redis.get('life:trading:logs') as any[]) || []
+    const logs: any[] = (await redis.get(KEY) as any[]) || []
 
     if (action === 'delete' && entry?.id) {
       const updated = logs.filter((l: any) => l.id !== entry.id)
@@ -31,7 +31,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, logs: updated })
     }
 
-    // Calculate P&L
     const pnl = entry.direction === 'Long'
       ? (entry.exitPrice - entry.entryPrice) * entry.contracts
       : (entry.entryPrice - entry.exitPrice) * entry.contracts
+
+    const newLog = {
+      ...entry,
+      id: Date.now().toString(),
+      pnl: parseFloat(pnl.toFixed(2)),
+      createdAt: new Date().toISOString(),
+    }
+    const updated = [...logs, newLog]
+    await redis.set(KEY, updated)
+    return NextResponse.json({ success: true, logs: updated })
+  } catch (e) {
+    return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
+  }
+}
