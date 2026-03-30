@@ -49,7 +49,7 @@ COACHING APPROACH:
 - Never give generic advice. Reference their actual entries and mood patterns.`
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       system: systemPrompt,
       messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
