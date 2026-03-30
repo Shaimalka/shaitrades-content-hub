@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
+export const dynamic = 'force-dynamic'
+
 const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
+    token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
 })
 
 const KEY = 'life:health'
@@ -34,26 +36,3 @@ export async function POST(req: NextRequest) {
 
       if (action === 'settings') {
               await redis.set(SETTINGS_KEY, entry)
-              return NextResponse.json({ success: true, logs, settings: entry })
-      }
-
-      const newLog = {
-              ...entry,
-              id: Date.now().toString(),
-              date: entry.date || new Date().toISOString().split('T')[0],
-              weight: parseFloat(entry.weight) || 0,
-              sleep: parseFloat(entry.sleep) || 0,
-              gym: entry.gym || false,
-              mood: parseInt(entry.mood) || 5,
-              energy: parseInt(entry.energy) || 5,
-              notes: entry.notes || '',
-              createdAt: new Date().toISOString(),
-      }
-          const updated = [...logs, newLog]
-          await redis.set(KEY, updated)
-          const settings = await redis.get(SETTINGS_KEY) || {}
-                return NextResponse.json({ success: true, logs: updated, settings })
-    } catch (e) {
-          return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
-    }
-}
