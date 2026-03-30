@@ -6,33 +6,40 @@ export const dynamic = 'force-dynamic'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 const redis = new Redis({
-    url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
-    token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
+  url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
+  token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
 })
 
 export async function POST(req: NextRequest) {
-    try {
-          const { messages } = await req.json()
-          const goals = await redis.get('life:goals') || []
+  try {
+    const { messages } = await req.json()
+    const goals = await redis.get('life:goals') || []
+    const total = (goals as any[]).length
+    const completed = (goals as any[]).filter((g: any) => g.completed).length
+    const inProgress = total - completed
 
-                const total = (goals as any[]).length
-          const completed = (goals as any[]).filter((g: any) => g.completed).length
-          const inProgress = total - completed
+    const systemPrompt = `You are a personal goals coach AI for the user's Life Hub. You have access to their complete goals list.
 
-      const systemPrompt = `You are a personal goals coach AI for the user's Life Hub. You have access to their complete goals list.
+GOALS DATA:
+${JSON.stringify(goals, null, 2)}
 
-      GOALS DATA:
-      ${JSON.stringify(goals, null, 2)}
+KEY STATS:
+- Total Goals: ${total}
+- Completed: ${completed}
+- In Progress: ${inProgress}
 
-      KEY STATS:
-      - Total Goals: ${total}
-      - Completed: ${completed}
-      - In Progress: ${inProgress}
+Help the user stay accountable, celebrate progress, break down big goals into actionable steps, and provide strategic advice. Be motivating but realistic. If no goals exist yet, encourage the user to add their first goal.`
 
-      Help the user stay accountable, celebrate progress, break down big goals into actionable steps, and provide strategic advice. Be motivating but realistic. If no goals exist yet, encourage the user to add their first goal.`
-
-      const response = await anthropic.messages.create({
-              model: 'claude-sonnet-4-20250514',
-              max_tokens: 1024,
-              system: systemPrompt,
-              messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
+    })
+    return NextResponse.json({
+      content: response.content[0].type === 'text' ? response.content[0].text : ''
+    })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 })
+  }
+}
