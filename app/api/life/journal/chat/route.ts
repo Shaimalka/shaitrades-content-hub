@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
           const recentEntry = entryArr.length > 0 ? entryArr[entryArr.length - 1] : null
           const recentDate = recentEntry ? recentEntry.createdAt?.split('T')[0] : 'N/A'
           const moodEntries = entryArr.filter((e: any) => e.mood)
-          const uniqueMoods = [...new Set(moodEntries.map((e: any) => e.mood))]
+                  const uniqueMoods = Array.from(new Set(moodEntries.map((e: any) => e.mood)))
           const daysActive = new Set(entryArr.map((e: any) => e.createdAt?.split('T')[0])).size
 
       const systemPrompt = `You are a personal journal AI embedded in the user's Life Hub dashboard. You help the user reflect on their thoughts, process emotions, and identify growth patterns.
