@@ -61,8 +61,9 @@ export default function LifeHubChat({
 
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.message }])
-    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content }])
+    } catch (err) {
+      console.error('Chat error:', err)
       setMessages(prev => [
         ...prev,
         { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' },
@@ -98,10 +99,10 @@ export default function LifeHubChat({
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-xs font-mono tracking-wide shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
           style={{
-            background: 'linear-gradient(135deg, rgba(0,242,255,0.2), rgba(255,0,229,0.2))',
-            border: '1px solid rgba(0,242,255,0.4)',
-            color: '#00f2ff',
-            boxShadow: '0 0 20px rgba(0,242,255,0.2)',
+            background: 'linear-gradient(135deg, rgba(0,255,136,0.25), rgba(0,242,255,0.15))',
+            border: '1px solid rgba(0,255,136,0.5)',
+            color: '#00ff88',
+            boxShadow: '0 0 12px rgba(0,255,136,0.6)',
           }}
         >
           <MessageSquare size={15} />
@@ -117,8 +118,11 @@ export default function LifeHubChat({
         style={{
           width: '360px',
           background: 'rgba(10,10,14,0.97)',
-          borderLeft: '1px solid rgba(0,242,255,0.15)',
+          borderLeft: isOpen
+            ? '1px solid rgba(0,255,136,0.4)'
+            : '1px solid rgba(0,242,255,0.15)',
           backdropFilter: 'blur(16px)',
+          boxShadow: isOpen ? '0 0 20px rgba(0,255,136,0.3)' : 'none',
         }}
       >
         {/* Header */}
@@ -153,7 +157,7 @@ export default function LifeHubChat({
             border: '1px solid rgba(0,242,255,0.1)',
             color: 'var(--text-muted)',
           }}>
-            <span style={{ color: '#00f2ff' }}>Claude</span> has access to all your {section} data.
+            <span style={{ color: '#00f2ff' }}>Coach Shai</span> has access to all your {section} data.
             Ask anything about your trends, patterns, or progress.
           </div>
         )}
@@ -182,7 +186,7 @@ export default function LifeHubChat({
                 }
               >
                 {msg.role === 'assistant' && (
-                  <span className="block text-[9px] font-mono tracking-widest mb-1 opacity-60">CLAUDE</span>
+                  <span className="block text-[9px] font-mono tracking-widest mb-1 opacity-60">COACH SHAI</span>
                 )}
                 <span className="whitespace-pre-wrap">{msg.content}</span>
               </div>
@@ -223,7 +227,7 @@ export default function LifeHubChat({
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about your data..."
+              placeholder="Ask Coach Shai about your data..."
               className="flex-1 bg-transparent outline-none text-xs"
               style={{ color: 'var(--text-primary)', caretColor: '#00f2ff' }}
             />
@@ -243,18 +247,20 @@ export default function LifeHubChat({
         </div>
       </div>
 
-      {/* Desktop toggle tab (when closed) */}
+      {/* Desktop toggle tab (side tab) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-1.5 px-1.5 py-4 text-[9px] font-mono tracking-widest transition-all duration-200"
+        className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-1.5 px-1.5 py-4 text-[10px] font-mono font-bold tracking-widest transition-all duration-200"
         style={{
-          background: 'rgba(10,10,14,0.95)',
-          borderLeft: '1px solid rgba(0,242,255,0.2)',
-          borderTop: '1px solid rgba(0,242,255,0.2)',
-          borderBottom: '1px solid rgba(0,242,255,0.2)',
+          background: 'linear-gradient(180deg, rgba(0,255,136,0.18) 0%, rgba(10,10,14,0.97) 100%)',
+          borderLeft: '2px solid rgba(0,255,136,0.7)',
+          borderTop: '2px solid rgba(0,255,136,0.7)',
+          borderBottom: '2px solid rgba(0,255,136,0.7)',
           borderRadius: '8px 0 0 8px',
-          color: '#00f2ff',
+          color: '#00ff88',
           right: isOpen ? '360px' : '0px',
+          boxShadow: '0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.08)',
+          textShadow: '0 0 8px rgba(0,255,136,0.8)',
         }}
       >
         {isOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
