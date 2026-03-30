@@ -3,10 +3,13 @@ import { Redis } from '@upstash/redis'
 
 export const dynamic = 'force-dynamic'
 
-const redis = new Redis({
-    url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
-    token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
-})
+function getRedis() {
+  return new Redis({
+    url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^["]+|["]+$/g, ''),
+    token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["]+|["]+$/g, ''),
+  })
+}
+const redis = getRedis()
 
 const INCOME_KEY = 'life:finance:income'
 const EXPENSES_KEY = 'life:finance:expenses'
@@ -36,3 +39,32 @@ export async function POST(req: NextRequest) {
                               } else {
                                         const updated = expenses.filter((item: any) => item.id !== entry.id)
                                         await redis.set(EXPENSES_KEY, updated)
+                                        return NextResponse.json({ success: true, income, expenses: updated })
+                              }
+                      }
+
+      if (type === 'income') {
+              const newIncome = {
+                        ...entry,
+                        id: Date.now().toString(),
+                        amount: parseFloat(entry.amount) || 0,
+                        createdAt: new Date().toISOString(),
+              }
+              const updated = [...income, newIncome]
+              await redis.set(INCOME_KEY, updated)
+              return NextResponse.json({ success: true, income: updated, expenses })
+      } else {
+              const newExpense = {
+                        ...entry,
+                        id: Date.now().toString(),
+                        amount: parseFloat(entry.amount) || 0,
+                        createdAt: new Date().toISOString(),
+              }
+              const updated = [...expenses, newExpense]
+              await redis.set(EXPENSES_KEY, updated)
+              return NextResponse.json({ success: true, income, expenses: updated })
+      }
+    } catch (e) {
+          return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
+    }
+}
