@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
+export const dynamic = 'force-dynamic'
+
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
+  token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
 })
 
 const KEY = 'life:trading:logs'
@@ -33,17 +35,3 @@ export async function POST(req: NextRequest) {
     const pnl = entry.direction === 'Long'
       ? (entry.exitPrice - entry.entryPrice) * entry.contracts
       : (entry.entryPrice - entry.exitPrice) * entry.contracts
-
-    const newEntry = {
-      ...entry,
-      id: Date.now().toString(),
-      pnl: Math.round(pnl * 100) / 100,
-      createdAt: new Date().toISOString(),
-    }
-    const updated = [...logs, newEntry]
-    await redis.set(KEY, updated)
-    return NextResponse.json({ success: true, logs: updated })
-  } catch (e) {
-    return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
-  }
-}
