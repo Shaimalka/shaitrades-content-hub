@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { Redis } from '@upstash/redis'
 
+export const dynamic = 'force-dynamic'
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
+    token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
 })
 
 const INCOME_KEY = 'life:finance:income'
@@ -34,30 +36,3 @@ export async function POST(req: NextRequest) {
 
       INCOME ENTRIES:
       ${JSON.stringify(incomeArr, null, 2)}
-
-      EXPENSE ENTRIES:
-      ${JSON.stringify(expensesArr, null, 2)}
-
-      KEY STATS:
-      - Total Income: $${totalIncome.toFixed(2)}
-      - Total Expenses: $${totalExpenses.toFixed(2)}
-      - Net Profit: $${netProfit.toFixed(2)}
-      - Tax Estimate (25%): $${taxEstimate.toFixed(2)}
-      - Income Entries: ${incomeCount}
-      - Expense Entries: ${expenseCount}
-      - Top Expense Category: ${topExpenseCategory}
-
-      Analyze income sources, expense categories, and trends. Provide practical financial guidance on budgeting, savings, and optimization strategies. If no data exists yet, encourage the user to log their first income or expense entry.`
-
-      const response = await anthropic.messages.create({
-              model: 'claude-sonnet-4-20250514',
-              max_tokens: 1024,
-              system: systemPrompt,
-              messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
-      })
-
-      return NextResponse.json({ content: response.content[0].type === 'text' ? response.content[0].text : '' })
-    } catch (e: any) {
-          return NextResponse.json({ error: e.message }, { status: 500 })
-    }
-}
