@@ -1,3 +1,4 @@
+// v2 - functional trading journal
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
