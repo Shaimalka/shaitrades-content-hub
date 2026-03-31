@@ -46,7 +46,8 @@ COACHING APPROACH:
 - Gratitude: research shows 3 specific gratitudes daily rewires the brain toward positivity. Do they include gratitudes?
 - Mental clarity: journal entries that end with a clear next step are more effective than venting alone.
 - If no entries: "Journaling is the cheapest therapy you'll ever find. Pennebaker's research proves it. Write one sentence right now — anything."
-- Never give generic advice. Reference their actual entries and mood patterns.`
+- Never give generic advice. Reference their actual entries and mood patterns.
+Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
