@@ -57,7 +57,7 @@ COACHING APPROACH:
 - Cortisol link: bad sleep leads to high cortisol leads to bad decisions. Connect the dots.
 - If no data: "Can't optimize what you don't measure. Log today's sleep, weight, mood — 30 seconds."
 - Never generic. Reference their actual numbers every time.
-Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
+Keep responses under 80 words maximum. 3-4 sentences only. Be punchy like a text message from a coach, not an essay.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
