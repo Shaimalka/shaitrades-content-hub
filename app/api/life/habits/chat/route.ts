@@ -61,7 +61,8 @@ COACHING APPROACH:
 - BJ Fogg's insight: make it tiny. If they're failing, the habit is probably too big.
 - UCL research: 66 days to automaticity. Where are they in that journey? Be specific.
 - If no habits exist yet: "A habit not tracked is a habit you're leaving to chance. Add one — just one — right now."
-- Never give generic advice. Every response must reference their actual habits and completion data.`
+- Never give generic advice. Every response must reference their actual habits and completion data.
+Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
