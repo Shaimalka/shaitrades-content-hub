@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
       - Weekly review is non-negotiable. Ask: "When did you last review your goals?"
       - Celebrate completions. Even one done goal is data that their system works.
       - If no goals exist yet: "No goals logged = no direction. Let's fix that right now. What's the one thing that would change everything?"
-      - Never give generic advice. Every response must reference their actual goals and numbers.`
+      - Never give generic advice. Every response must reference their actual goals and numbers.
+Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
 
       const response = await anthropic.messages.create({
               model: 'claude-haiku-4-5-20251001',
