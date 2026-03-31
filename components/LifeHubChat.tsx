@@ -31,6 +31,25 @@ export default function LifeHubChat({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Load from localStorage on mount
+  useEffect(() => {
+    const key = `coachshai-chat-${section}`
+    try {
+      const stored = localStorage.getItem(key)
+      if (stored) {
+        setMessages(JSON.parse(stored))
+      }
+    } catch {}
+  }, [section])
+
+  // Save to localStorage on every new message
+  useEffect(() => {
+    const key = `coachshai-chat-${section}`
+    try {
+      localStorage.setItem(key, JSON.stringify(messages))
+    } catch {}
+  }, [messages, section])
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -164,46 +183,51 @@ export default function LifeHubChat({
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
           {messages.map((msg, i) => (
             <div
               key={i}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div
-                className="max-w-[85%] px-3 py-2 rounded-lg text-xs leading-relaxed"
-                style={
-                  msg.role === 'user'
-                    ? {
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: 'var(--text-primary)',
-                      }
-                    : {
-                        background: 'rgba(0,242,255,0.06)',
-                        border: '1px solid rgba(0,242,255,0.2)',
-                        color: '#00f2ff',
-                      }
-                }
-              >
-                {msg.role === 'assistant' && (
-                  <span className="block text-[9px] font-mono tracking-widest mb-1 opacity-60">COACH SHAI</span>
-                )}
-                {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : <span className="whitespace-pre-wrap">{msg.content}</span>}
-              </div>
+              {msg.role === 'user' ? (
+                <div
+                  className="max-w-[82%] px-4 py-2.5 text-xs leading-relaxed rounded-2xl"
+                  style={{
+                    background: '#1a1a1a',
+                    border: '1px solid #333',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                </div>
+              ) : (
+                <div className="max-w-[90%]">
+                  <span
+                    className="block text-[9px] font-mono tracking-widest mb-1 font-semibold"
+                    style={{ color: '#00ff88', fontVariant: 'small-caps' }}
+                  >
+                    COACH SHAI
+                  </span>
+                  <div
+                    className="text-xs leading-relaxed"
+                    style={{ color: '#00f2ff' }}
+                  >
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div
-                className="px-3 py-2 rounded-lg text-xs"
-                style={{
-                  background: 'rgba(0,242,255,0.06)',
-                  border: '1px solid rgba(0,242,255,0.2)',
-                  color: '#00f2ff',
-                }}
-              >
-                <Loader2 size={12} className="animate-spin" />
+              <div className="pl-0">
+                <span
+                  className="block text-[9px] font-mono tracking-widest mb-1 font-semibold"
+                  style={{ color: '#00ff88', fontVariant: 'small-caps' }}
+                >
+                  COACH SHAI
+                </span>
+                <Loader2 size={13} className="animate-spin" style={{ color: '#00f2ff' }} />
               </div>
             </div>
           )}
@@ -216,10 +240,10 @@ export default function LifeHubChat({
           style={{ borderColor: 'rgba(0,242,255,0.12)' }}
         >
           <div
-            className="flex items-center gap-2 rounded-lg px-3 py-2"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-150"
             style={{
               background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(0,242,255,0.2)',
+              border: '1px solid rgba(0,242,255,0.18)',
             }}
           >
             <input
@@ -230,12 +254,29 @@ export default function LifeHubChat({
               onKeyDown={handleKeyDown}
               placeholder="Ask Coach Shai about your data..."
               className="flex-1 bg-transparent outline-none text-xs"
-              style={{ color: 'var(--text-primary)', caretColor: '#00f2ff' }}
+              style={{
+                color: 'var(--text-primary)',
+                caretColor: '#00f2ff',
+              }}
+              onFocus={e => {
+                const parent = e.currentTarget.parentElement
+                if (parent) {
+                  parent.style.boxShadow = '0 0 0 1px rgba(0,242,255,0.35), 0 0 8px rgba(0,242,255,0.15)'
+                  parent.style.borderColor = 'rgba(0,242,255,0.4)'
+                }
+              }}
+              onBlur={e => {
+                const parent = e.currentTarget.parentElement
+                if (parent) {
+                  parent.style.boxShadow = ''
+                  parent.style.borderColor = 'rgba(0,242,255,0.18)'
+                }
+              }}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="w-7 h-7 flex items-center justify-center rounded transition-all duration-150 disabled:opacity-40"
+              className="w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150 disabled:opacity-40"
               style={{
                 background: 'rgba(0,242,255,0.15)',
                 border: '1px solid rgba(0,242,255,0.3)',
