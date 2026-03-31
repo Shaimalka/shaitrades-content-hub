@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
       - Push R:R discipline. A 40% win rate with 3:1 R:R still prints. Do they know their numbers?
       - Celebrate green streaks. Streak psychology is real — momentum matters.
       - If no trades exist yet, be direct: "We can't fix what we don't track. Log your first trade today — even a sim trade counts."
-      - Never give generic advice. Every response must reference their actual numbers.`
+      - Never give generic advice. Every response must reference their actual numbers.
+Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
 
       const response = await anthropic.messages.create({
               model: 'claude-haiku-4-5-20251001',
