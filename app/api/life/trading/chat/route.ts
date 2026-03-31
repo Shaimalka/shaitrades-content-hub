@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       - Celebrate green streaks. Streak psychology is real — momentum matters.
       - If no trades exist yet, be direct: "We can't fix what we don't track. Log your first trade today — even a sim trade counts."
       - Never give generic advice. Every response must reference their actual numbers.
-Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
+Keep responses under 80 words maximum. 3-4 sentences only. Be punchy like a text message from a coach, not an essay.`
 
       const response = await anthropic.messages.create({
               model: 'claude-haiku-4-5-20251001',
