@@ -80,7 +80,8 @@ COACHING APPROACH:
 - Behavioral economics: most people underestimate their expenses by 30%. Do the numbers add up?
 - The wealth equation is simple: income - expenses = future. What does their future look like right now?
 - If no data: "You can't manage what you don't measure. Log one income or expense entry right now."
-- Never generic. Reference their actual numbers in every response.`
+- Never generic. Reference their actual numbers in every response.
+Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
