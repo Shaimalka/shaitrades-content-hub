@@ -33,8 +33,9 @@ export default function TradovateSettingsPage() {
       if (!res.ok) throw new Error(data.error || 'Connection failed')
       setStatus({ connected: true, lastSync: null })
       setPassword('')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Connection failed'
+      setError(msg)
     } finally {
       setConnecting(false)
     }
@@ -49,9 +50,10 @@ export default function TradovateSettingsPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Sync failed')
       setSyncResult({ imported: data.imported, total: data.total })
-      setStatus(prev => ({ connected: true, lastSync: new Date().toISOString() }))
-    } catch (err: any) {
-      setError(err.message)
+      setStatus({ connected: true, lastSync: new Date().toISOString() })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sync failed'
+      setError(msg)
     } finally {
       setSyncing(false)
     }
@@ -62,6 +64,7 @@ export default function TradovateSettingsPage() {
   return (
     <div className="cyber-bg-grid min-h-screen">
       <div className="max-w-[700px] mx-auto p-6">
+        {/* Header */}
         <div className="mb-8">
           <Link href="/life/trading" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>
             ← TRADING JOURNAL
@@ -73,6 +76,7 @@ export default function TradovateSettingsPage() {
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Settings</h1>
         </div>
 
+        {/* Tradovate Connect Card */}
         <div className="cyber-panel p-6 mb-6">
           <div className="flex items-center gap-2 mb-1">
             <Zap size={14} style={{ color: '#ffb400' }} />
@@ -85,6 +89,7 @@ export default function TradovateSettingsPage() {
             Your password is never stored — only the access token.
           </p>
 
+          {/* Status bar */}
           <div className="flex items-center gap-3 mb-5 px-3 py-2.5 rounded-lg" style={{
             background: isConnected ? 'rgba(0,255,136,0.06)' : 'rgba(255,0,229,0.06)',
             border: `1px solid ${isConnected ? 'rgba(0,255,136,0.25)' : 'rgba(255,0,229,0.25)'}`
@@ -103,20 +108,24 @@ export default function TradovateSettingsPage() {
             )}
           </div>
 
+          {/* Connect form */}
           {!isConnected && (
             <form onSubmit={handleConnect} className="space-y-4">
               <div>
                 <label className="text-xs font-mono block mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                  TRADOVATE USERNAME (EMAIL)
+                  TRADOVATE USERNAME
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   className="cyber-input w-full"
-                  placeholder="you@example.com"
+                  placeholder="e.g. APEX_447132 or you@example.com"
                   required
                   autoComplete="username"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
                 />
               </div>
               <div>
@@ -147,6 +156,7 @@ export default function TradovateSettingsPage() {
             </form>
           )}
 
+          {/* Connected state */}
           {isConnected && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -188,12 +198,13 @@ export default function TradovateSettingsPage() {
           )}
         </div>
 
+        {/* Info card */}
         <div className="cyber-panel p-4">
           <h3 className="text-xs font-mono font-semibold mb-2 tracking-widest" style={{ color: 'var(--text-muted)' }}>
             // HOW IT WORKS
           </h3>
           <ul className="space-y-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <li>→ Your credentials are sent directly to Tradovate's live API</li>
+            <li>→ Your credentials are sent directly to Tradovate&apos;s live API</li>
             <li>→ Only the access token is stored in Redis (never your password)</li>
             <li>→ Tokens auto-renew after 85 minutes of activity</li>
             <li>→ All accounts under your login are synced automatically</li>
