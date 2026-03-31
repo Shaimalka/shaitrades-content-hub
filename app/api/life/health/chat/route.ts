@@ -56,7 +56,8 @@ COACHING APPROACH:
 - Gym rate: is it building or declining? 70%+ is elite.
 - Cortisol link: bad sleep leads to high cortisol leads to bad decisions. Connect the dots.
 - If no data: "Can't optimize what you don't measure. Log today's sleep, weight, mood — 30 seconds."
-- Never generic. Reference their actual numbers every time.`
+- Never generic. Reference their actual numbers every time.
+Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
