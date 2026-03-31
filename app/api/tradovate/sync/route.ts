@@ -19,7 +19,6 @@ async function getValidToken(): Promise<string> {
   const expiryTime = expiry ? new Date(expiry).getTime() : 0
   const msUntilExpiry = expiryTime - Date.now()
 
-  // Renew if less than 5 minutes remain (or if 85+ minutes have passed)
   if (msUntilExpiry < 5 * 60 * 1000) {
     const renewRes = await fetch(`${TRADOVATE_LIVE}/auth/renewAccessToken`, {
       method: 'GET',
@@ -38,42 +37,6 @@ async function getValidToken(): Promise<string> {
   return token
 }
 
-interface TradovateAccount {
-  id: number
-  name: string
-  nickname?: string
-}
-
-interface TradovateFill {
-  id: number
-  orderId: number
-  contractId: number
-  timestamp: string
-  tradeDate: { year: number; month: number; day: number }
-  qty: number
-  price: number
-  tradeSessionId?: number
-  action: string // Buy | Sell
-}
-
-interface TradovatePosition {
-  id: number
-  accountId: number
-  contractId: number
-  timestamp: string
-  tradeDate: { year: number; month: number; day: number }
-  netPos: number
-  netPrice: number
-  realizedPnl?: number
-  openPnl?: number
-  action?: string
-}
-
-interface TradovateContract {
-  id: number
-  name: string
-}
-
 function padZ(n: number) { return String(n).padStart(2, '0') }
 
 function tradeDate(td: { year: number; month: number; day: number }): string {
@@ -87,22 +50,22 @@ function tradeTime(ts: string): string {
 export async function POST() {
   try {
     const token = await getValidToken()
-    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+    const headers: Record<string, string> = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
     // 1. Get all accounts
     const acctRes = await fetch(`${TRADOVATE_LIVE}/account/list`, { headers })
     if (!acctRes.ok) throw new Error('Failed to fetch accounts from Tradovate')
-    const accounts: TradovateAccount[] = await acctRes.json()
+    const accounts: Array<{ id: number; name: string; nickname?: string }> = await acctRes.json()
 
     if (!accounts || accounts.length === 0) {
       return NextResponse.json({ imported: 0, total: 0, trades: [] })
     }
 
     // 2. Load existing trades from Redis
-    const existingTrades: any[] = (await redis.get(TRADING_KEY) as any[]) || []
-    const existingIds = new Set(existingTrades.map((t: any) => t.id))
+    const existingTrades: Array<Record<string, unknown>> = (await redis.get(TRADING_KEY) as Array<Record<string, unknown>>) || []
+    const existingIds = new Set(existingTrades.map((t) => t.id as string))
 
-    const newTrades: any[] = []
+    const newTrades: Array<Record<string, unknown>> = []
 
     // 3. For each account, sync fills
     for (const account of accounts) {
@@ -110,13 +73,15 @@ export async function POST() {
       const accountName = account.nickname || account.name || `Account-${accountId}`
 
       // Get fills for this account
-      let fills: TradovateFill[] = []
+      let fills: Array<{ id: number; orderId: number; contractId: number; timestamp: string; tradeDate: { year: number; month: number; day: number }; qty: number; price: number; action: string }> = []
       try {
         const fillRes = await fetch(`${TRADOVATE_LIVE}/fill/list?accountId=${accountId}`, { headers })
         if (fillRes.ok) {
           fills = await fillRes.json()
         }
-      } catch { /* skip account on error */ }
+      } catch {
+        continue
+      }
 
       if (!fills || fills.length === 0) continue
 
@@ -127,55 +92,41 @@ export async function POST() {
         try {
           const cRes = await fetch(`${TRADOVATE_LIVE}/contract/item?id=${cid}`, { headers })
           if (cRes.ok) {
-            const c: TradovateContract = await cRes.json()
+            const c: { id: number; name: string } = await cRes.json()
             contractMap[cid] = c.name
           }
-        } catch { contractMap[cid] = `Contract-${cid}` }
-      }
-
-      // Group fills by orderId to match entry/exit pairs
-      const orderMap: Record<number, TradovateFill[]> = {}
-      for (const fill of fills) {
-        const key = fill.orderId
-        if (!orderMap[key]) orderMap[key] = []
-        orderMap[key].push(fill)
-      }
-
-      // Sort fills by timestamp and pair them into trades
-      const sortedFills = [...fills].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-
-      // Match Buy/Sell pairs to create completed trades
-      const buyQueue: TradovateFill[] = []
-      const sellQueue: TradovateFill[] = []
-
-      for (const fill of sortedFills) {
-        const action = (fill.action || '').toLowerCase()
-        if (action === 'buy') {
-          buyQueue.push(fill)
-        } else if (action === 'sell') {
-          sellQueue.push(fill)
+        } catch {
+          contractMap[cid] = `Contract-${cid}`
         }
       }
 
-      // Pair buys and sells (simple FIFO matching)
-      while (buyQueue.length > 0 && sellQueue.length > 0) {
-        const buy = buyQueue.shift()!
-        const sell = sellQueue.shift()!
+      // Sort fills by timestamp
+      const sortedFills = [...fills].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 
-        const tradeId = `tradovate-${accountId}-${buy.id}-${sell.id}`
+      // Separate buys and sells for FIFO matching
+      const buyQueue = sortedFills.filter(f => (f.action || '').toLowerCase() === 'buy')
+      const sellQueue = sortedFills.filter(f => (f.action || '').toLowerCase() === 'sell')
+
+      // Pair Long trades: buy entry → sell exit
+      const longBuys = [...buyQueue]
+      const longSells = [...sellQueue]
+      while (longBuys.length > 0 && longSells.length > 0) {
+        const buy = longBuys.shift()!
+        const sell = longSells.shift()!
+
+        const tradeId = `tradovate-long-${accountId}-${buy.id}-${sell.id}`
         if (existingIds.has(tradeId)) continue
 
         const qty = Math.min(buy.qty, sell.qty)
         const pnl = parseFloat(((sell.price - buy.price) * qty).toFixed(2))
-        const direction: 'Long' | 'Short' = 'Long'
         const contractName = contractMap[buy.contractId] || `Contract-${buy.contractId}`
-        const dateStr = tradeDate(buy.tradeDate || { year: new Date(buy.timestamp).getFullYear(), month: new Date(buy.timestamp).getMonth() + 1, day: new Date(buy.timestamp).getDate() })
+        const buyDate = buy.tradeDate || { year: new Date(buy.timestamp).getFullYear(), month: new Date(buy.timestamp).getMonth() + 1, day: new Date(buy.timestamp).getDate() }
 
-        const trade = {
+        newTrades.push({
           id: tradeId,
-          date: dateStr,
+          date: tradeDate(buyDate),
           time: tradeTime(buy.timestamp),
-          direction,
+          direction: 'Long',
           entryPrice: buy.price,
           exitPrice: sell.price,
           contracts: qty,
@@ -187,35 +138,34 @@ export async function POST() {
           accountName,
           symbol: contractName,
           createdAt: new Date().toISOString(),
-        }
-        newTrades.push(trade)
+        })
         existingIds.add(tradeId)
       }
 
-      // Also do Short (sell-first) pairs
-      const shortSells = [...fills].filter(f => (f.action || '').toLowerCase() === 'sell').sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-      const shortBuys = [...fills].filter(f => (f.action || '').toLowerCase() === 'buy').sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-
-      if (shortSells.length > shortBuys.length) {
-        // More sells than buys indicates short positions
-        const extraSells = shortSells.slice(shortBuys.length)
-        const coverBuys = shortBuys.slice(shortSells.length - extraSells.length)
-        for (let i = 0; i < Math.min(extraSells.length, coverBuys.length); i++) {
+      // Pair Short trades: sell entry → buy cover
+      const shortSells = sortedFills.filter(f => (f.action || '').toLowerCase() === 'sell')
+      const coverBuys = sortedFills.filter(f => (f.action || '').toLowerCase() === 'buy')
+      if (shortSells.length > coverBuys.length) {
+        const extraSells = shortSells.slice(coverBuys.length)
+        for (let i = 0; i < extraSells.length; i++) {
           const sell = extraSells[i]
-          const cover = coverBuys[i]
+          // Look for a subsequent buy to cover
+          const cover = coverBuys[coverBuys.length - extraSells.length + i]
+          if (!cover) continue
+
           const tradeId = `tradovate-short-${accountId}-${sell.id}-${cover.id}`
           if (existingIds.has(tradeId)) continue
 
           const qty = Math.min(sell.qty, cover.qty)
           const pnl = parseFloat(((sell.price - cover.price) * qty).toFixed(2))
           const contractName = contractMap[sell.contractId] || `Contract-${sell.contractId}`
-          const dateStr = tradeDate(sell.tradeDate || { year: new Date(sell.timestamp).getFullYear(), month: new Date(sell.timestamp).getMonth() + 1, day: new Date(sell.timestamp).getDate() })
+          const sellDate = sell.tradeDate || { year: new Date(sell.timestamp).getFullYear(), month: new Date(sell.timestamp).getMonth() + 1, day: new Date(sell.timestamp).getDate() }
 
-          const trade = {
+          newTrades.push({
             id: tradeId,
-            date: dateStr,
+            date: tradeDate(sellDate),
             time: tradeTime(sell.timestamp),
-            direction: 'Short' as const,
+            direction: 'Short',
             entryPrice: sell.price,
             exitPrice: cover.price,
             contracts: qty,
@@ -227,8 +177,7 @@ export async function POST() {
             accountName,
             symbol: contractName,
             createdAt: new Date().toISOString(),
-          }
-          newTrades.push(trade)
+          })
           existingIds.add(tradeId)
         }
       }
@@ -244,7 +193,8 @@ export async function POST() {
       total: merged.length,
       trades: newTrades,
     })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Sync failed' }, { status: 500 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Sync failed'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
