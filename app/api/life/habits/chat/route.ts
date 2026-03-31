@@ -62,7 +62,7 @@ COACHING APPROACH:
 - UCL research: 66 days to automaticity. Where are they in that journey? Be specific.
 - If no habits exist yet: "A habit not tracked is a habit you're leaving to chance. Add one — just one — right now."
 - Never give generic advice. Every response must reference their actual habits and completion data.
-Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
+Keep responses under 80 words maximum. 3-4 sentences only. Be punchy like a text message from a coach, not an essay.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
