@@ -19,6 +19,7 @@ import {
   Heart,
   NotebookPen,
   Wallet,
+  Settings,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
@@ -39,7 +40,9 @@ const YOUTUBE_NAV = [
 ]
 
 const LIFE_NAV = [
-  { href: '/life/trading', label: 'Trading Journal', icon: BookOpen },
+  { href: '/life/trading', label: 'Trading Journal', icon: BookOpen, sub: [
+    { href: '/life/trading/settings', label: 'Settings', icon: Settings },
+  ]},
   { href: '/life/goals', label: 'Goals', icon: Target },
   { href: '/life/habits', label: 'Habits', icon: Activity },
   { href: '/life/health', label: 'Health', icon: Heart },
@@ -146,11 +149,24 @@ export default function Sidebar() {
             <span>Life Hub</span>
           </div>
           <nav>
-            {LIFE_NAV.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item ${pathname === href ? 'active' : ''}`}>
-                <span className="nav-item-icon"><Icon size={14} strokeWidth={2} /></span>
-                <span>{label}</span>
-              </Link>
+            {LIFE_NAV.map(({ href, label, icon: Icon, sub }) => (
+              <div key={href}>
+                <Link href={href} className={`nav-item ${pathname === href ? 'active' : ''}`}>
+                  <span className="nav-item-icon"><Icon size={14} strokeWidth={2} /></span>
+                  <span>{label}</span>
+                </Link>
+                {/* Sub-items — shown when parent is active or sub is active */}
+                {sub && (pathname === href || sub.some(s => pathname === s.href)) && (
+                  <div style={{ paddingLeft: '1.5rem' }}>
+                    {sub.map(s => (
+                      <Link key={s.href} href={s.href} className={`nav-item ${pathname === s.href ? 'active' : ''}`} style={{ fontSize: '0.72rem', opacity: 0.8 }}>
+                        <span className="nav-item-icon"><s.icon size={12} strokeWidth={2} /></span>
+                        <span>{s.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
         </div>
