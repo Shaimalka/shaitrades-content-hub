@@ -24,7 +24,7 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   useEffect(() => {
     fetch('/api/tradovate/status')
       .then(r => r.json())
-      .then(d => setStatus(d))
+      .then((d: { connected: boolean; lastSync: string | null }) => setStatus(d))
       .catch(() => setStatus({ connected: false, lastSync: null }))
   }, [])
 
@@ -36,10 +36,11 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Sync failed')
       setSyncMsg(`✓ ${data.imported} new trades imported`)
-      setStatus(prev => ({ connected: true, lastSync: new Date().toISOString() }))
+      setStatus({ connected: true, lastSync: new Date().toISOString() })
       onSyncComplete()
-    } catch (err: any) {
-      setSyncMsg(`⚠ ${err.message}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Sync failed'
+      setSyncMsg(`⚠ ${msg}`)
     } finally {
       setSyncing(false)
     }
@@ -98,7 +99,7 @@ function TradingJournalInner() {
   const [trades, setTrades] = useState<Trade[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [chatOpen, setChatOpen] = useState(searchParams.get('chat') === '1')
+  const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
@@ -107,7 +108,7 @@ function TradingJournalInner() {
   })
 
   function loadTrades() {
-    fetch('/api/life/trading').then(r => r.json()).then(d => {
+    fetch('/api/life/trading').then(r => r.json()).then((d: { logs: Trade[] }) => {
       setTrades(d.logs || []); setLoading(false)
     }).catch(() => setLoading(false))
   }
