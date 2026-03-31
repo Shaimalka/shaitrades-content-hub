@@ -1,75 +1,174 @@
 'use client'
 import { useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+    const router = useRouter()
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
-    if (!username || !password) return
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-      if (res.ok) {
-        sessionStorage.setItem('st_auth', 'authenticated')
-        router.push('/')
-        router.refresh()
-      } else {
-        setError('Invalid credentials')
-        setPassword('')
-      }
-    } catch {
-      setError('Connection error')
-    } finally {
-      setLoading(false)
-    }
+        if (!username || !password) return
+        setLoading(true)
+        setError('')
+        try {
+                const res = await signIn('credentials', {
+                          username,
+                          password,
+                          redirect: false,
+                })
+                if (res?.ok) {
+                          router.push('/')
+                          router.refresh()
+                } else {
+                          setError('ACCESS DENIED')
+                          setPassword('')
+                }
+        } catch {
+                setError('CONNECTION ERROR')
+        } finally {
+                setLoading(false)
+        }
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="w-10 h-10 bg-cyan-500 flex items-center justify-center text-black font-bold text-lg">S</div>
-        <div>
-          <p className="text-white font-bold">Shaitrades</p>
-          <p className="text-gray-500 text-xs">Content Hub</p>
-        </div>
-      </div>
-      <div className="w-full max-w-sm border border-[#1e1e1e] bg-[#0d0d0d] p-8">
-        <p className="text-gray-500 text-xs font-mono mb-6">// ADMIN ACCESS</p>
-        <input
-          type="text"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          placeholder="Username"
-          className="w-full bg-black border border-[#2a2a2a] text-white text-sm px-4 py-3 mb-3 placeholder-gray-600 focus:outline-none focus:border-gray-500"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleLogin()}
-          placeholder="Password"
-          className="w-full bg-black border border-[#2a2a2a] text-white text-sm px-4 py-3 mb-3 placeholder-gray-600 focus:outline-none focus:border-gray-500"
-        />
-        {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          className="w-full bg-white text-black text-sm font-bold py-3 hover:bg-gray-200 disabled:opacity-50 transition-all"
-        >
-          {loading ? 'Verifying...' : 'Enter'}
-        </button>
-      </div>
-      <p className="text-gray-700 text-xs mt-6">Authorized personnel only</p>
-    </div>
-  )
-}
+        <div style={{
+                minHeight: '100vh',
+                background: '#0a0a0b',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'JetBrains Mono, monospace',
+        }}>
+                <div style={{ width: '100%', maxWidth: '380px', padding: '0 1.5rem' }}>
+                          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                                      <div style={{
+                      color: '#00f2ff',
+                      fontSize: '2rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.15em',
+                      marginBottom: '0.5rem',
+                      textShadow: '0 0 20px rgba(0,242,255,0.5)',
+        }}>
+                                                    SHAI HUB
+                                      </div>div>
+                                      <div style={{
+                      color: '#4a4a5a',
+                      fontSize: '0.72rem',
+                      letterSpacing: '0.12em',
+                      fontFamily: 'JetBrains Mono, monospace',
+        }}>
+                                                    // ACCESS TERMINAL
+                                      </div>div>
+                          </div>div>
+
+                          <div style={{
+                    border: '1px solid #1a1a2e',
+                    background: '#0d0d12',
+                    padding: '2rem',
+                    boxShadow: '0 0 40px rgba(0,242,255,0.05)',
+        }}>
+                                      <input
+                                                    type="text"
+                                                    value={username}
+                                                    onChange={e => setUsername(e.target.value)}
+                                                    placeholder="username"
+                                                    style={{
+                                                                    width: '100%',
+                                                                    background: '#0a0a0b',
+                                                                    border: '1px solid #1e1e2e',
+                                                                    color: '#e0e0ff',
+                                                                    fontSize: '0.85rem',
+                                                                    padding: '0.75rem 1rem',
+                                                                    marginBottom: '0.75rem',
+                                                                    outline: 'none',
+                                                                    fontFamily: 'JetBrains Mono, monospace',
+                                                                    boxSizing: 'border-box',
+                                                    }}
+                                                    onFocus={e => { e.currentTarget.style.borderColor = '#00f2ff' }}
+                                                    onBlur={e => { e.currentTarget.style.borderColor = '#1e1e2e' }}
+                                                  />
+                                      <input
+                                                    type="password"
+                                                    value={password}
+                                                    onChange={e => setPassword(e.target.value)}
+                                                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                                                    placeholder="password"
+                                                    style={{
+                                                                    width: '100%',
+                                                                    background: '#0a0a0b',
+                                                                    border: '1px solid #1e1e2e',
+                                                                    color: '#e0e0ff',
+                                                                    fontSize: '0.85rem',
+                                                                    padding: '0.75rem 1rem',
+                                                                    marginBottom: '1rem',
+                                                                    outline: 'none',
+                                                                    fontFamily: 'JetBrains Mono, monospace',
+                                                                    boxSizing: 'border-box',
+                                                    }}
+                                                    onFocus={e => { e.currentTarget.style.borderColor = '#00f2ff' }}
+                                                    onBlur={e => { e.currentTarget.style.borderColor = '#1e1e2e' }}
+                                                  />
+
+                            {error && (
+                      <div style={{
+                                      color: '#ff2d78',
+                                      fontSize: '0.72rem',
+                                      letterSpacing: '0.1em',
+                                      marginBottom: '1rem',
+                                      fontFamily: 'JetBrains Mono, monospace',
+                      }}>
+                                      !! {error}
+                      </div>div>
+                    )}
+
+                                      <button
+                                                    onClick={handleLogin}
+                                                    disabled={loading}
+                                                    style={{
+                                                                    width: '100%',
+                                                                    background: 'transparent',
+                                                                    border: '1px solid #00f2ff',
+                                                                    color: '#00f2ff',
+                                                                    fontSize: '0.85rem',
+                                                                    fontWeight: 700,
+                                                                    padding: '0.75rem',
+                                                                    letterSpacing: '0.2em',
+                                                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                                                    opacity: loading ? 0.5 : 1,
+                                                                    fontFamily: 'JetBrains Mono, monospace',
+                                                                    boxShadow: loading ? 'none' : '0 0 12px rgba(0,242,255,0.25)',
+                                                                    transition: 'all 0.2s',
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                                    if (!loading) {
+                                                                                      e.currentTarget.style.background = 'rgba(0,242,255,0.08)'
+                                                                                      e.currentTarget.style.boxShadow = '0 0 20px rgba(0,242,255,0.4)'
+                                                                    }
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                                    e.currentTarget.style.background = 'transparent'
+                                                                    e.currentTarget.style.boxShadow = loading ? 'none' : '0 0 12px rgba(0,242,255,0.25)'
+                                                    }}
+                                                  >
+                                        {loading ? '// VERIFYING...' : 'ENTER'}
+                                      </button>button>
+                          </div>div>
+                
+                        <div style={{
+                    textAlign: 'center',
+                    marginTop: '1.5rem',
+                    color: '#2a2a3a',
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.1em',
+        }}>
+                                  AUTHORIZED PERSONNEL ONLY
+                        </div>div>
+                </div>div>
+        </div>div>
+      )
+}</button>
