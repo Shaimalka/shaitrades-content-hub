@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       - Celebrate completions. Even one done goal is data that their system works.
       - If no goals exist yet: "No goals logged = no direction. Let's fix that right now. What's the one thing that would change everything?"
       - Never give generic advice. Every response must reference their actual goals and numbers.
-Keep responses under 120 words. Be punchy and direct. No long paragraphs.`
+Keep responses under 80 words maximum. 3-4 sentences only. Be punchy like a text message from a coach, not an essay.`
 
       const response = await anthropic.messages.create({
               model: 'claude-haiku-4-5-20251001',
