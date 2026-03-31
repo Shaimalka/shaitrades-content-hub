@@ -1,8 +1,8 @@
-// v2 - functional trading journal
+// v3 - Tradovate integration added
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { Plus, Trash2, Flame } from 'lucide-react'
+import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -11,9 +11,87 @@ type Trade = {
   id: string; date: string; direction: 'Long' | 'Short'
   entryPrice: number; exitPrice: number; contracts: number
   pnl: number; notes: string; emotion: number; time?: string
+  source?: string; accountName?: string; symbol?: string
 }
 
 const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
+
+function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) {
+  const [status, setStatus] = useState<{ connected: boolean; lastSync: string | null } | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
+
+  useEffect(() => {
+    fetch('/api/tradovate/status')
+      .then(r => r.json())
+      .then(d => setStatus(d))
+      .catch(() => setStatus({ connected: false, lastSync: null }))
+  }, [])
+
+  async function handleSync() {
+    setSyncing(true)
+    setSyncMsg('')
+    try {
+      const res = await fetch('/api/tradovate/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Sync failed')
+      setSyncMsg(`✓ ${data.imported} new trades imported`)
+      setStatus(prev => ({ connected: true, lastSync: new Date().toISOString() }))
+      onSyncComplete()
+    } catch (err: any) {
+      setSyncMsg(`⚠ ${err.message}`)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  if (!status) return null
+
+  if (!status.connected) {
+    return (
+      <div className="flex items-center gap-2 mb-5 px-4 py-2.5 rounded-lg text-xs" style={{
+        background: 'rgba(255,180,0,0.06)',
+        border: '1px solid rgba(255,180,0,0.2)',
+      }}>
+        <XCircle size={13} style={{ color: '#ffb400', flexShrink: 0 }} />
+        <span className="font-mono" style={{ color: '#ffb400' }}>Tradovate not connected</span>
+        <Link href="/life/trading/settings" className="ml-auto font-mono hover:underline" style={{ color: '#00f2ff' }}>
+          Connect Tradovate →
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-3 mb-5 px-4 py-2.5 rounded-lg text-xs" style={{
+      background: 'rgba(0,255,136,0.06)',
+      border: '1px solid rgba(0,255,136,0.2)',
+    }}>
+      <CheckCircle size={13} style={{ color: '#00ff88', flexShrink: 0 }} />
+      <span className="font-mono" style={{ color: '#00ff88' }}>Tradovate Connected</span>
+      {status.lastSync && (
+        <span className="font-mono" style={{ color: 'var(--text-muted)' }}>
+          · Last sync: {new Date(status.lastSync).toLocaleString()}
+        </span>
+      )}
+      {syncMsg && <span className="font-mono" style={{ color: syncMsg.startsWith('✓') ? '#00ff88' : '#ff00e5' }}>{syncMsg}</span>}
+      <div className="flex items-center gap-2 ml-auto">
+        <button
+          onClick={handleSync}
+          disabled={syncing}
+          className="flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs disabled:opacity-50 transition-all"
+          style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.3)', color: '#00f2ff' }}
+        >
+          {syncing ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+          {syncing ? 'Syncing…' : 'Sync Now'}
+        </button>
+        <Link href="/life/trading/settings" style={{ color: 'var(--text-muted)', opacity: 0.6 }} title="Tradovate Settings">
+          <Settings size={13} />
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 function TradingJournalInner() {
   const searchParams = useSearchParams()
@@ -28,9 +106,13 @@ function TradingJournalInner() {
     entryPrice: '', exitPrice: '', contracts: '', notes: '', emotion: 3,
   })
 
-  useEffect(() => {
-    fetch('/api/life/trading').then(r => r.json()).then(d => { setTrades(d.logs || []); setLoading(false) }).catch(() => setLoading(false))
-  }, [])
+  function loadTrades() {
+    fetch('/api/life/trading').then(r => r.json()).then(d => {
+      setTrades(d.logs || []); setLoading(false)
+    }).catch(() => setLoading(false))
+  }
+
+  useEffect(() => { loadTrades() }, [])
 
   async function submitTrade(e: React.FormEvent) {
     e.preventDefault()
@@ -78,9 +160,13 @@ function TradingJournalInner() {
           </div>
           <div className="flex items-center gap-3">
             {streak > 0 && <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88' }}><Flame size={12} /> {streak} day streak</div>}
+            <Link href="/life/trading/settings" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono" style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', color: 'var(--text-muted)' }}><Settings size={12} /> Settings</Link>
             <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2"><Plus size={14} /> Log Trade</button>
           </div>
         </div>
+
+        {/* Tradovate Status Bar */}
+        <TradovateStatusBar onSyncComplete={loadTrades} />
 
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
           {[
@@ -145,7 +231,7 @@ function TradingJournalInner() {
           : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
-                <thead><tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>{['DATE', 'TIME', 'DIR', 'ENTRY', 'EXIT', 'QTY', 'P&L', '😊', 'NOTES', ''].map(h => <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>)}</tr></thead>
+                <thead><tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>{['DATE', 'TIME', 'DIR', 'ENTRY', 'EXIT', 'QTY', 'P&L', '😊', 'ACCOUNT', 'NOTES', ''].map(h => <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>)}</tr></thead>
                 <tbody>{[...trades].reverse().map(trade => (
                   <tr key={trade.id} className="border-b hover:bg-white/[0.02] transition-colors" style={{ borderColor: 'var(--border-subtle)' }}>
                     <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{trade.date}</td>
@@ -156,7 +242,14 @@ function TradingJournalInner() {
                     <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{trade.contracts}</td>
                     <td className="px-4 py-3 font-mono font-bold" style={{ color: trade.pnl >= 0 ? '#00ff88' : '#ff00e5' }}>${trade.pnl.toFixed(2)}</td>
                     <td className="px-4 py-3 text-base">{EMOTIONS[(trade.emotion || 3) - 1]}</td>
-                    <td className="px-4 py-3 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>{trade.notes}</td>
+                    <td className="px-4 py-3">
+                      {trade.accountName ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.25)', color: '#00f2ff' }}>
+                          {trade.accountName}
+                        </span>
+                      ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                    </td>
+                    <td className="px-4 py-3 max-w-[180px] truncate" style={{ color: 'var(--text-muted)' }}>{trade.notes}</td>
                     <td className="px-4 py-3"><button onClick={() => deleteTrade(trade.id)} className="opacity-30 hover:opacity-70 transition-opacity"><Trash2 size={12} style={{ color: '#ff00e5' }} /></button></td>
                   </tr>
                 ))}</tbody>
