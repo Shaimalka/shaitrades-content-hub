@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { MessageSquare, X, Send, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -188,7 +189,7 @@ export default function LifeHubChat({
                 {msg.role === 'assistant' && (
                   <span className="block text-[9px] font-mono tracking-widest mb-1 opacity-60">COACH SHAI</span>
                 )}
-                <span className="whitespace-pre-wrap">{msg.content}</span>
+                {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : <span className="whitespace-pre-wrap">{msg.content}</span>}
               </div>
             </div>
           ))}
