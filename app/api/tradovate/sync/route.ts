@@ -47,10 +47,24 @@ function tradeTime(ts: string): string {
   try { return new Date(ts).toTimeString().slice(0, 5) } catch { return '00:00' }
 }
 
+type Fill = {
+  id: number
+  orderId: number
+  contractId: number
+  timestamp: string
+  tradeDate: { year: number; month: number; day: number }
+  qty: number
+  price: number
+  action: string
+}
+
 export async function POST() {
   try {
     const token = await getValidToken()
-    const headers: Record<string, string> = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
 
     // 1. Get all accounts
     const acctRes = await fetch(`${TRADOVATE_LIVE}/account/list`, { headers })
@@ -63,8 +77,7 @@ export async function POST() {
 
     // 2. Load existing trades from Redis
     const existingTrades: Array<Record<string, unknown>> = (await redis.get(TRADING_KEY) as Array<Record<string, unknown>>) || []
-    const existingIds = new Set(existingTrades.map((t) => t.id as string))
-
+    const existingIds = new Set(existingTrades.map((t) => String(t.id)))
     const newTrades: Array<Record<string, unknown>> = []
 
     // 3. For each account, sync fills
@@ -72,21 +85,18 @@ export async function POST() {
       const accountId = account.id
       const accountName = account.nickname || account.name || `Account-${accountId}`
 
-      // Get fills for this account
-      let fills: Array<{ id: number; orderId: number; contractId: number; timestamp: string; tradeDate: { year: number; month: number; day: number }; qty: number; price: number; action: string }> = []
+      let fills: Fill[] = []
       try {
         const fillRes = await fetch(`${TRADOVATE_LIVE}/fill/list?accountId=${accountId}`, { headers })
-        if (fillRes.ok) {
-          fills = await fillRes.json()
-        }
+        if (fillRes.ok) fills = await fillRes.json()
       } catch {
         continue
       }
 
       if (!fills || fills.length === 0) continue
 
-      // Get contracts for name resolution
-      const contractIds = [...new Set(fills.map(f => f.contractId))]
+      // Get unique contract IDs and resolve names
+      const contractIds = Array.from(new Set(fills.map((f) => f.contractId)))
       const contractMap: Record<number, string> = {}
       for (const cid of contractIds) {
         try {
@@ -101,30 +111,34 @@ export async function POST() {
       }
 
       // Sort fills by timestamp
-      const sortedFills = [...fills].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      const sortedFills = fills.slice().sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 
-      // Separate buys and sells for FIFO matching
-      const buyQueue = sortedFills.filter(f => (f.action || '').toLowerCase() === 'buy')
-      const sellQueue = sortedFills.filter(f => (f.action || '').toLowerCase() === 'sell')
+      // Separate into buy/sell queues
+      const buyQueue = sortedFills.filter((f) => f.action.toLowerCase() === 'buy')
+      const sellQueue = sortedFills.filter((f) => f.action.toLowerCase() === 'sell')
 
-      // Pair Long trades: buy entry → sell exit
-      const longBuys = [...buyQueue]
-      const longSells = [...sellQueue]
+      // Pair Long trades: buy entry → sell exit (FIFO)
+      const longBuys = buyQueue.slice()
+      const longSells = sellQueue.slice()
+
       while (longBuys.length > 0 && longSells.length > 0) {
         const buy = longBuys.shift()!
         const sell = longSells.shift()!
-
         const tradeId = `tradovate-long-${accountId}-${buy.id}-${sell.id}`
         if (existingIds.has(tradeId)) continue
 
         const qty = Math.min(buy.qty, sell.qty)
         const pnl = parseFloat(((sell.price - buy.price) * qty).toFixed(2))
         const contractName = contractMap[buy.contractId] || `Contract-${buy.contractId}`
-        const buyDate = buy.tradeDate || { year: new Date(buy.timestamp).getFullYear(), month: new Date(buy.timestamp).getMonth() + 1, day: new Date(buy.timestamp).getDate() }
+        const buyTd = buy.tradeDate || {
+          year: new Date(buy.timestamp).getFullYear(),
+          month: new Date(buy.timestamp).getMonth() + 1,
+          day: new Date(buy.timestamp).getDate(),
+        }
 
         newTrades.push({
           id: tradeId,
-          date: tradeDate(buyDate),
+          date: tradeDate(buyTd),
           time: tradeTime(buy.timestamp),
           direction: 'Long',
           entryPrice: buy.price,
@@ -143,14 +157,11 @@ export async function POST() {
       }
 
       // Pair Short trades: sell entry → buy cover
-      const shortSells = sortedFills.filter(f => (f.action || '').toLowerCase() === 'sell')
-      const coverBuys = sortedFills.filter(f => (f.action || '').toLowerCase() === 'buy')
-      if (shortSells.length > coverBuys.length) {
-        const extraSells = shortSells.slice(coverBuys.length)
+      if (sellQueue.length > buyQueue.length) {
+        const extraSells = sellQueue.slice(buyQueue.length)
         for (let i = 0; i < extraSells.length; i++) {
           const sell = extraSells[i]
-          // Look for a subsequent buy to cover
-          const cover = coverBuys[coverBuys.length - extraSells.length + i]
+          const cover = buyQueue[buyQueue.length - extraSells.length + i]
           if (!cover) continue
 
           const tradeId = `tradovate-short-${accountId}-${sell.id}-${cover.id}`
@@ -159,11 +170,15 @@ export async function POST() {
           const qty = Math.min(sell.qty, cover.qty)
           const pnl = parseFloat(((sell.price - cover.price) * qty).toFixed(2))
           const contractName = contractMap[sell.contractId] || `Contract-${sell.contractId}`
-          const sellDate = sell.tradeDate || { year: new Date(sell.timestamp).getFullYear(), month: new Date(sell.timestamp).getMonth() + 1, day: new Date(sell.timestamp).getDate() }
+          const sellTd = sell.tradeDate || {
+            year: new Date(sell.timestamp).getFullYear(),
+            month: new Date(sell.timestamp).getMonth() + 1,
+            day: new Date(sell.timestamp).getDate(),
+          }
 
           newTrades.push({
             id: tradeId,
-            date: tradeDate(sellDate),
+            date: tradeDate(sellTd),
             time: tradeTime(sell.timestamp),
             direction: 'Short',
             entryPrice: sell.price,
@@ -184,7 +199,7 @@ export async function POST() {
     }
 
     // 4. Merge and save
-    const merged = [...existingTrades, ...newTrades]
+    const merged = existingTrades.concat(newTrades)
     await redis.set(TRADING_KEY, merged)
     await redis.set('tradovate:lastSync', new Date().toISOString())
 
