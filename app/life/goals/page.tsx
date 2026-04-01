@@ -151,7 +151,7 @@ function GoalsInner() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{'<-'} LIFE HUB</Link>
-            <span className="section-label">GOALS</span>
+            <span className="section-header">GOALS</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Goal Tracker</h1>
           </div>
           <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2">
@@ -191,7 +191,7 @@ function GoalsInner() {
         </div>
 
         {showForm && (
-          <div className="cyber-panel p-5 mb-6">
+          <div className="premium-card p-5 mb-6">
             <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW GOAL</h3>
             <form onSubmit={submitGoal} className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div className="md:col-span-3">
@@ -243,7 +243,7 @@ function GoalsInner() {
         {loading ? (
           <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
         ) : filteredGoals.length === 0 ? (
-          <div className="cyber-panel p-8 text-center">
+          <div className="premium-card p-8 text-center">
             <Target size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
             <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>No {activeTier} goals yet.</p>
             <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Set your first {activeTier} goal to start tracking progress.</p>
@@ -262,7 +262,7 @@ function GoalsInner() {
               const checkins = goal.checkins || []
 
               return (
-                <div key={goal.id} className="cyber-panel p-5 flex flex-col gap-3">
+                <div key={goal.id} className="premium-card p-5 flex flex-col gap-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
