@@ -2,13 +2,13 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 import { Redis } from '@upstash/redis'
 
 const VIRAL_QUEUE_KEY = 'viralQueue'
 
-// ── GET — return all scripts in the viral queue ─────────────────────────────
+// ââ GET â return all scripts in the viral queue âââââââââââââââââââââââââââââ
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// ── PATCH — update status of a single script by index ──────────────────────
+// ââ PATCH â update status of a single script by index ââââââââââââââââââââââ
 export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest) {
     }
 }
 
-// ── DELETE — clear all scripts from the queue ───────────────────────────────
+// ââ DELETE â clear all scripts from the queue âââââââââââââââââââââââââââââââ
 export async function DELETE(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
