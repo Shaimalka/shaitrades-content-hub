@@ -151,12 +151,12 @@ function TradingJournalInner() {
   const worstDay = sortedDates.reduce((worst, d) => { const dp = trades.filter(t => t.date === d).reduce((s, t) => s + t.pnl, 0); return dp < worst ? dp : worst }, 0)
 
   return (
-    <div className="cyber-bg-grid min-h-screen">
+    <div className="cyber-bg-grid cyber-bg-grid min-h-screen">
       <div className="max-w-[1200px] mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
-            <span className="section-label">TRADING JOURNAL</span>
+            <span className="section-header">TRADING JOURNAL</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Trade Log</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ function TradingJournalInner() {
         </div>
 
         {showForm && (
-          <div className="cyber-panel p-5 mb-6">
+          <div className="premium-card p-5 mb-6">
             <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW TRADE ENTRY</h3>
             <form onSubmit={submitTrade} className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required /></div>
@@ -213,7 +213,7 @@ function TradingJournalInner() {
 
         {chartData.length > 0 && (
           <div className="chart-container mb-6">
-            <h3 className="section-label mb-4">MONTHLY P&L</h3>
+            <h3 className="section-header mb-4">MONTHLY P&L</h3>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
@@ -225,8 +225,8 @@ function TradingJournalInner() {
           </div>
         )}
 
-        <div className="cyber-panel overflow-hidden">
-          <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}><h3 className="section-label">TRADE LOG · {trades.length} ENTRIES</h3></div>
+        <div className="premium-card overflow-hidden">
+          <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}><h3 className="section-header">TRADE LOG · {trades.length} ENTRIES</h3></div>
           {loading ? <div className="p-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
           : trades.length === 0 ? <div className="p-8 text-center"><p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>No trades logged yet.</p><button onClick={() => setShowForm(true)} className="btn-cyber-primary mt-3">Log Your First Trade</button></div>
           : (
@@ -266,7 +266,7 @@ function TradingJournalInner() {
 
 export default function TradingJournalPage() {
   return (
-    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+    <Suspense fallback={<div className="cyber-bg-grid cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
       <TradingJournalInner />
     </Suspense>
   )
