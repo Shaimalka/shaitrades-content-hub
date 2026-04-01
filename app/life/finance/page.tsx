@@ -180,7 +180,7 @@ function FinanceInner() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>&#8592; LIFE HUB</Link>
-            <span className="section-label">FINANCE</span>
+            <span className="section-header">FINANCE</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Finance Dashboard</h1>
           </div>
           <Wallet size={32} style={{ color: '#00ff88', opacity: 0.4 }} />
@@ -213,7 +213,7 @@ function FinanceInner() {
         {(bestMonth || biggestExpCat) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
             {bestMonth && (
-              <div className="cyber-panel p-4 flex items-center gap-3">
+              <div className="premium-card p-4 flex items-center gap-3">
                 <TrendingUp size={20} style={{ color: '#00ff88', flexShrink: 0 }} />
                 <div>
                   <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>BEST INCOME MONTH</p>
@@ -222,7 +222,7 @@ function FinanceInner() {
               </div>
             )}
             {biggestExpCat && (
-              <div className="cyber-panel p-4 flex items-center gap-3">
+              <div className="premium-card p-4 flex items-center gap-3">
                 <TrendingDown size={20} style={{ color: '#ff2d78', flexShrink: 0 }} />
                 <div>
                   <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>BIGGEST EXPENSE CATEGORY</p>
@@ -236,7 +236,7 @@ function FinanceInner() {
         {/* Bar Chart */}
         {barData.length > 0 && (
           <div className="chart-container mb-6">
-            <h3 className="section-label mb-4">MONTHLY INCOME vs EXPENSES</h3>
+            <h3 className="section-header mb-4">MONTHLY INCOME vs EXPENSES</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={barData}>
                 <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
@@ -268,7 +268,7 @@ function FinanceInner() {
 
         {/* Forms */}
         {showForm && tab === 'trading' && (
-          <div className="cyber-panel p-4 mb-4">
+          <div className="premium-card p-4 mb-4">
             <h3 className="text-xs font-mono font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>// NEW TRADING INCOME</h3>
             <form onSubmit={addTradeIncome} className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label><input type="date" value={tradeForm.date} onChange={e => setTradeForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required /></div>
@@ -287,7 +287,7 @@ function FinanceInner() {
         )}
 
         {showForm && tab === 'content' && (
-          <div className="cyber-panel p-4 mb-4">
+          <div className="premium-card p-4 mb-4">
             <h3 className="text-xs font-mono font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>// NEW CONTENT INCOME</h3>
             <form onSubmit={addContentIncome} className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label><input type="date" value={contentForm.date} onChange={e => setContentForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required /></div>
@@ -305,7 +305,7 @@ function FinanceInner() {
         )}
 
         {showForm && tab === 'expenses' && (
-          <div className="cyber-panel p-4 mb-4">
+          <div className="premium-card p-4 mb-4">
             <h3 className="text-xs font-mono font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>// NEW EXPENSE</h3>
             <form onSubmit={addExpense} className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label><input type="date" value={expenseForm.date} onChange={e => setExpenseForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required /></div>
@@ -326,11 +326,11 @@ function FinanceInner() {
         {loading ? (
           <div className="text-center py-12 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
         ) : (
-          <div className="cyber-panel overflow-hidden">
+          <div className="premium-card overflow-hidden">
             {tab === 'trading' && (
               <>
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">TRADING INCOME &#183; {tradeIncome.length} ENTRIES &#183; {fmt(tradeIncome.reduce((s, i) => s + i.amount, 0))}</h3>
+                  <h3 className="section-header">TRADING INCOME &#183; {tradeIncome.length} ENTRIES &#183; {fmt(tradeIncome.reduce((s, i) => s + i.amount, 0))}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -359,7 +359,7 @@ function FinanceInner() {
             {tab === 'content' && (
               <>
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">CONTENT INCOME &#183; {contentIncome.length} ENTRIES &#183; {fmt(contentIncome.reduce((s, i) => s + i.amount, 0))}</h3>
+                  <h3 className="section-header">CONTENT INCOME &#183; {contentIncome.length} ENTRIES &#183; {fmt(contentIncome.reduce((s, i) => s + i.amount, 0))}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -387,7 +387,7 @@ function FinanceInner() {
             {tab === 'expenses' && (
               <>
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">EXPENSES &#183; {expenses.length} ENTRIES &#183; {fmt(expenses.reduce((s, e) => s + e.amount, 0))}</h3>
+                  <h3 className="section-header">EXPENSES &#183; {expenses.length} ENTRIES &#183; {fmt(expenses.reduce((s, e) => s + e.amount, 0))}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
