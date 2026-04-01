@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
                                   const pnl = parseFloat(((sell.price - buy.price) * qty).toFixed(2))
                                   const contractName = contractMap[buy.contractId] || `Contract-${buy.contractId}`
                                   const buyTd = buy.tradeDate || { year: new Date(buy.timestamp).getFullYear(), month: new Date(buy.timestamp).getMonth() + 1, day: new Date(buy.timestamp).getDate() }
-                                  newTrades.push({ id: tradeId, date: tradeDate(buyTd), time: tradeTime(buy.timestamp), direction: 'Long', entryPrice: buy.price, exitPrice: sell.price, contracts: qty, pnl, notes: `Auto-imported from Tradovate · ${contractName}`, emotion: 3, source: 'tradovate', accountId, accountName, symbol: contractName, createdAt: new Date().toISOString() })
+                                  newTrades.push({ id: tradeId, date: tradeDate(buyTd), time: tradeTime(buy.timestamp), direction: 'Long', entryPrice: buy.price, exitPrice: sell.price, contracts: qty, pnl, notes: `Auto-imported from Tradovate Â· ${contractName}`, emotion: 3, source: 'tradovate', accountId, accountName, symbol: contractName, createdAt: new Date().toISOString() })
                                   existingIds.add(tradeId)
                         }
                         if (sellQueue.length > buyQueue.length) {
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
                                               const pnl = parseFloat(((sell.price - cover.price) * qty).toFixed(2))
                                               const contractName = contractMap[sell.contractId] || `Contract-${sell.contractId}`
                                               const sellTd = sell.tradeDate || { year: new Date(sell.timestamp).getFullYear(), month: new Date(sell.timestamp).getMonth() + 1, day: new Date(sell.timestamp).getDate() }
-                                              newTrades.push({ id: tradeId, date: tradeDate(sellTd), time: tradeTime(sell.timestamp), direction: 'Short', entryPrice: sell.price, exitPrice: cover.price, contracts: qty, pnl, notes: `Auto-imported from Tradovate · ${contractName}`, emotion: 3, source: 'tradovate', accountId, accountName, symbol: contractName, createdAt: new Date().toISOString() })
+                                              newTrades.push({ id: tradeId, date: tradeDate(sellTd), time: tradeTime(sell.timestamp), direction: 'Short', entryPrice: sell.price, exitPrice: cover.price, contracts: qty, pnl, notes: `Auto-imported from Tradovate Â· ${contractName}`, emotion: 3, source: 'tradovate', accountId, accountName, symbol: contractName, createdAt: new Date().toISOString() })
                                               existingIds.add(tradeId)
                                   }
                         }
