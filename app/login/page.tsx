@@ -55,7 +55,7 @@ export default function LoginPage() {
                       textShadow: '0 0 20px rgba(0,242,255,0.5)',
         }}>
                                                     SHAI HUB
-                                      </div>div>
+                                      </div>
                                       <div style={{
                       color: '#4a4a5a',
                       fontSize: '0.72rem',
@@ -63,8 +63,8 @@ export default function LoginPage() {
                       fontFamily: 'JetBrains Mono, monospace',
         }}>
                                                     // ACCESS TERMINAL
-                                      </div>div>
-                          </div>div>
+                                      </div>
+                          </div>
 
                           <div style={{
                     border: '1px solid #1a1a2e',
@@ -123,7 +123,7 @@ export default function LoginPage() {
                                       fontFamily: 'JetBrains Mono, monospace',
                       }}>
                                       !! {error}
-                      </div>div>
+                      </div>
                     )}
 
                                       <button
@@ -156,8 +156,8 @@ export default function LoginPage() {
                                                     }}
                                                   >
                                         {loading ? '// VERIFYING...' : 'ENTER'}
-                                      </button>button>
-                          </div>div>
+                                      </button>
+                          </div>
                 
                         <div style={{
                     textAlign: 'center',
@@ -167,8 +167,8 @@ export default function LoginPage() {
                     letterSpacing: '0.1em',
         }}>
                                   AUTHORIZED PERSONNEL ONLY
-                        </div>div>
-                </div>div>
-        </div>div>
+                        </div>
+                </div>
+        </div>
       )
-}</button>
+}
