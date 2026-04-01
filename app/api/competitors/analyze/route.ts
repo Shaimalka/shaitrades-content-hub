@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
                 '- 23 years old, Las Vegas. Started trading at 18 during COVID',
                 '- Quit a $250K/year sales job 1 month ago, moved to Thailand to trade NQ/ES futures full time',
                 '- Trades at 2-3 AM Thailand time. Lives the freedom lifestyle abroad',
-                '- Has a raw, real, no-filter brand — shows actual losses AND wins',
+                '- Has a raw, real, no-filter brand â shows actual losses AND wins',
                 '- Voice: short punchy sentences, personal storytelling, real numbers, zero hype',
                 '- Goals: trading course, global speaking, massive personal brand',
                 '- Audience: broke 20-somethings who want out, 9-5 guys curious about trading, lifestyle/freedom seekers, traders who want to level up',
