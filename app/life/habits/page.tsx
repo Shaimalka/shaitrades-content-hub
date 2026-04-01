@@ -195,7 +195,7 @@ function HabitsInner() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{'<-'} LIFE HUB</Link>
-            <span className="section-label">HABITS</span>
+            <span className="section-header">HABITS</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Habit Tracker</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -215,8 +215,8 @@ function HabitsInner() {
 
         {/* Today's Stack — Daily View */}
         {habits.length > 0 && (
-          <div className="cyber-panel p-5 mb-6">
-            <h3 className="section-label mb-4">TODAY'S STACK</h3>
+          <div className="premium-card p-5 mb-6">
+            <h3 className="section-header mb-4">TODAY'S STACK</h3>
             <div className="space-y-2">
               {STACKS.map(({ key, label, icon, color }) => {
                 const stackItems = stackHabits(key)
@@ -266,9 +266,9 @@ function HabitsInner() {
 
         {/* Weekly Review */}
         {showWeeklyReview && habits.length > 0 && (
-          <div className="cyber-panel p-5 mb-6">
+          <div className="premium-card p-5 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="section-label">WEEKLY REVIEW</h3>
+              <h3 className="section-header">WEEKLY REVIEW</h3>
               <button onClick={() => setShowWeeklyReview(false)} className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Close</button>
             </div>
             <div className="space-y-3">
@@ -301,7 +301,7 @@ function HabitsInner() {
 
         {/* Add Habit Form */}
         {showForm && (
-          <div className="cyber-panel p-5 mb-6">
+          <div className="premium-card p-5 mb-6">
             <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW HABIT</h3>
             <form onSubmit={addHabit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -364,7 +364,7 @@ function HabitsInner() {
         {/* Miss Reason Prompt */}
         {missPrompt && (
           <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.8)' }}>
-            <div className="cyber-panel p-6 max-w-sm w-full mx-4">
+            <div className="premium-card p-6 max-w-sm w-full mx-4">
               <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Why did you skip today?</h3>
               <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>{habits.find(h => h.id === missPrompt.habitId)?.name}</p>
               <div className="grid grid-cols-2 gap-2 mb-4">
@@ -388,7 +388,7 @@ function HabitsInner() {
         {loading ? (
           <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
         ) : habits.length === 0 ? (
-          <div className="cyber-panel p-8 text-center">
+          <div className="premium-card p-8 text-center">
             <CheckSquare size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
             <p className="text-xs font-mono mb-3" style={{ color: 'var(--text-muted)' }}>No habits created yet.</p>
             <button onClick={() => setShowForm(true)} className="btn-cyber-primary">Create Your First Habit</button>
@@ -400,7 +400,7 @@ function HabitsInner() {
               if (items.length === 0) return null
               const isExpanded = expandedStack !== key
               return (
-                <div key={key} className="cyber-panel overflow-hidden">
+                <div key={key} className="premium-card overflow-hidden">
                   <button
                     onClick={() => setExpandedStack(expandedStack === key ? null : key)}
                     className="w-full flex items-center justify-between p-4 hover:bg-white/[0.02] transition-all"
