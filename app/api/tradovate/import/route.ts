@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
                   const dedupKey = date + '|' + entryPrice + '|' + exitPrice + '|' + contracts
                   if (existingKeys.has(dedupKey)) { skipped++; continue }
                   const id = 'tv-' + date + '-' + Math.random().toString(36).slice(2)
-                  const notes = 'Imported from Tradovate · ' + contract + (account ? ' · Account: ' + account : '')
+                  const notes = 'Imported from Tradovate Â· ' + contract + (account ? ' Â· Account: ' + account : '')
                   newTrades.push({ id, date, time, direction, entryPrice, exitPrice, contracts, pnl, notes, emotion: 3, accountName: account || undefined, source: 'csv-import', createdAt: new Date().toISOString() })
                   existingKeys.add(dedupKey)
           }
