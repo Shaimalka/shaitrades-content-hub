@@ -3,8 +3,8 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
-  title: 'Shaitrades Content Hub',
-  description: 'Your trading content command center',
+  title: 'TRABITS',
+  description: 'Trade better. Live better. Build better habits.',
 }
 
 export default function RootLayout({
