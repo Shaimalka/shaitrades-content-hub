@@ -11,6 +11,10 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        console.log('AUTH_USERNAME env:', process.env.AUTH_USERNAME)
+        console.log('Credentials received:', credentials?.username)
+        console.log('Username match:', credentials?.username === process.env.AUTH_USERNAME)
+        console.log('AUTH_PASSWORD env exists:', !!process.env.AUTH_PASSWORD)
         const user = process.env.AUTH_USERNAME
         const hash = process.env.AUTH_PASSWORD
         if (!user || !hash || !credentials?.username || !credentials?.password) {
