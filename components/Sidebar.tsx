@@ -3,9 +3,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import {
-    LayoutDashboard, Users, FileText, Sparkles, CalendarDays,
-    BarChart2, Youtube, ChevronLeft, Sun, Moon,
-    BookOpen, Target, Activity, Heart, NotebookPen, Wallet, Settings,
+  LayoutDashboard, Users, FileText, Sparkles, CalendarDays,
+  BarChart2, Youtube, ChevronLeft, Sun, Moon,
+  BookOpen, Target, Activity, Heart, NotebookPen, Wallet, Settings,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
@@ -15,15 +15,15 @@ const INSTAGRAM_NAV = [
   { href: '/instagram/reports', label: 'Weekly Report', icon: FileText },
   { href: '/instagram/content', label: 'Content Gen', icon: Sparkles },
   { href: '/instagram/scheduler', label: 'Scheduler', icon: CalendarDays },
-  ]
+]
 
 const TIKTOK_NAV = [
   { href: '/tiktok/analytics', label: 'Analytics', icon: BarChart2 },
-  ]
+]
 
 const YOUTUBE_NAV = [
   { href: '/youtube', label: 'Analytics', icon: BarChart2 },
-  ]
+]
 
 const LIFE_NAV = [
   { href: '/life/trading', label: 'Trading Journal', icon: BookOpen, sub: [
@@ -34,7 +34,7 @@ const LIFE_NAV = [
   { href: '/life/health', label: 'Health', icon: Heart },
   { href: '/life/journal', label: 'Daily Journal', icon: NotebookPen },
   { href: '/life/finance', label: 'Finance', icon: Wallet },
-  ]
+]
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -45,17 +45,52 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="sidebar-logo">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
-          <div className="logo-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M3 17l4-8 4 4 3-6 4 10" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          {/* SVG: cyan circle + lightning bolt */}
+          <div style={{
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 56 56"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ filter: 'drop-shadow(0 0 4px rgba(0,242,255,0.5))' }}
+            >
+              <circle cx="28" cy="28" r="26" stroke="#00f2ff" strokeWidth="2.5" fill="none" />
+              <path
+                d="M31 14L21 30h9l-5 12 14-18h-9l4-10z"
+                fill="#00f2ff"
+              />
             </svg>
           </div>
+          {/* SHAI white + HUB cyan in Georgia serif */}
           <div>
-            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-              Shaitrades
+            <div style={{
+              fontFamily: 'Georgia, serif',
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              letterSpacing: '0.04em',
+              lineHeight: 1.2,
+            }}>
+              <span style={{ color: '#ffffff' }}>SHAI</span>
+              <span style={{ color: '#00f2ff', textShadow: '0 0 10px rgba(0,242,255,0.5)' }}>HUB</span>
             </div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 400, fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Content Hub
+            <div style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontWeight: 400,
+              fontSize: '0.52rem',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontVariant: 'small-caps',
+            }}>
+              TRADE · LIVE · EVOLVE
             </div>
           </div>
         </Link>
@@ -187,7 +222,7 @@ export default function Sidebar() {
         {/* Sign Out */}
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
-          style={{ width: '100%', marginTop: '0.5rem', background: 'transparent', border: '1px solid rgba(255,45,120,0.25)', color: '#ff2d78', fontSize: '0.62rem', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.12em', padding: '0.4rem', cursor: 'pointer', opacity: 0.75, transition: 'opacity 0.2s', }}
+          style={{ width: '100%', marginTop: '0.5rem', background: 'transparent', border: '1px solid rgba(255,45,120,0.25)', color: '#ff2d78', fontSize: '0.62rem', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.12em', padding: '0.4rem', cursor: 'pointer', opacity: 0.75, transition: 'opacity 0.2s' }}
           onMouseEnter={e => { e.currentTarget.style.opacity = '1' }}
           onMouseLeave={e => { e.currentTarget.style.opacity = '0.75' }}
         >
