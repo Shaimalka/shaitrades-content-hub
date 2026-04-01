@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
                 '- Started trading at 18 during COVID\n' +
                 '- Lost $230K last year, rebuilt from -$230K to full-time futures trader at 23\n' +
                 '- Moved to Thailand 1 month ago to trade full-time\n' +
-                '- Brand: honest, raw, vulnerable — shows losses AND wins\n' +
+                '- Brand: honest, raw, vulnerable â shows losses AND wins\n' +
                 '- Voice: short punchy sentences, personal storytelling, real numbers, no hype\n' +
                 '- Audience: 18-30 year old beginner-intermediate traders\n\n' +
                 'TASK: Analyze top 10 most viral TikToks from @' + competitor.username + ' (' + (competitor.followersCount || 0).toLocaleString() + ' followers).\n' +
