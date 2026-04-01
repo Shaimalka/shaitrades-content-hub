@@ -1,12 +1,26 @@
 'use client'
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import {
-  LayoutDashboard, Users, FileText, Sparkles, CalendarDays,
-  BarChart2, Youtube, ChevronLeft, Sun, Moon, BookOpen,
-  Target, Activity, Heart, NotebookPen, Wallet, Settings,
+  LayoutDashboard,
+  Users,
+  FileText,
+  Sparkles,
+  CalendarDays,
+  BarChart2,
+  Youtube,
+  ChevronLeft,
+  Sun,
+  Moon,
+  BookOpen,
+  Target,
+  Activity,
+  Heart,
+  NotebookPen,
+  Wallet,
+  Settings,
+  Music2,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
@@ -47,18 +61,18 @@ export default function Sidebar() {
       <div className='sidebar-logo-dark'>
         <Link href='/' style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}>
           <div style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width='26' height='26' viewBox='0 0 56 56' fill='none' xmlns='http://www.w3.org/2000/svg' style={{ filter: 'drop-shadow(0 0 4px rgba(0,242,255,0.5))' }}>
+            <svg width='26' height='26' viewBox='0 0 56 56' fill='none' xmlns='http://www.w3.org/2000/svg'
+              style={{ filter: 'drop-shadow(0 0 4px rgba(0,242,255,0.5))' }}>
               <circle cx='28' cy='28' r='26' stroke='#00f2ff' strokeWidth='2.5' fill='none' />
               <path d='M31 14L21 30h9l-5 12 14-18h-9l4-10z' fill='#00f2ff' />
             </svg>
           </div>
           <div>
             <div style={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.92rem', letterSpacing: '0.04em', lineHeight: 1.2 }}>
-              <span style={{ color: '#ffffff' }}>SHAI</span>
-              <span style={{ color: '#00f2ff', textShadow: '0 0 10px rgba(0,242,255,0.5)' }}>HUB</span>
+              <span style={{ color: '#00f2ff', textShadow: '0 0 10px rgba(0,242,255,0.5)' }}>TRABITS</span>
             </div>
             <div style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 400, fontSize: '0.52rem', color: 'rgba(240,244,255,0.35)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-              TRADE · LIVE · EVOLVE
+              TRADE · HABITS · EVOLVE
             </div>
           </div>
         </Link>
@@ -72,6 +86,7 @@ export default function Sidebar() {
           </Link>
         </div>
 
+        {/* INSTAGRAM */}
         <div className='sidebar-nav-section'>
           <div className='sidebar-section-label-dark'>
             <span style={{ fontSize: '1rem' }}>📸</span><span>Instagram</span>
@@ -89,9 +104,10 @@ export default function Sidebar() {
 
         <hr className='cyber-divider-dark' style={{ margin: '0.25rem 0.75rem' }} />
 
+        {/* TIKTOK */}
         <div className='sidebar-nav-section'>
           <div className='sidebar-section-label-dark'>
-            <span style={{ fontSize: '1rem' }}>🎵</span><span>TikTok</span>
+            <Music2 size={15} style={{ color: '#00f2ff', flexShrink: 0 }} /><span>TikTok</span>
             <div className='live-dot' style={{ marginLeft: 'auto' }} />
           </div>
           <nav>
@@ -106,6 +122,7 @@ export default function Sidebar() {
 
         <hr className='cyber-divider-dark' style={{ margin: '0.25rem 0.75rem' }} />
 
+        {/* YOUTUBE */}
         <div className='sidebar-nav-section'>
           <div className='sidebar-section-label-dark'>
             <Youtube size={16} style={{ color: '#ff0000', flexShrink: 0 }} /><span>YouTube</span>
@@ -123,6 +140,7 @@ export default function Sidebar() {
 
         <hr className='cyber-divider-dark' style={{ margin: '0.25rem 0.75rem' }} />
 
+        {/* LIFE HUB */}
         <div className='sidebar-nav-section'>
           <div className='sidebar-section-label-dark'>
             <span style={{ fontSize: '1rem' }}>⚡</span><span>Life Hub</span>
@@ -156,11 +174,7 @@ export default function Sidebar() {
       <div className='sidebar-profile-dark'>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem', padding: '0.25rem 0' }}>
           <Sun size={12} style={{ color: 'rgba(240,244,255,0.35)', flexShrink: 0 }} />
-          <button
-            onClick={toggleTheme}
-            className={`theme-toggle ${isDark ? 'dark-mode' : ''}`}
-            aria-label='Toggle theme'
-          />
+          <button onClick={toggleTheme} className={`theme-toggle ${isDark ? 'dark-mode' : ''}`} aria-label='Toggle theme' />
           <Moon size={12} style={{ color: 'rgba(240,244,255,0.35)', flexShrink: 0 }} />
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.58rem', color: 'rgba(240,244,255,0.35)', letterSpacing: '0.06em', marginLeft: 'auto' }}>{isDark ? 'DARK' : 'LIGHT'}</span>
         </div>
