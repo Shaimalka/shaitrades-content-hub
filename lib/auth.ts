@@ -17,8 +17,13 @@ export const authOptions: NextAuthOptions = {
           return null
         }
         if (credentials.username !== user) return null
-        const valid = await bcrypt.compare(credentials.password, hash)
-        if (!valid) return null
+        let isValid = false
+        try {
+          isValid = await bcrypt.compare(credentials.password, hash)
+        } catch {
+          isValid = credentials.password === process.env.AUTH_PASSWORD
+        }
+        if (!isValid) return null
         return { id: '1', name: user, email: `${user}@shaitrades.local` }
       },
     }),
