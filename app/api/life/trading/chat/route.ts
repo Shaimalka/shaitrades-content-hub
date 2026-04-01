@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
               const totalPnl = (logs as any[]).reduce((s: number, t: any) => s + (t.pnl || 0), 0)
               const winners = (logs as any[]).filter((t: any) => t.pnl > 0).length
               const winRate = total > 0 ? ((winners / total) * 100).toFixed(1) : '0'
-              const systemPrompt = `You are Coach Shai — a trading journal coach. Keep responses under 80 words. Reference actual data.\n\nKEY STATS:\n- Total Trades: ${total}\n- Win Rate: ${winRate}%\n- Total PnL: $${totalPnl.toFixed(2)}\n- Recent trades: ${JSON.stringify((logs as any[]).slice(-5))}`
+              const systemPrompt = `You are Coach Shai â a trading journal coach. Keep responses under 80 words. Reference actual data.\n\nKEY STATS:\n- Total Trades: ${total}\n- Win Rate: ${winRate}%\n- Total PnL: $${totalPnl.toFixed(2)}\n- Recent trades: ${JSON.stringify((logs as any[]).slice(-5))}`
               const response = await anthropic.messages.create({
                         model: 'claude-haiku-4-5-20251001',
                         max_tokens: 1024,
