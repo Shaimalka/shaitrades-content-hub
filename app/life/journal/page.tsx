@@ -131,14 +131,14 @@ function JournalInner() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
-            <span className="section-label">JOURNAL</span>
+            <span className="section-header">JOURNAL</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Daily Journal</h1>
           </div>
           <NotebookPen size={32} style={{ color: '#ff00e5', opacity: 0.4 }} />
         </div>
 
         {/* ── MORNING ENTRY ── */}
-        <div className="cyber-panel p-5 mb-5">
+        <div className="premium-card p-5 mb-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span style={{ fontSize: '1.1rem' }}>🌅</span>
@@ -181,7 +181,7 @@ function JournalInner() {
         </div>
 
         {/* ── EVENING ENTRY ── */}
-        <div className="cyber-panel p-5 mb-8">
+        <div className="premium-card p-5 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span style={{ fontSize: '1.1rem' }}>🌙</span>
@@ -240,10 +240,10 @@ function JournalInner() {
         {/* ── PAST ENTRIES ── */}
         {!loading && pastEntries.length > 0 && (
           <div>
-            <h2 className="section-label mb-4">PAST ENTRIES · {pastEntries.length}</h2>
+            <h2 className="section-header mb-4">PAST ENTRIES · {pastEntries.length}</h2>
             <div className="space-y-2">
               {pastEntries.map(entry => (
-                <div key={entry.id} className="cyber-panel overflow-hidden">
+                <div key={entry.id} className="premium-card overflow-hidden">
                   <button
                     onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
                     className="w-full p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors text-left"
