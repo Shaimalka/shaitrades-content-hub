@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
           const logs = await redis.get('life:health') || []
                 const settings = await redis.get('life:health:settings') || {}
                       const total = (logs as any[]).length
-          const systemPrompt = `You are Coach Shai — a health coach. Keep responses under 80 words. Reference actual data.\n\nHEALTH LOGS: ${JSON.stringify(logs)}\nSETTINGS: ${JSON.stringify(settings)}\nTotal entries: ${total}`
+          const systemPrompt = `You are Coach Shai â a health coach. Keep responses under 80 words. Reference actual data.\n\nHEALTH LOGS: ${JSON.stringify(logs)}\nSETTINGS: ${JSON.stringify(settings)}\nTotal entries: ${total}`
           const response = await anthropic.messages.create({
                   model: 'claude-haiku-4-5-20251001',
                   max_tokens: 1024,
