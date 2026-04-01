@@ -133,7 +133,7 @@ function HealthInner() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
-            <span className="section-label">HEALTH</span>
+            <span className="section-header">HEALTH</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Health Dashboard</h1>
           </div>
           <Heart size={32} style={{ color: '#ff00e5', opacity: 0.4 }} />
@@ -158,7 +158,7 @@ function HealthInner() {
           </div>
         )}
 
-        <div className="cyber-panel p-5 mb-6">
+        <div className="premium-card p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>// TODAY's LOG — {today}</h2>
             {saved && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>✓ SAVED</span>}
@@ -248,7 +248,7 @@ function HealthInner() {
 
             {weightData.length > 1 && (
               <div className="chart-container mb-6">
-                <h3 className="section-label mb-4">30-DAY WEIGHT TREND</h3>
+                <h3 className="section-header mb-4">30-DAY WEIGHT TREND</h3>
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={weightData}>
                     <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
@@ -262,7 +262,7 @@ function HealthInner() {
 
             {energyData.length > 2 && (
               <div className="chart-container mb-6">
-                <h3 className="section-label mb-4">ENERGY TREND (30 DAYS)</h3>
+                <h3 className="section-header mb-4">ENERGY TREND (30 DAYS)</h3>
                 <ResponsiveContainer width="100%" height={140}>
                   <LineChart data={energyData}>
                     <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
@@ -275,7 +275,7 @@ function HealthInner() {
             )}
 
             {energyAvg && (
-              <div className="cyber-panel p-4 mb-6">
+              <div className="premium-card p-4 mb-6">
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #00f2ff, #0060ff)' }}>
                     <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#fff' }}>AI</span>
@@ -295,10 +295,10 @@ function HealthInner() {
             )}
 
             {(longestStreak > 0 || bestSleepWeek.avg > 0) && (
-              <div className="cyber-panel p-4 mb-6">
+              <div className="premium-card p-4 mb-6">
                 <div className="flex items-center gap-2 mb-3">
                   <Trophy size={14} style={{ color: '#ffb400' }} />
-                  <h3 className="section-label">PERSONAL BESTS</h3>
+                  <h3 className="section-header">PERSONAL BESTS</h3>
                 </div>
                 <div className="flex gap-6">
                   {longestStreak > 0 && <div><p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>LONGEST GYM STREAK</p><p className="text-lg font-mono font-bold" style={{ color: '#00ff88' }}>{longestStreak} days 🔥</p></div>}
@@ -308,9 +308,9 @@ function HealthInner() {
             )}
 
             {logs.length > 0 && (
-              <div className="cyber-panel overflow-hidden">
+              <div className="premium-card overflow-hidden">
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">HEALTH LOG · {logs.length} ENTRIES</h3>
+                  <h3 className="section-header">HEALTH LOG · {logs.length} ENTRIES</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
