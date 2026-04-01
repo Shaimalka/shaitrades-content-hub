@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
                     const dayOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][publishDate.getDay()]
                     const hour = publishDate.getHours()
                     const hourLabel = hour === 0 ? '12am' : hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour - 12}pm`
-                    return ` ${rank}. "${v.title.slice(0, 60)}" — views: ${v.viewCount.toLocaleString()}, likes: ${v.likeCount.toLocaleString()}, comments: ${v.commentCount.toLocaleString()}, engagement: ${engagementRate}%, posted: ${dayOfWeek} at ${hourLabel}`
+                    return ` ${rank}. "${v.title.slice(0, 60)}" â views: ${v.viewCount.toLocaleString()}, likes: ${v.likeCount.toLocaleString()}, comments: ${v.commentCount.toLocaleString()}, engagement: ${engagementRate}%, posted: ${dayOfWeek} at ${hourLabel}`
           }
           const topSummary = topPerformers.map((v, i) => formatVideo(v, i + 1)).join('\n')
           const bottomSummary = bottomPerformers.map((v, i) => formatVideo(v, i + 1)).join('\n')
@@ -74,19 +74,19 @@ export async function POST(request: NextRequest) {
                                       ${bottomSummary}
 
                                       Provide exactly 4 bullet points:
-                                      1. What content is resonating most (patterns in top performers — topic, style, timing)
+                                      1. What content is resonating most (patterns in top performers â topic, style, timing)
                                       2. What's underperforming and why (patterns in bottom performers)
                                       3. Specific content recommendation for this week (title idea, format, topic)
                                       4. Best day/time to post based on when top videos were published
 
-                                      Respond with ONLY 4 bullet points, each starting with "• ". Be specific and data-driven. Keep each bullet under 35 words.`,
+                                      Respond with ONLY 4 bullet points, each starting with "â¢ ". Be specific and data-driven. Keep each bullet under 35 words.`,
                         },
                               ],
           })
           const text = message.content[0].type === 'text' ? message.content[0].text : ''
           const bullets = text
             .split('\n')
-            .filter((line: string) => line.trim().startsWith('•'))
+            .filter((line: string) => line.trim().startsWith('â¢'))
             .map((line: string) => line.trim())
             .slice(0, 4)
           if (bullets.length === 0) {
