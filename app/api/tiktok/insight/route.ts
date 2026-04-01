@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -60,14 +60,14 @@ export async function POST(request: NextRequest) {
                                       Post data:
                                       ${postSummaries}
 
-                                      Respond with ONLY 3 bullet points, each starting with "• ". Be specific and actionable. Keep each bullet under 25 words.`,
+                                      Respond with ONLY 3 bullet points, each starting with "â¢ ". Be specific and actionable. Keep each bullet under 25 words.`,
                         },
                               ],
           })
           const text = message.content[0].type === 'text' ? message.content[0].text : ''
           const bullets = text
             .split('\n')
-            .filter((line: string) => line.trim().startsWith('•'))
+            .filter((line: string) => line.trim().startsWith('â¢'))
             .map((line: string) => line.trim())
             .slice(0, 3)
           if (bullets.length === 0) {
