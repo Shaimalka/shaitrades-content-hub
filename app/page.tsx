@@ -1,6 +1,5 @@
-'use client'
-
-import { TrendingUp } from 'lucide-react'
+→'use client'
+import { Zap } from 'lucide-react'
 import Link from 'next/link'
 
 const platforms = [
@@ -45,20 +44,22 @@ export default function Home() {
       {/* Header */}
       <div className="border-b border-gray-800 px-8 py-5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-cyan-500 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-black" />
+          <div className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.3)', borderRadius: '8px' }}>
+            <svg width="18" height="18" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="28" cy="28" r="26" stroke="#00f2ff" strokeWidth="2.5" fill="none" />
+              <path d="M31 14L21 30h9l-5 12 14-18h-9l4-10z" fill="#00f2ff" />
+            </svg>
           </div>
           <div>
-            <p className="font-bold text-sm text-white">Shaitrades</p>
-            <p className="text-xs text-gray-500">Content Hub</p>
+            <p style={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.95rem', color: '#00f2ff', letterSpacing: '0.06em', textShadow: '0 0 10px rgba(0,242,255,0.4)' }}>TRABITS</p>
+            <p className="text-xs text-gray-500" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.55rem', letterSpacing: '0.15em' }}>TRADE · HABITS · EVOLVE</p>
           </div>
         </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-3xl space-y-12">
-
-          {/* // SELECT PLATFORM */}
+          {/* SELECT PLATFORM */}
           <div>
             <div className="mb-8">
               <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{'// '}SELECT PLATFORM</span>
@@ -96,7 +97,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* // LIFE HUB */}
+          {/* LIFE HUB */}
           <div>
             <div className="mb-8">
               <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{'// '}LIFE HUB</span>
@@ -107,8 +108,8 @@ export default function Home() {
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <p className="font-mono text-xs tracking-widest text-gray-500 uppercase mb-2">Personal Command Center</p>
-                      <h2 className="text-3xl font-bold text-white tracking-tight">LIFE HUB</h2>
-                      <p className="text-sm text-gray-400 mt-2">Your personal command center</p>
+                      <h2 className="text-3xl font-bold text-white tracking-tight">TRABITS</h2>
+                      <p className="text-sm mt-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.6rem', color: '#00f2ff', letterSpacing: '0.18em' }}>TRADE · HABITS · EVOLVE</p>
                     </div>
                     <div className="text-3xl">🧠</div>
                   </div>
@@ -123,8 +124,7 @@ export default function Home() {
                           color: '#00f2ff',
                         }}
                       >
-                        <span>{s.emoji}</span>
-                        {s.name}
+                        <span>{s.emoji}</span> {s.name}
                       </span>
                     ))}
                   </div>
@@ -132,7 +132,6 @@ export default function Home() {
               </div>
             </Link>
           </div>
-
         </div>
       </div>
     </div>
