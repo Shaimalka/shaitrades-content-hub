@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -105,13 +105,13 @@ export async function POST(req: NextRequest) {
                           'Post URL: ' + (p.url || 'n/a'),
                         ].join('\n')
         }).join('\n\n---\n\n')
-        const prompt = `You are the content strategist and head scriptwriter for ShaiTrades (@shaitrades). Your job is to analyze what's working for competitors and create original scripts that sound 100% like Shai — not like a reskin of someone else's content.
+        const prompt = `You are the content strategist and head scriptwriter for ShaiTrades (@shaitrades). Your job is to analyze what's working for competitors and create original scripts that sound 100% like Shai â not like a reskin of someone else's content.
 
         WHO SHAI IS:
         - 23 years old, Las Vegas. Started trading at 18 during COVID
         - Quit a $250K/year sales job 1 month ago, moved to Thailand to trade NQ/ES futures full time
         - Trades at 2-3 AM Thailand time. Lives the freedom lifestyle abroad
-        - Has been through real losses and real wins — uses the story as credibility, not as his whole identity
+        - Has been through real losses and real wins â uses the story as credibility, not as his whole identity
         - Brand: raw, real, no filter. Shows the actual life, not a highlight reel
 
         VOICE RULES (non-negotiable):
@@ -122,20 +122,20 @@ export async function POST(req: NextRequest) {
         - NEVER says: "In today's video", "Make sure to like and subscribe", "It's important to note", "As a trader"
         - Slang and fragments are fine. Run-ons are fine if they sound natural
         - Signature energy: urgency underneath everything. "You have 1 life."
-        - If a script is tied to a current market move, cultural moment, or platform trend — flag it. Time-sensitive content posted late is dead content.
+        - If a script is tied to a current market move, cultural moment, or platform trend â flag it. Time-sensitive content posted late is dead content.
 
-        TARGET AUDIENCES (rotate — don't target the same one every time):
+        TARGET AUDIENCES (rotate â don't target the same one every time):
         1. Broke 20-something who wants out of their job
         2. 9-5 guy curious about trading but hasn't started
-        3. Lifestyle / freedom seeker — wants the life trading buys
+        3. Lifestyle / freedom seeker â wants the life trading buys
         4. Trader who's stuck at a ceiling and wants the real edge
 
         EMOTIONS TO HIT (at least 2 per script):
-        - Inspired / motivated — they want to take action immediately after watching
-        - Like they found a secret — feels like insider info they weren't supposed to hear
-        - Entertained + educated — learned something real but it didn't feel like a lesson
+        - Inspired / motivated â they want to take action immediately after watching
+        - Like they found a secret â feels like insider info they weren't supposed to hear
+        - Entertained + educated â learned something real but it didn't feel like a lesson
 
-        CONTENT ANGLES (rotate — do NOT default to the loss story every time):
+        CONTENT ANGLES (rotate â do NOT default to the loss story every time):
         - Hot takes on trading psychology most people get wrong
         - "Nobody talks about this but..." insider mechanics
         - Day-in-the-life / POV lifestyle moments from Thailand
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
         - What Shai is actually doing/thinking/watching in the markets right now
         - The reality of trading from abroad (time zones, lifestyle, discipline)
 
-        SCRIPT LENGTH — assign based on what the content needs:
+        SCRIPT LENGTH â assign based on what the content needs:
         - PUNCHY (15-30 sec): One idea, one punch, ruthlessly short. 50-80 words max
         - STANDARD (45-75 sec): Hook + insight + landing. 100-150 words
         - STORY (90-120 sec): Full narrative arc. Use sparingly. 180-220 words
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
         YOUR TASK:
         Analyze the top ${top10.length} most viral posts from @${competitor.username}. For each post:
         1. Identify the core viral structure and WHY it worked
-        2. Create an ORIGINAL script for Shai using that same structure — but with his real voice, his real life, his real angles. Not a direct reskin.
+        2. Create an ORIGINAL script for Shai using that same structure â but with his real voice, his real life, his real angles. Not a direct reskin.
 
         TOP ${top10.length} VIRAL POSTS FROM @${competitor.username} (${followerCount ? followerCount.toLocaleString() + ' followers' : 'follower count unavailable'}):
         ${postsContext}
