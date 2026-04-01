@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 // Helper: safe JSON parse with content-type guard
@@ -63,7 +63,7 @@ async function runApifyActor(
                                     const errorRes = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apifyToken}`)
                                     const errorData = await safeJson(errorRes, `error details for run ${runId}`)
                                     const apifyMsg = errorData.data?.statusMessage || errorData.data?.meta?.statusMessage
-                                    if (apifyMsg) throw new Error(`${actorId} run ended with status: ${status} — ${apifyMsg}`)
+                                    if (apifyMsg) throw new Error(`${actorId} run ended with status: ${status} â ${apifyMsg}`)
                       } catch (innerErr: any) {
                                     if (innerErr.message.includes(actorId)) throw innerErr
                       }
@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
                                                                       if (!ownerRaw) continue
                                                                       const ownerNorm = ownerRaw.toLowerCase()
                                                                       if (!requestedSet.has(ownerNorm)) {
-                                                                                        console.log(`[scrape] Skipping post from ${ownerRaw} — not in requested chunk: ${chunk.join(', ')}`)
+                                                                                        console.log(`[scrape] Skipping post from ${ownerRaw} â not in requested chunk: ${chunk.join(', ')}`)
                                                                                         continue
                                                                       }
                                                                       if (!byOwner[ownerNorm]) byOwner[ownerNorm] = []
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
                                                         const followersCount = profile?.followersCount ?? 0
                                                         const biography = profile?.biography ?? ''
                                                         const profilePicUrl = profile?.profilePicUrl ?? null
-                                                        console.log(`[scrape] ${ownerUsername} — followersCount: ${followersCount}, hasBio: ${!!biography}, hasPic: ${!!profilePicUrl}`)
+                                                        console.log(`[scrape] ${ownerUsername} â followersCount: ${followersCount}, hasBio: ${!!biography}, hasPic: ${!!profilePicUrl}`)
                                                         const followingCount = first.ownerFollowingCount ?? first.owner?.followingCount ?? first.owner?.following_count ?? first.owner?.following ?? 0
                                                         const mappedPosts = posts.map((p: any) => ({
                                                                           id: p.id || p.shortCode || '',
