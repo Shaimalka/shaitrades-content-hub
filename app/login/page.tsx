@@ -45,29 +45,18 @@ export default function LoginPage() {
       fontFamily: 'JetBrains Mono, monospace',
     }}>
       <div style={{ width: '100%', maxWidth: '380px', padding: '0 1.5rem' }}>
-
         {/* Logo Block */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-
           {/* SVG: cyan circle outline + lightning bolt */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-            <svg
-              width="56"
-              height="56"
-              viewBox="0 0 56 56"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg"
               style={{ filter: 'drop-shadow(0 0 8px rgba(0,242,255,0.55))' }}
             >
               <circle cx="28" cy="28" r="26" stroke="#00f2ff" strokeWidth="2" fill="none" />
-              <path
-                d="M31 14L21 30h9l-5 12 14-18h-9l4-10z"
-                fill="#00f2ff"
-              />
+              <path d="M31 14L21 30h9l-5 12 14-18h-9l4-10z" fill="#00f2ff" />
             </svg>
           </div>
-
-          {/* SHAI bold white + HUB cyan in Georgia serif */}
+          {/* TRABITS in full cyan Georgia serif */}
           <div style={{
             display: 'flex',
             alignItems: 'baseline',
@@ -78,21 +67,12 @@ export default function LoginPage() {
               fontFamily: 'Georgia, serif',
               fontWeight: 700,
               fontSize: '2rem',
-              color: '#ffffff',
-              letterSpacing: '0.06em',
-              textShadow: '0 0 18px rgba(255,255,255,0.15)',
-            }}>SHAI</span>
-            <span style={{
-              fontFamily: 'Georgia, serif',
-              fontWeight: 700,
-              fontSize: '2rem',
               color: '#00f2ff',
               letterSpacing: '0.06em',
               textShadow: '0 0 18px rgba(0,242,255,0.55)',
-            }}>HUB</span>
+            }}>TRABITS</span>
           </div>
-
-          {/* Tagline in JetBrains Mono tiny caps */}
+          {/* Tagline */}
           <div style={{
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: '0.62rem',
@@ -102,7 +82,7 @@ export default function LoginPage() {
             opacity: 0.65,
             textTransform: 'uppercase',
           }}>
-            TRADE · LIVE · EVOLVE
+            TRADE · HABITS · EVOLVE
           </div>
         </div>
 
