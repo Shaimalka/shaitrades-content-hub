@@ -1,137 +1,222 @@
 'use client'
-import { Zap } from 'lucide-react'
 import Link from 'next/link'
+import { Camera, Music2, Youtube } from 'lucide-react'
 
 const platforms = [
   {
     name: 'Instagram',
-    icon: '📸',
+    icon: Camera,
     connected: true,
     href: '/instagram',
     description: 'Full analytics dashboard, post analysis, weekly reports',
     stats: '@shaitrades connected',
+    accentColor: '#e1306c',
+    iconBg: 'rgba(225,48,108,0.08)',
+    iconBorder: 'rgba(225,48,108,0.2)',
   },
   {
     name: 'TikTok',
-    icon: '🎵',
+    icon: Music2,
     connected: true,
     href: '/tiktok/analytics',
     description: 'Analytics dashboard — views, growth, best posting times',
     stats: 'Analytics dashboard live',
+    accentColor: '#00f2ff',
+    iconBg: 'rgba(0,242,255,0.08)',
+    iconBorder: 'rgba(0,242,255,0.2)',
   },
   {
     name: 'YouTube',
-    icon: '▶️',
+    icon: Youtube,
     connected: true,
     href: '/youtube',
-    description: 'Analytics dashboard live',
+    description: 'Analytics dashboard — subs, views, top content',
     stats: 'Analytics dashboard live',
+    accentColor: '#ff0000',
+    iconBg: 'rgba(255,0,0,0.08)',
+    iconBorder: 'rgba(255,0,0,0.2)',
   },
 ]
 
 const lifeSections = [
-  { name: 'Trading Journal', emoji: '📈' },
-  { name: 'Goals', emoji: '🎯' },
-  { name: 'Habits', emoji: '✅' },
-  { name: 'Health', emoji: '💪' },
-  { name: 'Daily Journal', emoji: '📓' },
-  { name: 'Finance', emoji: '💰' },
+  { name: 'Trading Journal', color: '#00f2ff' },
+  { name: 'Goals', color: '#ff00e5' },
+  { name: 'Habits', color: '#00ff88' },
+  { name: 'Health', color: '#ffb400' },
+  { name: 'Daily Journal', color: '#7c3aed' },
+  { name: 'Finance', color: '#00f2ff' },
 ]
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
       {/* Header */}
-      <div className="border-b border-gray-800 px-8 py-5">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 flex items-center justify-center" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.3)', borderRadius: '8px' }}>
-            <svg width="18" height="18" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="28" cy="28" r="26" stroke="#00f2ff" strokeWidth="2.5" fill="none" />
-              <path d="M31 14L21 30h9l-5 12 14-18h-9l4-10z" fill="#00f2ff" />
+      <div style={{
+        borderBottom: '1px solid #141420',
+        padding: '20px 48px',
+        background: '#08080a',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '50%',
+            border: '1px solid rgba(0,242,255,0.3)',
+            background: 'rgba(0,242,255,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width='18' height='18' viewBox='0 0 56 56' fill='none' xmlns='http://www.w3.org/2000/svg'>
+              <path d='M31 14L21 30h9l-5 12 14-18h-9l4-10z' fill='#00f2ff' />
             </svg>
           </div>
           <div>
-            <p style={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.95rem', color: '#00f2ff', letterSpacing: '0.06em', textShadow: '0 0 10px rgba(0,242,255,0.4)' }}>TRABITS</p>
-            <p className="text-xs text-gray-500" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.55rem', letterSpacing: '0.15em' }}>TRADE · HABITS · EVOLVE</p>
+            <div style={{
+              fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '1rem',
+              color: '#00f2ff', letterSpacing: '0.06em',
+              textShadow: '0 0 12px rgba(0,242,255,0.4)',
+            }}>TRABITS</div>
+            <div style={{
+              fontFamily: 'JetBrains Mono, monospace', fontSize: '0.5rem',
+              color: 'rgba(255,255,255,0.2)', letterSpacing: '0.2em', textTransform: 'uppercase',
+            }}>TRADE · HABITS · EVOLVE</div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-3xl space-y-12">
-          {/* SELECT PLATFORM */}
-          <div>
-            <div className="mb-8">
-              <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{'// '}SELECT PLATFORM</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {platforms.map((p) => {
-                const Tag = p.connected ? Link : 'div'
-                return (
-                  <Tag
-                    key={p.name}
-                    href={p.href}
-                    className={`border p-6 transition-colors ${
-                      p.connected
-                        ? 'border-gray-800 hover:border-cyan-500/50 cursor-pointer'
-                        : 'border-gray-900 opacity-40 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl">{p.icon}</span>
-                      {p.connected ? (
-                        <span className="flex items-center gap-1.5 text-[10px] text-green-400">
-                          <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" />
-                          LIVE
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-gray-600">OFFLINE</span>
-                      )}
-                    </div>
-                    <h3 className="text-white font-bold text-lg mb-1">{p.name}</h3>
-                    <p className="text-xs text-gray-500 mb-3">{p.description}</p>
-                    <p className="text-xs text-gray-600 font-mono">{p.stats}</p>
-                  </Tag>
-                )
-              })}
-            </div>
-          </div>
+      <div style={{ padding: '56px 48px', maxWidth: '960px', margin: '0 auto' }}>
 
-          {/* LIFE HUB */}
-          <div>
-            <div className="mb-8">
-              <span className="font-mono text-xs text-gray-500 tracking-widest uppercase">{'// '}LIFE HUB</span>
-            </div>
-            <Link href="/life" className="block group">
-              <div className="relative p-[1px] rounded-sm overflow-hidden" style={{ background: 'linear-gradient(135deg, #00f2ff, #ff00e5)' }}>
-                <div className="bg-[#0a0a0b] p-8 rounded-sm transition-colors group-hover:bg-[#0d0d10]">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <p className="font-mono text-xs tracking-widest text-gray-500 uppercase mb-2">Personal Command Center</p>
-                      <h2 className="text-3xl font-bold text-white tracking-tight">TRABITS</h2>
-                      <p className="text-sm mt-2" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.6rem', color: '#00f2ff', letterSpacing: '0.18em' }}>TRADE · HABITS · EVOLVE</p>
+        {/* SELECT PLATFORM */}
+        <div style={{ marginBottom: '64px' }}>
+          <div className="section-header">// SELECT PLATFORM</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {platforms.map((p) => {
+              const Icon = p.icon
+              const Tag = p.connected ? Link : 'div'
+              return (
+                <Tag
+                  key={p.name}
+                  href={p.href as any}
+                  style={{
+                    display: 'block',
+                    background: '#0e0e14',
+                    border: '1px solid #1a1a28',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    textDecoration: 'none',
+                    cursor: p.connected ? 'pointer' : 'default',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  className="platform-card"
+                >
+                  {/* Platform icon + live badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div style={{
+                      width: '40px', height: '40px', borderRadius: '10px',
+                      background: p.iconBg, border: `1px solid ${p.iconBorder}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <Icon size={18} color={p.accentColor} />
                     </div>
-                    <div className="text-3xl">🧠</div>
+                    {p.connected && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <div className="live-dot" />
+                        <span style={{
+                          fontFamily: 'JetBrains Mono, monospace', fontSize: '8px',
+                          color: '#00ff88', letterSpacing: '2px', textTransform: 'uppercase',
+                        }}>LIVE</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {lifeSections.map((s) => (
-                      <span
-                        key={s.name}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-mono font-semibold tracking-wide border rounded-sm"
-                        style={{
-                          borderColor: 'rgba(0,242,255,0.3)',
-                          background: 'rgba(0,242,255,0.06)',
-                          color: '#00f2ff',
-                        }}
-                      >
-                        <span>{s.emoji}</span> {s.name}
-                      </span>
-                    ))}
+
+                  <h3 style={{ fontWeight: 700, fontSize: '17px', color: '#ffffff', marginBottom: '6px' }}>{p.name}</h3>
+                  <p style={{
+                    fontFamily: 'JetBrains Mono, monospace', fontSize: '10px',
+                    color: 'rgba(255,255,255,0.3)', marginBottom: '12px', lineHeight: 1.5,
+                  }}>{p.description}</p>
+                  <p style={{
+                    fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                    color: 'rgba(255,255,255,0.2)', letterSpacing: '1px',
+                  }}>{p.stats}</p>
+                </Tag>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* LIFE HUB */}
+        <div>
+          <div className="section-header">// LIFE HUB</div>
+          <Link href="/life" style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{
+              background: '#0e0e14',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid #1a1a28',
+              transition: 'border-color 0.2s',
+              position: 'relative',
+            }} className="premium-card">
+              {/* Gradient top border: cyan to magenta */}
+              <div style={{ height: '2px', background: 'linear-gradient(90deg, #00f2ff, #ff00e5)' }} />
+
+              <div style={{ padding: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
+                  <div>
+                    <div style={{
+                      fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                      color: 'rgba(255,255,255,0.2)', letterSpacing: '4px',
+                      textTransform: 'uppercase', marginBottom: '10px',
+                    }}>PERSONAL COMMAND CENTER</div>
+                    <h2 style={{
+                      fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '28px',
+                      color: '#ffffff', letterSpacing: '-0.01em', margin: '0 0 8px',
+                    }}>TRABITS LIFE HUB</h2>
+                    <p style={{
+                      fontFamily: 'JetBrains Mono, monospace', fontSize: '10px',
+                      color: 'rgba(0,242,255,0.6)', letterSpacing: '4px',
+                      textTransform: 'uppercase', margin: 0,
+                    }}>TRADE · HABITS · EVOLVE</p>
+                  </div>
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '50%',
+                    border: '1px solid rgba(0,242,255,0.2)',
+                    background: 'rgba(0,242,255,0.04)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <svg width='22' height='22' viewBox='0 0 56 56' fill='none'>
+                      <path d='M31 14L21 30h9l-5 12 14-18h-9l4-10z' fill='#00f2ff' />
+                    </svg>
                   </div>
                 </div>
+
+                {/* Section badges */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+                  {lifeSections.map((s) => (
+                    <span key={s.name} style={{
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontSize: '9px', letterSpacing: '1.5px',
+                      padding: '4px 10px', borderRadius: '4px',
+                      border: `1px solid ${s.color}33`,
+                      background: `${s.color}0d`,
+                      color: s.color,
+                      textTransform: 'uppercase',
+                    }}>{s.name}</span>
+                  ))}
+                </div>
+
+                {/* Enter button */}
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  padding: '8px 18px', borderRadius: '6px',
+                  border: '1px solid rgba(0,242,255,0.25)',
+                  background: 'rgba(0,242,255,0.06)',
+                  color: '#00f2ff',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '9px', letterSpacing: '2px', fontWeight: 600,
+                  textTransform: 'uppercase',
+                }}>ENTER →</div>
               </div>
-            </Link>
-          </div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
