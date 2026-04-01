@@ -52,9 +52,27 @@ function FinanceInner() {
   const [showForm, setShowForm] = useState(false)
   const [chatOpen] = useState(searchParams.get('chat') === '1')
 
-  const [tradeForm, setTradeForm] = useState({ date: new Date().toISOString().split('T')[0], account: '', amount: '', payoutType: 'Profit Split' as PayoutType, notes: '' })
-  const [contentForm, setContentForm] = useState({ date: new Date().toISOString().split('T')[0], source: 'Brand Deal' as ContentSource, amount: '', notes: '' })
-  const [expenseForm, setExpenseForm] = useState({ date: new Date().toISOString().split('T')[0], category: 'Software' as ExpenseCategory, amount: '', notes: '' })
+  const [tradeForm, setTradeForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    account: '',
+    amount: '',
+    payoutType: 'Profit Split' as PayoutType,
+    notes: ''
+  })
+
+  const [contentForm, setContentForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    source: 'Brand Deal' as ContentSource,
+    amount: '',
+    notes: ''
+  })
+
+  const [expenseForm, setExpenseForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    category: 'Software' as ExpenseCategory,
+    amount: '',
+    notes: ''
+  })
 
   useEffect(() => {
     fetch('/api/life/finance').then(r => r.json()).then(d => {
@@ -68,7 +86,11 @@ function FinanceInner() {
 
   async function addTradeIncome(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'income', entry: { ...tradeForm, amount: parseFloat(tradeForm.amount) } }) })
+    const res = await fetch('/api/life/finance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'income', entry: { ...tradeForm, amount: parseFloat(tradeForm.amount) } })
+    })
     const data = await res.json()
     const allIncome: any[] = data.income || []
     setTradeIncome(allIncome.filter((i: any) => !i.source))
@@ -79,7 +101,11 @@ function FinanceInner() {
 
   async function addContentIncome(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'income', entry: { ...contentForm, amount: parseFloat(contentForm.amount) } }) })
+    const res = await fetch('/api/life/finance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'income', entry: { ...contentForm, amount: parseFloat(contentForm.amount) } })
+    })
     const data = await res.json()
     const allIncome: any[] = data.income || []
     setTradeIncome(allIncome.filter((i: any) => !i.source))
@@ -90,7 +116,11 @@ function FinanceInner() {
 
   async function addExpense(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'expense', entry: { ...expenseForm, amount: parseFloat(expenseForm.amount) } }) })
+    const res = await fetch('/api/life/finance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'expense', entry: { ...expenseForm, amount: parseFloat(expenseForm.amount) } })
+    })
     const data = await res.json()
     setExpenses(data.expenses || [])
     setShowForm(false)
@@ -98,7 +128,11 @@ function FinanceInner() {
   }
 
   async function deleteItem(id: string, type: 'income' | 'expense') {
-    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type, entry: { id } }) })
+    const res = await fetch('/api/life/finance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', type, entry: { id } })
+    })
     const data = await res.json()
     if (type === 'income') {
       const allIncome: any[] = data.income || []
@@ -131,7 +165,7 @@ function FinanceInner() {
   const biggestExpCat = Object.entries(expCats).sort((a, b) => b[1] - a[1])[0]
 
   // Monthly bar chart data
-  const allMonths = [...new Set([...Object.keys(monthlyIncome), ...expenses.reduce((acc, e) => { acc.add(e.date.slice(0, 7)); return acc }, new Set<string>())])].sort()
+  const allMonths = Array.from(new Set([...Object.keys(monthlyIncome), ...Array.from(expenses.reduce((acc, e) => { acc.add(e.date.slice(0, 7)); return acc }, new Set<string>()))])).sort()
   const barData = allMonths.slice(-6).map(m => {
     const inc = [...tradeIncome, ...contentIncome].filter(i => i.date.slice(0, 7) === m).reduce((s, i) => s + i.amount, 0)
     const exp = expenses.filter(e => e.date.slice(0, 7) === m).reduce((s, e) => s + e.amount, 0)
@@ -145,7 +179,7 @@ function FinanceInner() {
       <div className="max-w-[1100px] mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
+            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>&#8592; LIFE HUB</Link>
             <span className="section-label">FINANCE</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Finance Dashboard</h1>
           </div>
@@ -183,7 +217,7 @@ function FinanceInner() {
                 <TrendingUp size={20} style={{ color: '#00ff88', flexShrink: 0 }} />
                 <div>
                   <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>BEST INCOME MONTH</p>
-                  <p className="font-mono font-semibold" style={{ color: '#00ff88' }}>{bestMonth[0]} — {fmt(bestMonth[1])}</p>
+                  <p className="font-mono font-semibold" style={{ color: '#00ff88' }}>{bestMonth[0]} &#8212; {fmt(bestMonth[1])}</p>
                 </div>
               </div>
             )}
@@ -192,7 +226,7 @@ function FinanceInner() {
                 <TrendingDown size={20} style={{ color: '#ff2d78', flexShrink: 0 }} />
                 <div>
                   <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>BIGGEST EXPENSE CATEGORY</p>
-                  <p className="font-mono font-semibold" style={{ color: '#ff2d78' }}>{biggestExpCat[0]} — {fmt(biggestExpCat[1])}</p>
+                  <p className="font-mono font-semibold" style={{ color: '#ff2d78' }}>{biggestExpCat[0]} &#8212; {fmt(biggestExpCat[1])}</p>
                 </div>
               </div>
             )}
@@ -296,7 +330,7 @@ function FinanceInner() {
             {tab === 'trading' && (
               <>
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">TRADING INCOME · {tradeIncome.length} ENTRIES · {fmt(tradeIncome.reduce((s, i) => s + i.amount, 0))}</h3>
+                  <h3 className="section-label">TRADING INCOME &#183; {tradeIncome.length} ENTRIES &#183; {fmt(tradeIncome.reduce((s, i) => s + i.amount, 0))}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -312,7 +346,7 @@ function FinanceInner() {
                           <td className="px-4 py-3" style={{ color: 'var(--text-primary)' }}>{item.account}</td>
                           <td className="px-4 py-3 font-mono font-semibold" style={{ color: '#00ff88' }}>{fmt(item.amount)}</td>
                           <td className="px-4 py-3"><span className="text-xs font-mono px-2 py-0.5 rounded border" style={{ color: '#00f2ff', borderColor: 'rgba(0,242,255,0.3)' }}>{item.payoutType}</span></td>
-                          <td className="px-4 py-3 max-w-[150px] truncate" style={{ color: 'var(--text-muted)' }}>{item.notes || '—'}</td>
+                          <td className="px-4 py-3 max-w-[150px] truncate" style={{ color: 'var(--text-muted)' }}>{item.notes || '&#8212;'}</td>
                           <td className="px-4 py-3"><button onClick={() => deleteItem(item.id, 'income')} className="opacity-30 hover:opacity-70"><Trash2 size={12} style={{ color: '#ff00e5' }} /></button></td>
                         </tr>
                       ))}
@@ -322,11 +356,10 @@ function FinanceInner() {
                 </div>
               </>
             )}
-
             {tab === 'content' && (
               <>
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">CONTENT INCOME · {contentIncome.length} ENTRIES · {fmt(contentIncome.reduce((s, i) => s + i.amount, 0))}</h3>
+                  <h3 className="section-label">CONTENT INCOME &#183; {contentIncome.length} ENTRIES &#183; {fmt(contentIncome.reduce((s, i) => s + i.amount, 0))}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -341,7 +374,7 @@ function FinanceInner() {
                           <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{item.date}</td>
                           <td className="px-4 py-3"><span className="text-xs font-mono px-2 py-0.5 rounded border" style={{ color: '#ffb400', borderColor: 'rgba(255,180,0,0.3)' }}>{item.source}</span></td>
                           <td className="px-4 py-3 font-mono font-semibold" style={{ color: '#00ff88' }}>{fmt(item.amount)}</td>
-                          <td className="px-4 py-3 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>{item.notes || '—'}</td>
+                          <td className="px-4 py-3 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>{item.notes || '&#8212;'}</td>
                           <td className="px-4 py-3"><button onClick={() => deleteItem(item.id, 'income')} className="opacity-30 hover:opacity-70"><Trash2 size={12} style={{ color: '#ff00e5' }} /></button></td>
                         </tr>
                       ))}
@@ -351,11 +384,10 @@ function FinanceInner() {
                 </div>
               </>
             )}
-
             {tab === 'expenses' && (
               <>
                 <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-label">EXPENSES · {expenses.length} ENTRIES · {fmt(expenses.reduce((s, e) => s + e.amount, 0))}</h3>
+                  <h3 className="section-label">EXPENSES &#183; {expenses.length} ENTRIES &#183; {fmt(expenses.reduce((s, e) => s + e.amount, 0))}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -370,7 +402,7 @@ function FinanceInner() {
                           <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{item.date}</td>
                           <td className="px-4 py-3"><span className="text-xs font-mono px-2 py-0.5 rounded border" style={{ color: '#ff2d78', borderColor: 'rgba(255,45,120,0.3)' }}>{item.category}</span></td>
                           <td className="px-4 py-3 font-mono font-semibold" style={{ color: '#ff2d78' }}>{fmt(item.amount)}</td>
-                          <td className="px-4 py-3 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>{item.notes || '—'}</td>
+                          <td className="px-4 py-3 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>{item.notes || '&#8212;'}</td>
                           <td className="px-4 py-3"><button onClick={() => deleteItem(item.id, 'expense')} className="opacity-30 hover:opacity-70"><Trash2 size={12} style={{ color: '#ff00e5' }} /></button></td>
                         </tr>
                       ))}
@@ -383,7 +415,13 @@ function FinanceInner() {
           </div>
         )}
       </div>
-      <LifeHubChat section="finance" apiRoute="/api/life/finance/chat" contextData={{ tradeIncome, contentIncome, expenses }} systemPrompt="You are Coach Shai, a finance AI. Analyze income, expenses, and net profit. Be direct and insightful." defaultOpen={chatOpen} />
+      <LifeHubChat
+        section="finance"
+        apiRoute="/api/life/finance/chat"
+        contextData={{ tradeIncome, contentIncome, expenses }}
+        systemPrompt="You are Coach Shai, a finance AI. Analyze income, expenses, and net profit. Be direct and insightful."
+        defaultOpen={chatOpen}
+      />
     </div>
   )
 }
