@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
               const inProgress = total - completed
               const completionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : '0'
               const overdueGoals = (goals as any[]).filter((g: any) => !g.completed && g.dueDate && new Date(g.dueDate) < new Date()).length
-              const systemPrompt = `You are Coach Shai — a goals architect. Keep responses under 80 words maximum. 3-4 sentences only. Reference actual data in every response.\n\nGOALS DATA: ${JSON.stringify(goals)}\nKEY STATS:\n- Total: ${total}, Completed: ${completed}, In Progress: ${inProgress}, Completion Rate: ${completionRate}%, Overdue: ${overdueGoals}`
+              const systemPrompt = `You are Coach Shai â a goals architect. Keep responses under 80 words maximum. 3-4 sentences only. Reference actual data in every response.\n\nGOALS DATA: ${JSON.stringify(goals)}\nKEY STATS:\n- Total: ${total}, Completed: ${completed}, In Progress: ${inProgress}, Completion Rate: ${completionRate}%, Overdue: ${overdueGoals}`
               const response = await anthropic.messages.create({
                         model: 'claude-haiku-4-5-20251001',
                         max_tokens: 1024,
