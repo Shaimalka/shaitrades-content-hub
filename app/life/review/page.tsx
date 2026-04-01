@@ -52,7 +52,7 @@ function ScoreRing({ score }: { score: number }) {
 
 function ReviewCard({ title, color, children }: { title: string; color: string; children: React.ReactNode }) {
   return (
-    <div className='cyber-panel p-5'>
+    <div className='premium-card p-5'>
       <p className='text-xs font-mono font-semibold mb-3 tracking-widest' style={{ color }}>{title}</p>
       {children}
     </div>
@@ -121,7 +121,7 @@ function ReviewInner() {
         {error && <div className='p-4 rounded-lg mb-6 border text-xs font-mono' style={{ background: 'rgba(255,45,120,0.08)', borderColor: 'rgba(255,45,120,0.4)', color: '#ff2d78' }}>{error}</div>}
 
         {generating && (
-          <div className='cyber-panel p-8 mb-8 text-center'>
+          <div className='premium-card p-8 mb-8 text-center'>
             <p className='text-xs font-mono' style={{ color: 'var(--text-muted)' }}>Coach Shai is analyzing your week...</p>
             <p className='text-xs font-mono mt-1' style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Reading trading logs, habits, health, journal, goals, and finance data</p>
           </div>
@@ -129,7 +129,7 @@ function ReviewInner() {
 
         {report && !generating && (
           <div>
-            <div className='cyber-panel p-6 mb-6'>
+            <div className='premium-card p-6 mb-6'>
               <div className='flex items-center gap-6'>
                 <ScoreRing score={report.overallScore} />
                 <div>
@@ -222,7 +222,7 @@ function ReviewInner() {
               </ReviewCard>
             </div>
 
-            <div className='cyber-panel p-5 mb-8' style={{ borderColor: 'rgba(0,242,255,0.3)', background: 'rgba(0,242,255,0.03)' }}>
+            <div className='premium-card p-5 mb-8' style={{ borderColor: 'rgba(0,242,255,0.3)', background: 'rgba(0,242,255,0.03)' }}>
               <div className='flex items-start gap-4'>
                 <div className='w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0' style={{ background: 'linear-gradient(135deg, #00f2ff, #0060ff)' }}>
                   <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff' }}>AI</span>
@@ -237,7 +237,7 @@ function ReviewInner() {
         )}
 
         {!report && !generating && (
-          <div className='cyber-panel p-12 text-center mb-8'>
+          <div className='premium-card p-12 text-center mb-8'>
             <Calendar size={40} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem', opacity: 0.4 }} />
             <p className='text-sm font-mono mb-2' style={{ color: 'var(--text-muted)' }}>No review for this week yet.</p>
             <p className='text-xs font-mono mb-6' style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Click Generate Review to have Coach Shai analyze your entire week.</p>
@@ -252,7 +252,7 @@ function ReviewInner() {
             <h2 className='section-label mb-4'>PAST REVIEWS</h2>
             <div className='space-y-2'>
               {pastReviews.filter(r => r.weekStart !== start).map(rev => (
-                <div key={rev.id} className='cyber-panel overflow-hidden'>
+                <div key={rev.id} className='premium-card overflow-hidden'>
                   <button onClick={() => setExpandedId(expandedId === rev.id ? null : rev.id)} className='w-full p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors text-left'>
                     <span className='text-xs font-mono' style={{ color: 'var(--text-muted)', minWidth: 120 }}>w/o {rev.weekStart}</span>
                     <div className='w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0' style={{ border: '2px solid ' + getScoreColor(rev.overallScore) }}>
