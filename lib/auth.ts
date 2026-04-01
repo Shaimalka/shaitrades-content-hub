@@ -1,38 +1,32 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: 'Credentials',
-      credentials: {
-        username: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        console.log('AUTH_USERNAME env:', process.env.AUTH_USERNAME)
-        console.log('Credentials received:', credentials?.username)
-        console.log('Username match:', credentials?.username === process.env.AUTH_USERNAME)
-        console.log('AUTH_PASSWORD env exists:', !!process.env.AUTH_PASSWORD)
-        const user = process.env.AUTH_USERNAME
-        const hash = process.env.AUTH_PASSWORD
-        if (!user || !hash || !credentials?.username || !credentials?.password) {
-          return null
-        }
-        if (credentials.username !== user) return null
-        let isValid = false
-        try {
-          isValid = await bcrypt.compare(credentials.password, hash)
-        } catch {
-          isValid = credentials.password === process.env.AUTH_PASSWORD
-        }
-        if (!isValid) return null
-        return { id: '1', name: user, email: `${user}@shaitrades.local` }
-      },
-    }),
-  ],
-  session: { strategy: 'jwt' },
-  pages: { signIn: '/login' },
-  secret: process.env.NEXTAUTH_SECRET,
+    providers: [
+          CredentialsProvider({
+                  name: 'credentials',
+                  credentials: {
+                            username: { label: 'Username', type: 'text' },
+                            password: { label: 'Password', type: 'password' },
+                  },
+                  async authorize(credentials) {
+                            console.log('authorize called')
+                            console.log('username received:', credentials?.username)
+                            console.log('AUTH_USERNAME:', process.env.AUTH_USERNAME)
+                            console.log('password received:', credentials?.password)
+                            console.log('AUTH_PASSWORD:', process.env.AUTH_PASSWORD)
+
+                    if (
+                                credentials?.username === process.env.AUTH_USERNAME &&
+                                credentials?.password === process.env.AUTH_PASSWORD
+                              ) {
+                                return { id: '1', name: credentials.username }
+                    }
+                            return null
+                  },
+          }),
+        ],
+    session: { strategy: 'jwt' },
+    pages: { signIn: '/login' },
+    secret: process.env.NEXTAUTH_SECRET,
 }
