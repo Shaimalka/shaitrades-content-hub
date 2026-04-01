@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 export async function POST(req: NextRequest) {
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
                                         "caption_hashtags": ["hashtag1", "hashtag2"],
                                           "vs_average": "outperformed" or "underperformed" or "average",
                                             "vs_explanation": "why it performed this way relative to account average",
-                                              "content_intelligence": "2-3 sentence plain English analysis of exactly why this post performed the way it did — what worked, what didn't, what to replicate",
+                                              "content_intelligence": "2-3 sentence plain English analysis of exactly why this post performed the way it did â what worked, what didn't, what to replicate",
                                                 "replicate_tips": ["actionable tip 1", "actionable tip 2", "actionable tip 3"]
                                                 }` }]
                   }),
