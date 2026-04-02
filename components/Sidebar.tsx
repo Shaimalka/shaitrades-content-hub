@@ -1,4 +1,6 @@
 'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
@@ -19,9 +21,10 @@ import {
   BookOpen,
   DollarSign,
   Settings,
+  ChevronLeft,
 } from 'lucide-react'
-import { useTheme } from './ThemeProvider'
 
+// Platform nav definitions
 const INSTAGRAM_NAV = [
   { href: '/instagram', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/instagram/competitors', label: 'Competitors', icon: Users },
@@ -29,12 +32,15 @@ const INSTAGRAM_NAV = [
   { href: '/instagram/content', label: 'Content Gen', icon: Sparkles },
   { href: '/instagram/scheduler', label: 'Scheduler', icon: CalendarDays },
 ]
+
 const TIKTOK_NAV = [
   { href: '/tiktok/analytics', label: 'Analytics', icon: BarChart2 },
 ]
+
 const YOUTUBE_NAV = [
   { href: '/youtube', label: 'Analytics', icon: BarChart2 },
 ]
+
 const LIFE_NAV = [
   { href: '/life/trading', label: 'Trading Journal', icon: LineChart, sub: [
     { href: '/life/trading/settings', label: 'Settings', icon: Settings },
@@ -47,9 +53,53 @@ const LIFE_NAV = [
   { href: '/life/review', label: 'Weekly Review', icon: BarChart2 },
 ]
 
+type Platform = 'instagram' | 'tiktok' | 'youtube' | null
+
+function LiveDot() {
+  return (
+    <span style={{
+      display: 'inline-block',
+      width: '6px',
+      height: '6px',
+      borderRadius: '50%',
+      background: '#00ff88',
+      boxShadow: '0 0 6px #00ff88',
+      flexShrink: 0,
+    }} />
+  )
+}
+
 export default function Sidebar() {
   const pathname = usePathname()
-  const { toggleTheme, isDark } = useTheme()
+
+  // Auto-detect platform from pathname
+  function detectPlatform(): Platform {
+    if (pathname?.startsWith('/instagram')) return 'instagram'
+    if (pathname?.startsWith('/tiktok')) return 'tiktok'
+    if (pathname?.startsWith('/youtube')) return 'youtube'
+    return null
+  }
+
+  const [expandedPlatform, setExpandedPlatform] = useState<Platform>(detectPlatform)
+
+  function handlePlatformClick(platform: Platform) {
+    setExpandedPlatform(prev => prev === platform ? null : platform)
+  }
+
+  function getPlatformNav() {
+    if (expandedPlatform === 'instagram') return INSTAGRAM_NAV
+    if (expandedPlatform === 'tiktok') return TIKTOK_NAV
+    if (expandedPlatform === 'youtube') return YOUTUBE_NAV
+    return []
+  }
+
+  const platformNav = getPlatformNav()
+
+  const platformMeta: Record<NonNullable<Platform>, { label: string; icon: React.ReactNode; color: string }> = {
+    instagram: { label: 'INSTAGRAM', icon: <Camera size={14} />, color: '#00f2ff' },
+    tiktok: { label: 'TIKTOK', icon: <Music2 size={14} />, color: '#00f2ff' },
+    youtube: { label: 'YOUTUBE', icon: <Youtube size={14} />, color: '#00f2ff' },
+  }
 
   return (
     <aside style={{
@@ -93,104 +143,203 @@ export default function Sidebar() {
       {/* Nav */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
 
-        {/* PLATFORMS */}
-        <div style={{ padding: '16px 16px 4px' }}>
-          <div style={{
-            fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
-            color: 'rgba(255,255,255,0.18)', letterSpacing: '4px',
-            textTransform: 'uppercase', marginBottom: '8px',
-          }}>PLATFORMS</div>
+        {expandedPlatform ? (
+          /* === PLATFORM CONTEXT VIEW === */
+          <div style={{ padding: '8px 0' }}>
+            {/* Back arrow */}
+            <button
+              onClick={() => setExpandedPlatform(null)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '8px 16px', width: '100%', background: 'none', border: 'none',
+                cursor: 'pointer', color: 'rgba(255,255,255,0.3)',
+                fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                letterSpacing: '2px', textTransform: 'uppercase',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}
+            >
+              <ChevronLeft size={11} />
+              ALL PLATFORMS
+            </button>
 
-          {/* Instagram */}
-          <div style={{ marginBottom: '2px' }}>
+            {/* Platform header */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '4px 8px', marginBottom: '2px',
+              padding: '10px 16px 12px',
             }}>
-              <Camera size={13} style={{ color: 'rgba(255,255,255,0.3)' }} />
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '2px', textTransform: 'uppercase', flex: 1 }}>Instagram</span>
-              <div className='live-dot' />
+              <span style={{ color: platformMeta[expandedPlatform].color }}>
+                {platformMeta[expandedPlatform].icon}
+              </span>
+              <span style={{
+                fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 700,
+                color: platformMeta[expandedPlatform].color, letterSpacing: '3px',
+                textShadow: `0 0 8px ${platformMeta[expandedPlatform].color}88`,
+              }}>
+                {platformMeta[expandedPlatform].label}
+              </span>
             </div>
-            {INSTAGRAM_NAV.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item-dark ${pathname === href ? 'active' : ''}`} style={{ paddingLeft: '28px' }}>
+
+            {/* Platform sub-nav */}
+            {platformNav.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`nav-item-dark ${pathname === href ? 'active' : ''}`}
+                style={pathname === href ? {
+                  borderLeft: `2px solid ${platformMeta[expandedPlatform].color}`,
+                  color: platformMeta[expandedPlatform].color,
+                  paddingLeft: '22px',
+                } : { paddingLeft: '24px' }}
+              >
                 <span className='nav-item-icon'><Icon size={13} strokeWidth={2} /></span>
                 <span>{label}</span>
               </Link>
             ))}
-          </div>
 
-          <hr className='cyber-divider-dark' style={{ margin: '8px 0' }} />
+            <hr className='cyber-divider-dark' style={{ margin: '12px 0' }} />
 
-          {/* TikTok */}
-          <div style={{ marginBottom: '2px' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '4px 8px', marginBottom: '2px',
-            }}>
-              <Music2 size={13} style={{ color: 'rgba(255,255,255,0.3)' }} />
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '2px', textTransform: 'uppercase', flex: 1 }}>TikTok</span>
-              <div className='live-dot' />
+            {/* Life Hub always visible below */}
+            <div style={{ padding: '0 16px 4px' }}>
+              <div style={{
+                fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                color: 'rgba(255,255,255,0.18)', letterSpacing: '4px',
+                textTransform: 'uppercase', marginBottom: '8px',
+              }}>LIFE HUB</div>
             </div>
-            {TIKTOK_NAV.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item-dark ${pathname === href ? 'active' : ''}`} style={{ paddingLeft: '28px' }}>
-                <span className='nav-item-icon'><Icon size={13} strokeWidth={2} /></span>
-                <span>{label}</span>
-              </Link>
-            ))}
-          </div>
-
-          <hr className='cyber-divider-dark' style={{ margin: '8px 0' }} />
-
-          {/* YouTube */}
-          <div style={{ marginBottom: '2px' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '4px 8px', marginBottom: '2px',
-            }}>
-              <Youtube size={13} style={{ color: 'rgba(255,255,255,0.3)' }} />
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '2px', textTransform: 'uppercase', flex: 1 }}>YouTube</span>
-              <div className='live-dot' />
-            </div>
-            {YOUTUBE_NAV.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} className={`nav-item-dark ${pathname === href ? 'active' : ''}`} style={{ paddingLeft: '28px' }}>
-                <span className='nav-item-icon'><Icon size={13} strokeWidth={2} /></span>
-                <span>{label}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <hr className='cyber-divider-dark' style={{ margin: '4px 0' }} />
-
-        {/* LIFE HUB */}
-        <div style={{ padding: '12px 16px 4px' }}>
-          <div style={{
-            fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
-            color: 'rgba(255,255,255,0.18)', letterSpacing: '4px',
-            textTransform: 'uppercase', marginBottom: '8px',
-          }}>LIFE HUB</div>
-          {LIFE_NAV.map(({ href, label, icon: Icon, sub }: any) => (
-            <div key={href}>
-              <Link href={href} className={`nav-item-dark ${pathname === href || pathname?.startsWith(href + '/') ? 'active' : ''}`}>
-                <span className='nav-item-icon'><Icon size={13} strokeWidth={2} /></span>
-                <span>{label}</span>
-                {href === '/life/review' && (
-                  <span style={{ marginLeft: 'auto', fontSize: '8px', fontFamily: 'JetBrains Mono', color: '#ffb400', letterSpacing: '1px' }}>SUN</span>
+            {LIFE_NAV.map(({ href, label, icon: Icon, sub }: any) => (
+              <div key={href}>
+                <Link
+                  href={href}
+                  className={`nav-item-dark ${pathname === href || pathname?.startsWith(href + '/') ? 'active' : ''}`}
+                >
+                  <span className='nav-item-icon'><Icon size={13} strokeWidth={2} /></span>
+                  <span>{label}</span>
+                  {href === '/life/review' && (
+                    <span style={{ marginLeft: 'auto', fontSize: '8px', fontFamily: 'JetBrains Mono', color: '#ffb400', letterSpacing: '1px' }}>SUN</span>
+                  )}
+                </Link>
+                {sub && (pathname === href || sub.some((s: any) => pathname === s.href)) && (
+                  <div style={{ paddingLeft: '1.5rem' }}>
+                    {sub.map((s: any) => (
+                      <Link key={s.href} href={s.href} className={`nav-item-dark ${pathname === s.href ? 'active' : ''}`} style={{ fontSize: '0.72rem' }}>
+                        <span className='nav-item-icon'><s.icon size={12} strokeWidth={2} /></span>
+                        <span>{s.label}</span>
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              </Link>
-              {sub && (pathname === href || sub.some((s: any) => pathname === s.href)) && (
-                <div style={{ paddingLeft: '1.5rem' }}>
-                  {sub.map((s: any) => (
-                    <Link key={s.href} href={s.href} className={`nav-item-dark ${pathname === s.href ? 'active' : ''}`} style={{ fontSize: '0.72rem' }}>
-                      <span className='nav-item-icon'><s.icon size={12} strokeWidth={2} /></span>
-                      <span>{s.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* === DEFAULT VIEW: collapsed platforms === */
+          <div>
+            <div style={{ padding: '16px 16px 4px' }}>
+              <div style={{
+                fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                color: 'rgba(255,255,255,0.18)', letterSpacing: '4px',
+                textTransform: 'uppercase', marginBottom: '8px',
+              }}>// PLATFORMS</div>
+
+              {/* Instagram row */}
+              <button
+                onClick={() => handlePlatformClick('instagram')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '8px 8px', width: '100%', background: 'none', border: 'none',
+                  cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s',
+                  marginBottom: '2px',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <Camera size={13} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+                <span style={{
+                  fontFamily: 'JetBrains Mono, monospace', fontSize: '10px',
+                  color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', flex: 1, textAlign: 'left',
+                }}>Instagram</span>
+                <LiveDot />
+              </button>
+
+              {/* TikTok row */}
+              <button
+                onClick={() => handlePlatformClick('tiktok')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '8px 8px', width: '100%', background: 'none', border: 'none',
+                  cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s',
+                  marginBottom: '2px',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <Music2 size={13} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+                <span style={{
+                  fontFamily: 'JetBrains Mono, monospace', fontSize: '10px',
+                  color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', flex: 1, textAlign: 'left',
+                }}>TikTok</span>
+                <LiveDot />
+              </button>
+
+              {/* YouTube row */}
+              <button
+                onClick={() => handlePlatformClick('youtube')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '8px 8px', width: '100%', background: 'none', border: 'none',
+                  cursor: 'pointer', borderRadius: '6px', transition: 'background 0.15s',
+                  marginBottom: '2px',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <Youtube size={13} style={{ color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+                <span style={{
+                  fontFamily: 'JetBrains Mono, monospace', fontSize: '10px',
+                  color: 'rgba(255,255,255,0.6)', letterSpacing: '1px', flex: 1, textAlign: 'left',
+                }}>YouTube</span>
+                <LiveDot />
+              </button>
             </div>
-          ))}
-        </div>
+
+            <hr className='cyber-divider-dark' style={{ margin: '4px 0' }} />
+
+            {/* LIFE HUB */}
+            <div style={{ padding: '12px 16px 4px' }}>
+              <div style={{
+                fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                color: 'rgba(255,255,255,0.18)', letterSpacing: '4px',
+                textTransform: 'uppercase', marginBottom: '8px',
+              }}>// LIFE HUB</div>
+              {LIFE_NAV.map(({ href, label, icon: Icon, sub }: any) => (
+                <div key={href}>
+                  <Link
+                    href={href}
+                    className={`nav-item-dark ${pathname === href || pathname?.startsWith(href + '/') ? 'active' : ''}`}
+                  >
+                    <span className='nav-item-icon'><Icon size={13} strokeWidth={2} /></span>
+                    <span>{label}</span>
+                    {href === '/life/review' && (
+                      <span style={{ marginLeft: 'auto', fontSize: '8px', fontFamily: 'JetBrains Mono', color: '#ffb400', letterSpacing: '1px' }}>SUN</span>
+                    )}
+                  </Link>
+                  {sub && (pathname === href || sub.some((s: any) => pathname === s.href)) && (
+                    <div style={{ paddingLeft: '1.5rem' }}>
+                      {sub.map((s: any) => (
+                        <Link key={s.href} href={s.href} className={`nav-item-dark ${pathname === s.href ? 'active' : ''}`} style={{ fontSize: '0.72rem' }}>
+                          <span className='nav-item-icon'><s.icon size={12} strokeWidth={2} /></span>
+                          <span>{s.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom profile */}
@@ -198,8 +347,7 @@ export default function Sidebar() {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px',
           padding: '8px 10px', borderRadius: '8px',
-          background: 'rgba(0,242,255,0.03)',
-          border: '1px solid rgba(0,242,255,0.07)',
+          background: 'rgba(0,242,255,0.03)', border: '1px solid rgba(0,242,255,0.07)',
           marginBottom: '8px',
         }}>
           <div style={{
@@ -223,8 +371,8 @@ export default function Sidebar() {
             letterSpacing: '2px', padding: '6px', cursor: 'pointer',
             borderRadius: '6px', transition: 'all 0.2s', textTransform: 'uppercase',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#ff2d78'; e.currentTarget.style.borderColor = 'rgba(255,45,120,0.4)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,45,120,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,45,120,0.2)'; }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#ff2d78'; e.currentTarget.style.borderColor = 'rgba(255,45,120,0.4)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,45,120,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,45,120,0.2)' }}
         >
           SIGN OUT
         </button>
