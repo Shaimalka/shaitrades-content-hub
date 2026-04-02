@@ -28,27 +28,46 @@ export default function LifeHubChat({
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [historyLoaded, setHistoryLoaded] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Load from localStorage on mount
+  // Load chat history from Redis on mount
   useEffect(() => {
-    const key = `coachshai-chat-${section}`
-    try {
-      const stored = localStorage.getItem(key)
-      if (stored) {
-        setMessages(JSON.parse(stored))
+    async function loadHistory() {
+      try {
+        const res = await fetch(`/api/life/chat-history?section=${section}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data.messages) && data.messages.length > 0) {
+            setMessages(data.messages)
+          }
+        }
+      } catch (err) {
+        console.error('[LifeHubChat] Failed to load history:', err)
+      } finally {
+        setHistoryLoaded(true)
       }
-    } catch {}
+    }
+    loadHistory()
   }, [section])
 
-  // Save to localStorage on every new message
+  // Save chat history to Redis whenever messages change (after initial load)
   useEffect(() => {
-    const key = `coachshai-chat-${section}`
-    try {
-      localStorage.setItem(key, JSON.stringify(messages))
-    } catch {}
-  }, [messages, section])
+    if (!historyLoaded || messages.length === 0) return
+    async function saveHistory() {
+      try {
+        await fetch('/api/life/chat-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ section, messages }),
+        })
+      } catch (err) {
+        console.error('[LifeHubChat] Failed to save history:', err)
+      }
+    }
+    saveHistory()
+  }, [messages, section, historyLoaded])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -62,12 +81,10 @@ export default function LifeHubChat({
 
   async function sendMessage() {
     if (!input.trim() || loading) return
-
     const userMsg = input.trim()
     setInput('')
     setMessages(prev => [...prev, { role: 'user', content: userMsg }])
     setLoading(true)
-
     try {
       const res = await fetch(apiRoute, {
         method: 'POST',
@@ -78,7 +95,6 @@ export default function LifeHubChat({
           systemPrompt,
         }),
       })
-
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
       setMessages(prev => [...prev, { role: 'assistant', content: data.content }])
@@ -108,7 +124,6 @@ export default function LifeHubChat({
     journal: 'Journal AI',
     finance: 'Finance AI',
   }
-
   const label = sectionLabels[section] || 'Life Hub AI'
 
   return (
@@ -138,9 +153,7 @@ export default function LifeHubChat({
         style={{
           width: '360px',
           background: 'rgba(10,10,14,0.97)',
-          borderLeft: isOpen
-            ? '1px solid rgba(0,255,136,0.4)'
-            : '1px solid rgba(0,242,255,0.15)',
+          borderLeft: isOpen ? '1px solid rgba(0,255,136,0.4)' : '1px solid rgba(0,242,255,0.15)',
           backdropFilter: 'blur(16px)',
           boxShadow: isOpen ? '0 0 20px rgba(0,255,136,0.3)' : 'none',
         }}
@@ -172,23 +185,21 @@ export default function LifeHubChat({
 
         {/* System hint */}
         {messages.length === 0 && (
-          <div className="px-4 py-3 mx-3 mt-3 rounded-lg text-xs" style={{
-            background: 'rgba(0,242,255,0.05)',
-            border: '1px solid rgba(0,242,255,0.1)',
-            color: 'var(--text-muted)',
-          }}>
-            <span style={{ color: '#00f2ff' }}>Coach Shai</span> has access to all your {section} data.
-            Ask anything about your trends, patterns, or progress.
+          <div
+            className="px-4 py-3 mx-3 mt-3 rounded-lg text-xs"
+            style={{
+              background: 'rgba(0,242,255,0.05)',
+              border: '1px solid rgba(0,242,255,0.1)',
+              color: 'var(--text-muted)',
+            }}>
+            <span style={{ color: '#00f2ff' }}>Coach Shai</span> has access to all your {section} data. Ask anything about your trends, patterns, or progress.
           </div>
         )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
           {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'user' ? (
                 <div
                   className="max-w-[82%] px-4 py-2.5 text-xs leading-relaxed rounded-2xl"
@@ -208,10 +219,7 @@ export default function LifeHubChat({
                   >
                     COACH SHAI
                   </span>
-                  <div
-                    className="text-xs leading-relaxed"
-                    style={{ color: '#00f2ff' }}
-                  >
+                  <div className="text-xs leading-relaxed" style={{ color: '#00f2ff' }}>
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 </div>
@@ -254,10 +262,7 @@ export default function LifeHubChat({
               onKeyDown={handleKeyDown}
               placeholder="Ask Coach Shai about your data..."
               className="flex-1 bg-transparent outline-none text-xs"
-              style={{
-                color: 'var(--text-primary)',
-                caretColor: '#00f2ff',
-              }}
+              style={{ color: 'var(--text-primary)', caretColor: '#00f2ff' }}
               onFocus={e => {
                 const parent = e.currentTarget.parentElement
                 if (parent) {
