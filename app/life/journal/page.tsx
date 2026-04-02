@@ -1,4 +1,5 @@
 'use client'
+
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { NotebookPen, ChevronDown, ChevronUp } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
@@ -27,12 +28,49 @@ type JournalEntry = {
 
 const MINDSET_OPTIONS: TradingMindset[] = ['Confident', 'Cautious', 'Uncertain', 'Sharp', 'Emotional']
 const MOOD_TAGS: MoodTag[] = ['Focused', 'Anxious', 'Motivated', 'Tired', 'Grateful', 'Neutral', 'Proud', 'Disappointed']
+
 const MOOD_COLORS: Record<MoodTag, string> = {
-  Focused: '#00f2ff', Anxious: '#ff2d78', Motivated: '#00ff88', Tired: '#888',
-  Grateful: '#ffb400', Neutral: '#aaa', Proud: '#c084fc', Disappointed: '#f97316'
+  Focused: '#00f2ff',
+  Anxious: '#ff2d78',
+  Motivated: '#00ff88',
+  Tired: '#888',
+  Grateful: '#ffb400',
+  Neutral: '#aaa',
+  Proud: '#c084fc',
+  Disappointed: '#f97316'
 }
+
 const MINDSET_COLORS: Record<TradingMindset, string> = {
-  Confident: '#00ff88', Cautious: '#ffb400', Uncertain: '#888', Sharp: '#00f2ff', Emotional: '#ff2d78'
+  Confident: '#00ff88',
+  Cautious: '#ffb400',
+  Uncertain: '#888',
+  Sharp: '#00f2ff',
+  Emotional: '#ff2d78'
+}
+
+// Mood-based left border colors for entry cards
+const MOOD_BORDER: Record<MoodTag, string> = {
+  Focused: '#00f2ff',
+  Anxious: '#ff2d78',
+  Motivated: '#00ff88',
+  Tired: '#555',
+  Grateful: '#ffb400',
+  Neutral: '#666',
+  Proud: '#c084fc',
+  Disappointed: '#f97316'
+}
+
+function formatDate(dateStr: string) {
+  try {
+    const d = new Date(dateStr + 'T12:00:00')
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  } catch {
+    return dateStr
+  }
+}
+
+function getPrimaryMood(entry: JournalEntry): MoodTag | null {
+  return (entry.moodTags && entry.moodTags.length > 0) ? entry.moodTags[0] : null
 }
 
 function JournalInner() {
@@ -51,6 +89,7 @@ function JournalInner() {
     grateful: '',
     intention: '',
   })
+
   const [evening, setEvening] = useState({
     hitFocus: null as boolean | null,
     hitFocusNotes: '',
@@ -67,9 +106,7 @@ function JournalInner() {
     try {
       const res = await fetch('/api/life/journal')
       const d = await res.json()
-      console.log('[journal page] fetchEntries response:', d)
       const fetched: JournalEntry[] = Array.isArray(d.data) ? d.data : []
-      console.log('[journal page] fetched', fetched.length, 'entries')
       setEntries(fetched)
     } catch (err) {
       console.error('[journal page] fetchEntries error:', err)
@@ -78,9 +115,7 @@ function JournalInner() {
     }
   }, [])
 
-  useEffect(() => {
-    fetchEntries()
-  }, [fetchEntries])
+  useEffect(() => { fetchEntries() }, [fetchEntries])
 
   useEffect(() => {
     if (todayEntry) {
@@ -108,7 +143,6 @@ function JournalInner() {
     const payload = todayEntry
       ? { action: 'update', entry: { ...entry, id: todayEntry.id } }
       : { entry }
-    console.log('[journal page] saveMorning payload:', JSON.stringify(payload))
     try {
       const res = await fetch('/api/life/journal', {
         method: 'POST',
@@ -116,12 +150,9 @@ function JournalInner() {
         body: JSON.stringify(payload)
       })
       const data = await res.json()
-      console.log('[journal page] saveMorning response:', data)
       if (data.data && Array.isArray(data.data)) {
         setEntries(data.data)
-        console.log('[journal page] setEntries from POST response:', data.data.length, 'entries')
       } else {
-        console.log('[journal page] POST response missing data array, re-fetching from GET...')
         await fetchEntries()
       }
       setSaved('morning')
@@ -140,7 +171,6 @@ function JournalInner() {
     const payload = todayEntry
       ? { action: 'update', entry: { ...entry, id: todayEntry.id } }
       : { entry }
-    console.log('[journal page] saveEvening payload:', JSON.stringify(payload))
     try {
       const res = await fetch('/api/life/journal', {
         method: 'POST',
@@ -148,12 +178,9 @@ function JournalInner() {
         body: JSON.stringify(payload)
       })
       const data = await res.json()
-      console.log('[journal page] saveEvening response:', data)
       if (data.data && Array.isArray(data.data)) {
         setEntries(data.data)
-        console.log('[journal page] setEntries from POST response:', data.data.length, 'entries')
       } else {
-        console.log('[journal page] POST response missing data array, re-fetching from GET...')
         await fetchEntries()
       }
       setSaved('evening')
@@ -174,7 +201,11 @@ function JournalInner() {
     }))
   }
 
-  const pastEntries = [...entries].filter(e => e.date !== today).sort((a, b) => b.date.localeCompare(a.date))
+  // Past entries: all except today, sorted newest first, max 30
+  const pastEntries = [...entries]
+    .filter(e => e.date !== today)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 30)
 
   return (
     <div className="cyber-bg-grid min-h-screen">
@@ -267,8 +298,12 @@ function JournalInner() {
                 <span>📊 How was my trading mindset today?</span>
                 <span style={{ color: '#c084fc' }}>{evening.eveningMindsetRating}/10</span>
               </label>
-              <input type="range" min="1" max="10" value={evening.eveningMindsetRating} onChange={e => setEvening(f => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))} className="w-full" />
-              <div className="flex justify-between text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)', opacity: 0.5 }}><span>Chaotic</span><span>Locked in</span></div>
+              <input type="range" min="1" max="10" value={evening.eveningMindsetRating}
+                onChange={e => setEvening(f => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))}
+                className="w-full" />
+              <div className="flex justify-between text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+                <span>Chaotic</span><span>Locked in</span>
+              </div>
             </div>
             <div>
               <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>🏷️ Mood tags</label>
@@ -290,55 +325,175 @@ function JournalInner() {
           </form>
         </div>
 
-        {/* PAST ENTRIES */}
-        {!loading && pastEntries.length > 0 && (
-          <div>
-            <h2 className="section-header mb-4">PAST ENTRIES · {pastEntries.length}</h2>
-            <div className="space-y-2">
-              {pastEntries.map(entry => (
-                <div key={entry.id} className="premium-card overflow-hidden">
-                  <button
-                    onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                    className="w-full p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors text-left"
-                  >
-                    <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-muted)', minWidth: 80 }}>{entry.date}</span>
-                    {entry.tradingMindset && (
-                      <span className="text-xs font-mono px-2 py-0.5 rounded border"
-                        style={{ color: MINDSET_COLORS[entry.tradingMindset], borderColor: MINDSET_COLORS[entry.tradingMindset] + '66', background: MINDSET_COLORS[entry.tradingMindset] + '11' }}>
-                        {entry.tradingMindset}
-                      </span>
-                    )}
-                    {entry.eveningMindsetRating && (
-                      <span className="text-xs font-mono" style={{ color: '#c084fc' }}>{entry.eveningMindsetRating}/10</span>
-                    )}
-                    <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
-                      {entry.morningFocus || entry.intention || entry.bestMoment || 'Entry'}
-                    </span>
-                    {entry.moodTags && entry.moodTags.slice(0,3).map(tag => (
-                      <span key={tag} className="text-xs font-mono" style={{ color: MOOD_COLORS[tag] }}>{tag}</span>
-                    ))}
-                    {expandedId === entry.id ? <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
-                  </button>
-                  {expandedId === entry.id && (
-                    <div className="px-4 pb-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {entry.morningFocus && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🎯 #1 FOCUS</p><p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p></div>)}
-                        {entry.tradingMindset && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 MORNING MINDSET</p><p className="text-sm font-mono" style={{ color: MINDSET_COLORS[entry.tradingMindset] }}>{entry.tradingMindset}</p></div>)}
-                        {entry.grateful && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🙏 GRATEFUL FOR</p><p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p></div>)}
-                        {entry.intention && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✨ INTENTION</p><p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p></div>)}
-                        {entry.hitFocus !== undefined && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✅ HIT FOCUS?</p><p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>{entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}</p></div>)}
-                        {entry.bestMoment && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>⭐ BEST MOMENT</p><p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p></div>)}
-                        {entry.doDifferently && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🔄 DO DIFFERENTLY</p><p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p></div>)}
-                        {entry.eveningMindsetRating && (<div><p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 EVENING MINDSET</p><p className="text-sm font-mono" style={{ color: '#c084fc' }}>{entry.eveningMindsetRating}/10</p></div>)}
-                        {entry.moodTags && entry.moodTags.length > 0 && (<div><p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>🏷️ MOOD TAGS</p><div className="flex flex-wrap gap-1.5">{entry.moodTags.map(tag => <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded border" style={{ color: MOOD_COLORS[tag], borderColor: MOOD_COLORS[tag] + '66', background: MOOD_COLORS[tag] + '11' }}>{tag}</span>)}</div></div>)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+        {/* PAST ENTRIES — prominent section */}
+        <div className="mb-8">
+          {/* Section header */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-header" style={{ fontSize: '11px', letterSpacing: '4px' }}>
+              // PAST ENTRIES · <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>
+            </h2>
           </div>
-        )}
+
+          {loading ? (
+            <div className="text-xs font-mono text-center py-8" style={{ color: 'var(--text-muted)' }}>Loading entries...</div>
+          ) : pastEntries.length === 0 ? (
+            <div className="premium-card p-8 text-center">
+              <NotebookPen size={28} style={{ color: 'rgba(255,255,255,0.1)', margin: '0 auto 12px' }} />
+              <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                Your journal history will appear here after your first entry
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {pastEntries.map(entry => {
+                const primaryMood = getPrimaryMood(entry)
+                const borderColor = primaryMood ? MOOD_BORDER[primaryMood] : 'rgba(0,242,255,0.15)'
+                const isExpanded = expandedId === entry.id
+
+                return (
+                  <div
+                    key={entry.id}
+                    className="premium-card overflow-hidden"
+                    style={{ borderLeft: `3px solid ${borderColor}` }}
+                  >
+                    {/* Collapsed row */}
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                      className="w-full p-4 flex items-center gap-3 hover:bg-white/[0.02] transition-colors text-left"
+                    >
+                      {/* Date */}
+                      <div style={{ minWidth: '150px' }}>
+                        <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                          {formatDate(entry.date)}
+                        </span>
+                      </div>
+
+                      {/* Morning mindset pill */}
+                      {entry.tradingMindset ? (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0" style={{
+                          color: MINDSET_COLORS[entry.tradingMindset],
+                          borderColor: MINDSET_COLORS[entry.tradingMindset] + '55',
+                          background: MINDSET_COLORS[entry.tradingMindset] + '11',
+                        }}>
+                          {entry.tradingMindset}
+                        </span>
+                      ) : <span style={{ minWidth: '60px' }} />}
+
+                      {/* Evening mood pill */}
+                      {primaryMood ? (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0" style={{
+                          color: MOOD_COLORS[primaryMood],
+                          borderColor: MOOD_COLORS[primaryMood] + '55',
+                          background: MOOD_COLORS[primaryMood] + '11',
+                        }}>
+                          {primaryMood}
+                        </span>
+                      ) : <span style={{ minWidth: '50px' }} />}
+
+                      {/* #1 focus truncated */}
+                      <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-muted)', minWidth: 0 }}>
+                        {entry.morningFocus
+                          ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '…' : '')
+                          : entry.intention
+                          ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '…' : '')
+                          : <span style={{ opacity: 0.4 }}>No focus logged</span>}
+                      </span>
+
+                      {/* Evening rating */}
+                      {entry.eveningMindsetRating != null && (
+                        <span className="text-xs font-mono flex-shrink-0" style={{ color: '#c084fc' }}>
+                          {entry.eveningMindsetRating}/10
+                        </span>
+                      )}
+
+                      {/* Expand chevron */}
+                      {isExpanded
+                        ? <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                        : <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
+                    </button>
+
+                    {/* Expanded full entry */}
+                    {isExpanded && (
+                      <div className="px-4 pb-5 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          {entry.morningFocus && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🎯 #1 FOCUS</p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p>
+                            </div>
+                          )}
+                          {entry.tradingMindset && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 MORNING MINDSET</p>
+                              <span className="text-xs font-mono px-2 py-0.5 rounded-full border" style={{
+                                color: MINDSET_COLORS[entry.tradingMindset],
+                                borderColor: MINDSET_COLORS[entry.tradingMindset] + '55',
+                                background: MINDSET_COLORS[entry.tradingMindset] + '11',
+                              }}>{entry.tradingMindset}</span>
+                            </div>
+                          )}
+                          {entry.grateful && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🙏 GRATEFUL FOR</p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p>
+                            </div>
+                          )}
+                          {entry.intention && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✨ INTENTION</p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p>
+                            </div>
+                          )}
+                          {entry.hitFocus !== undefined && entry.hitFocus !== null && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✅ HIT FOCUS?</p>
+                              <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
+                                {entry.hitFocus ? 'YES' : 'NO'}
+                                {entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
+                              </p>
+                            </div>
+                          )}
+                          {entry.bestMoment && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>⭐ BEST MOMENT</p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p>
+                            </div>
+                          )}
+                          {entry.doDifferently && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🔄 DO DIFFERENTLY</p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p>
+                            </div>
+                          )}
+                          {entry.eveningMindsetRating != null && (
+                            <div>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 EVENING MINDSET RATING</p>
+                              <p className="text-sm font-mono" style={{ color: '#c084fc' }}>{entry.eveningMindsetRating}/10</p>
+                            </div>
+                          )}
+                          {entry.moodTags && entry.moodTags.length > 0 && (
+                            <div>
+                              <p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>🏷️ MOOD TAGS</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {entry.moodTags.map(tag => (
+                                  <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded-full border" style={{
+                                    color: MOOD_COLORS[tag],
+                                    borderColor: MOOD_COLORS[tag] + '66',
+                                    background: MOOD_COLORS[tag] + '11'
+                                  }}>{tag}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <LifeHubChat
@@ -354,7 +509,11 @@ function JournalInner() {
 
 export default function JournalPage() {
   return (
-    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+    <Suspense fallback={
+      <div className="cyber-bg-grid min-h-screen flex items-center justify-center">
+        <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
+      </div>
+    }>
       <JournalInner />
     </Suspense>
   )
