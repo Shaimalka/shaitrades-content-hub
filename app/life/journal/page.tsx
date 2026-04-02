@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { NotebookPen, ChevronDown, ChevronUp } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
@@ -28,36 +27,16 @@ type JournalEntry = {
 
 const MINDSET_OPTIONS: TradingMindset[] = ['Confident', 'Cautious', 'Uncertain', 'Sharp', 'Emotional']
 const MOOD_TAGS: MoodTag[] = ['Focused', 'Anxious', 'Motivated', 'Tired', 'Grateful', 'Neutral', 'Proud', 'Disappointed']
-
 const MOOD_COLORS: Record<MoodTag, string> = {
-  Focused: '#00f2ff',
-  Anxious: '#ff2d78',
-  Motivated: '#00ff88',
-  Tired: '#888',
-  Grateful: '#ffb400',
-  Neutral: '#aaa',
-  Proud: '#c084fc',
-  Disappointed: '#f97316'
+  Focused: '#00f2ff', Anxious: '#ff2d78', Motivated: '#00ff88', Tired: '#888',
+  Grateful: '#ffb400', Neutral: '#aaa', Proud: '#c084fc', Disappointed: '#f97316'
 }
-
 const MINDSET_COLORS: Record<TradingMindset, string> = {
-  Confident: '#00ff88',
-  Cautious: '#ffb400',
-  Uncertain: '#888',
-  Sharp: '#00f2ff',
-  Emotional: '#ff2d78'
+  Confident: '#00ff88', Cautious: '#ffb400', Uncertain: '#888', Sharp: '#00f2ff', Emotional: '#ff2d78'
 }
-
-// Mood-based left border colors for entry cards
 const MOOD_BORDER: Record<MoodTag, string> = {
-  Focused: '#00f2ff',
-  Anxious: '#ff2d78',
-  Motivated: '#00ff88',
-  Tired: '#555',
-  Grateful: '#ffb400',
-  Neutral: '#666',
-  Proud: '#c084fc',
-  Disappointed: '#f97316'
+  Focused: '#00f2ff', Anxious: '#ff2d78', Motivated: '#00ff88', Tired: '#555',
+  Grateful: '#ffb400', Neutral: '#666', Proud: '#c084fc', Disappointed: '#f97316'
 }
 
 function formatDate(dateStr: string) {
@@ -89,7 +68,6 @@ function JournalInner() {
     grateful: '',
     intention: '',
   })
-
   const [evening, setEvening] = useState({
     hitFocus: null as boolean | null,
     hitFocusNotes: '',
@@ -98,7 +76,6 @@ function JournalInner() {
     eveningMindsetRating: 7,
     moodTags: [] as MoodTag[],
   })
-
   const [saving, setSaving] = useState<'morning' | 'evening' | null>(null)
   const [saved, setSaved] = useState<'morning' | 'evening' | null>(null)
 
@@ -115,7 +92,9 @@ function JournalInner() {
     }
   }, [])
 
-  useEffect(() => { fetchEntries() }, [fetchEntries])
+  useEffect(() => {
+    fetchEntries()
+  }, [fetchEntries])
 
   useEffect(() => {
     if (todayEntry) {
@@ -150,11 +129,10 @@ function JournalInner() {
         body: JSON.stringify(payload)
       })
       const data = await res.json()
-      if (data.data && Array.isArray(data.data)) {
-        setEntries(data.data)
-      } else {
-        await fetchEntries()
+      if (!res.ok) {
+        console.error('[journal page] saveMorning API error:', data)
       }
+      await fetchEntries()
       setSaved('morning')
       setTimeout(() => setSaved(null), 2000)
     } catch (err) {
@@ -178,11 +156,10 @@ function JournalInner() {
         body: JSON.stringify(payload)
       })
       const data = await res.json()
-      if (data.data && Array.isArray(data.data)) {
-        setEntries(data.data)
-      } else {
-        await fetchEntries()
+      if (!res.ok) {
+        console.error('[journal page] saveEvening API error:', data)
       }
+      await fetchEntries()
       setSaved('evening')
       setTimeout(() => setSaved(null), 2000)
     } catch (err) {
@@ -201,7 +178,6 @@ function JournalInner() {
     }))
   }
 
-  // Past entries: all except today, sorted newest first, max 30
   const pastEntries = [...entries]
     .filter(e => e.date !== today)
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -278,10 +254,14 @@ function JournalInner() {
               <div className="flex gap-2 mb-2">
                 <button type="button" onClick={() => setEvening(e => ({ ...e, hitFocus: true }))}
                   className="px-4 py-2 rounded text-xs font-mono font-semibold border transition-all"
-                  style={evening.hitFocus === true ? { background: 'rgba(0,255,136,0.15)', borderColor: '#00ff88', color: '#00ff88' } : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>✓ YES</button>
+                  style={evening.hitFocus === true
+                    ? { background: 'rgba(0,255,136,0.15)', borderColor: '#00ff88', color: '#00ff88' }
+                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>✓ YES</button>
                 <button type="button" onClick={() => setEvening(e => ({ ...e, hitFocus: false }))}
                   className="px-4 py-2 rounded text-xs font-mono font-semibold border transition-all"
-                  style={evening.hitFocus === false ? { background: 'rgba(255,45,120,0.1)', borderColor: '#ff2d78', color: '#ff2d78' } : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>✗ NO</button>
+                  style={evening.hitFocus === false
+                    ? { background: 'rgba(255,45,120,0.1)', borderColor: '#ff2d78', color: '#ff2d78' }
+                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>✗ NO</button>
               </div>
               <input value={evening.hitFocusNotes} onChange={e => setEvening(f => ({ ...f, hitFocusNotes: e.target.value }))} className="cyber-input w-full" placeholder="Notes on your focus..." />
             </div>
@@ -299,8 +279,7 @@ function JournalInner() {
                 <span style={{ color: '#c084fc' }}>{evening.eveningMindsetRating}/10</span>
               </label>
               <input type="range" min="1" max="10" value={evening.eveningMindsetRating}
-                onChange={e => setEvening(f => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))}
-                className="w-full" />
+                onChange={e => setEvening(f => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))} className="w-full" />
               <div className="flex justify-between text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
                 <span>Chaotic</span><span>Locked in</span>
               </div>
@@ -325,15 +304,13 @@ function JournalInner() {
           </form>
         </div>
 
-        {/* PAST ENTRIES — prominent section */}
+        {/* PAST ENTRIES */}
         <div className="mb-8">
-          {/* Section header */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-header" style={{ fontSize: '11px', letterSpacing: '4px' }}>
               // PAST ENTRIES · <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>
             </h2>
           </div>
-
           {loading ? (
             <div className="text-xs font-mono text-center py-8" style={{ color: 'var(--text-muted)' }}>Loading entries...</div>
           ) : pastEntries.length === 0 ? (
@@ -349,70 +326,41 @@ function JournalInner() {
                 const primaryMood = getPrimaryMood(entry)
                 const borderColor = primaryMood ? MOOD_BORDER[primaryMood] : 'rgba(0,242,255,0.15)'
                 const isExpanded = expandedId === entry.id
-
                 return (
-                  <div
-                    key={entry.id}
-                    className="premium-card overflow-hidden"
-                    style={{ borderLeft: `3px solid ${borderColor}` }}
-                  >
-                    {/* Collapsed row */}
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : entry.id)}
-                      className="w-full p-4 flex items-center gap-3 hover:bg-white/[0.02] transition-colors text-left"
-                    >
-                      {/* Date */}
+                  <div key={entry.id} className="premium-card overflow-hidden" style={{ borderLeft: `3px solid ${borderColor}` }}>
+                    <button onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                      className="w-full p-4 flex items-center gap-3 hover:bg-white/[0.02] transition-colors text-left">
                       <div style={{ minWidth: '150px' }}>
                         <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-secondary)' }}>
                           {formatDate(entry.date)}
                         </span>
                       </div>
-
-                      {/* Morning mindset pill */}
                       {entry.tradingMindset ? (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0" style={{
-                          color: MINDSET_COLORS[entry.tradingMindset],
-                          borderColor: MINDSET_COLORS[entry.tradingMindset] + '55',
-                          background: MINDSET_COLORS[entry.tradingMindset] + '11',
-                        }}>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0"
+                          style={{ color: MINDSET_COLORS[entry.tradingMindset], borderColor: MINDSET_COLORS[entry.tradingMindset] + '55', background: MINDSET_COLORS[entry.tradingMindset] + '11' }}>
                           {entry.tradingMindset}
                         </span>
                       ) : <span style={{ minWidth: '60px' }} />}
-
-                      {/* Evening mood pill */}
                       {primaryMood ? (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0" style={{
-                          color: MOOD_COLORS[primaryMood],
-                          borderColor: MOOD_COLORS[primaryMood] + '55',
-                          background: MOOD_COLORS[primaryMood] + '11',
-                        }}>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0"
+                          style={{ color: MOOD_COLORS[primaryMood], borderColor: MOOD_COLORS[primaryMood] + '55', background: MOOD_COLORS[primaryMood] + '11' }}>
                           {primaryMood}
                         </span>
                       ) : <span style={{ minWidth: '50px' }} />}
-
-                      {/* #1 focus truncated */}
                       <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-muted)', minWidth: 0 }}>
                         {entry.morningFocus
                           ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '…' : '')
                           : entry.intention
-                          ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '…' : '')
-                          : <span style={{ opacity: 0.4 }}>No focus logged</span>}
+                            ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '…' : '')
+                            : <span style={{ opacity: 0.4 }}>No focus logged</span>}
                       </span>
-
-                      {/* Evening rating */}
                       {entry.eveningMindsetRating != null && (
                         <span className="text-xs font-mono flex-shrink-0" style={{ color: '#c084fc' }}>
                           {entry.eveningMindsetRating}/10
                         </span>
                       )}
-
-                      {/* Expand chevron */}
-                      {isExpanded
-                        ? <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                        : <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
+                      {isExpanded ? <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
                     </button>
-
-                    {/* Expanded full entry */}
                     {isExpanded && (
                       <div className="px-4 pb-5 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -425,11 +373,10 @@ function JournalInner() {
                           {entry.tradingMindset && (
                             <div>
                               <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 MORNING MINDSET</p>
-                              <span className="text-xs font-mono px-2 py-0.5 rounded-full border" style={{
-                                color: MINDSET_COLORS[entry.tradingMindset],
-                                borderColor: MINDSET_COLORS[entry.tradingMindset] + '55',
-                                background: MINDSET_COLORS[entry.tradingMindset] + '11',
-                              }}>{entry.tradingMindset}</span>
+                              <span className="text-xs font-mono px-2 py-0.5 rounded-full border"
+                                style={{ color: MINDSET_COLORS[entry.tradingMindset], borderColor: MINDSET_COLORS[entry.tradingMindset] + '55', background: MINDSET_COLORS[entry.tradingMindset] + '11' }}>
+                                {entry.tradingMindset}
+                              </span>
                             </div>
                           )}
                           {entry.grateful && (
@@ -448,8 +395,7 @@ function JournalInner() {
                             <div>
                               <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✅ HIT FOCUS?</p>
                               <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
-                                {entry.hitFocus ? 'YES' : 'NO'}
-                                {entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
+                                {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
                               </p>
                             </div>
                           )}
@@ -476,11 +422,8 @@ function JournalInner() {
                               <p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>🏷️ MOOD TAGS</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {entry.moodTags.map(tag => (
-                                  <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded-full border" style={{
-                                    color: MOOD_COLORS[tag],
-                                    borderColor: MOOD_COLORS[tag] + '66',
-                                    background: MOOD_COLORS[tag] + '11'
-                                  }}>{tag}</span>
+                                  <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded-full border"
+                                    style={{ color: MOOD_COLORS[tag], borderColor: MOOD_COLORS[tag] + '66', background: MOOD_COLORS[tag] + '11' }}>{tag}</span>
                                 ))}
                               </div>
                             </div>
@@ -495,7 +438,6 @@ function JournalInner() {
           )}
         </div>
       </div>
-
       <LifeHubChat
         section="journal"
         apiRoute="/api/life/journal/chat"
