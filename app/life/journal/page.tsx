@@ -83,8 +83,10 @@ function JournalInner() {
     try {
       const res = await fetch('/api/life/journal')
       const d = await res.json()
-      const fetched: JournalEntry[] = Array.isArray(d.data) ? d.data : []
-      setEntries(fetched)
+      console.log('fetchEntries response:', JSON.stringify(d))
+      if (d.data && Array.isArray(d.data)) {
+        setEntries(d.data)
+      }
     } catch (err) {
       console.error('[journal page] fetchEntries error:', err)
     } finally {
@@ -128,17 +130,15 @@ function JournalInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      const data = await res.json()
-      if (!res.ok) {
-        console.error('[journal page] saveMorning API error:', data)
-      }
-      if (Array.isArray(data.data)) {
-        setEntries(data.data)
+      const responseData = await res.json()
+      console.log('save response:', JSON.stringify(responseData))
+      if (responseData.success && responseData.data) {
+        setEntries(responseData.data)
       } else {
         await fetchEntries()
       }
       setSaved('morning')
-      setTimeout(() => setSaved(null), 2000)
+      setTimeout(() => setSaved(null), 3000)
     } catch (err) {
       console.error('[journal page] saveMorning error:', err)
     } finally {
@@ -159,17 +159,15 @@ function JournalInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      const data = await res.json()
-      if (!res.ok) {
-        console.error('[journal page] saveEvening API error:', data)
-      }
-      if (Array.isArray(data.data)) {
-        setEntries(data.data)
+      const responseData = await res.json()
+      console.log('save response:', JSON.stringify(responseData))
+      if (responseData.success && responseData.data) {
+        setEntries(responseData.data)
       } else {
         await fetchEntries()
       }
       setSaved('evening')
-      setTimeout(() => setSaved(null), 2000)
+      setTimeout(() => setSaved(null), 3000)
     } catch (err) {
       console.error('[journal page] saveEvening error:', err)
     } finally {
@@ -196,7 +194,7 @@ function JournalInner() {
       <div className="max-w-[900px] mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
+            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>â LIFE HUB</Link>
             <span className="section-header">JOURNAL</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Daily Journal</h1>
           </div>
@@ -207,19 +205,19 @@ function JournalInner() {
         <div className="premium-card p-5 mb-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span style={{ fontSize: '1.1rem' }}>🌅</span>
+              <span style={{ fontSize: '1.1rem' }}>ð</span>
               <h2 className="text-sm font-mono font-semibold" style={{ color: '#ffb400' }}>MORNING ENTRY</h2>
               <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{today}</span>
             </div>
-            {saved === 'morning' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>✓ SAVED</span>}
+            {saved === 'morning' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>â SAVED</span>}
           </div>
           <form onSubmit={saveMorning} className="space-y-4">
             <div>
-              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>🎯 What is my #1 focus today?</label>
+              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>ð¯ What is my #1 focus today?</label>
               <input value={morning.morningFocus} onChange={e => setMorning(m => ({ ...m, morningFocus: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Execute 3 clean ES scalps" />
             </div>
             <div>
-              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>📊 My trading mindset going in is...</label>
+              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>ð My trading mindset going in is...</label>
               <div className="flex flex-wrap gap-2">
                 {MINDSET_OPTIONS.map(m => (
                   <button key={m} type="button" onClick={() => setMorning(f => ({ ...f, tradingMindset: m }))}
@@ -233,11 +231,11 @@ function JournalInner() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>🙏 One thing I am grateful for today...</label>
+              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>ð One thing I am grateful for today...</label>
               <input value={morning.grateful} onChange={e => setMorning(m => ({ ...m, grateful: e.target.value }))} className="cyber-input w-full" placeholder="e.g. My health, my edge, my discipline" />
             </div>
             <div>
-              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>✨ My intention for today is...</label>
+              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>â¨ My intention for today is...</label>
               <input value={morning.intention} onChange={e => setMorning(m => ({ ...m, intention: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Stay patient. Only A+ setups." />
             </div>
             <button type="submit" disabled={saving === 'morning'} className="btn-cyber-primary w-full" style={{ opacity: saving === 'morning' ? 0.6 : 1 }}>
@@ -250,40 +248,40 @@ function JournalInner() {
         <div className="premium-card p-5 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span style={{ fontSize: '1.1rem' }}>🌙</span>
+              <span style={{ fontSize: '1.1rem' }}>ð</span>
               <h2 className="text-sm font-mono font-semibold" style={{ color: '#c084fc' }}>EVENING ENTRY</h2>
               <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{today}</span>
             </div>
-            {saved === 'evening' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>✓ SAVED</span>}
+            {saved === 'evening' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>â SAVED</span>}
           </div>
           <form onSubmit={saveEvening} className="space-y-4">
             <div>
-              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>🎯 Did I hit my #1 focus?</label>
+              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>ð¯ Did I hit my #1 focus?</label>
               <div className="flex gap-2 mb-2">
                 <button type="button" onClick={() => setEvening(e => ({ ...e, hitFocus: true }))}
                   className="px-4 py-2 rounded text-xs font-mono font-semibold border transition-all"
                   style={evening.hitFocus === true
                     ? { background: 'rgba(0,255,136,0.15)', borderColor: '#00ff88', color: '#00ff88' }
-                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>✓ YES</button>
+                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>â YES</button>
                 <button type="button" onClick={() => setEvening(e => ({ ...e, hitFocus: false }))}
                   className="px-4 py-2 rounded text-xs font-mono font-semibold border transition-all"
                   style={evening.hitFocus === false
                     ? { background: 'rgba(255,45,120,0.1)', borderColor: '#ff2d78', color: '#ff2d78' }
-                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>✗ NO</button>
+                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>â NO</button>
               </div>
               <input value={evening.hitFocusNotes} onChange={e => setEvening(f => ({ ...f, hitFocusNotes: e.target.value }))} className="cyber-input w-full" placeholder="Notes on your focus..." />
             </div>
             <div>
-              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>⭐ Best moment of today...</label>
+              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>â­ Best moment of today...</label>
               <input value={evening.bestMoment} onChange={e => setEvening(f => ({ ...f, bestMoment: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Caught a perfect ES reversal" />
             </div>
             <div>
-              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>🔄 What would I do differently?</label>
+              <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>ð What would I do differently?</label>
               <input value={evening.doDifferently} onChange={e => setEvening(f => ({ ...f, doDifferently: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Took 2 revenge trades after the loss" />
             </div>
             <div>
               <label className="text-xs font-mono mb-1.5 flex items-center justify-between" style={{ color: 'var(--text-muted)' }}>
-                <span>📊 How was my trading mindset today?</span>
+                <span>ð How was my trading mindset today?</span>
                 <span style={{ color: '#c084fc' }}>{evening.eveningMindsetRating}/10</span>
               </label>
               <input type="range" min="1" max="10" value={evening.eveningMindsetRating}
@@ -293,7 +291,7 @@ function JournalInner() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>🏷️ Mood tags</label>
+              <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>ð·ï¸ Mood tags</label>
               <div className="flex flex-wrap gap-2">
                 {MOOD_TAGS.map(tag => (
                   <button key={tag} type="button" onClick={() => toggleMoodTag(tag)}
@@ -316,7 +314,7 @@ function JournalInner() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-header" style={{ fontSize: '11px', letterSpacing: '4px' }}>
-              // PAST ENTRIES · <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>
+              // PAST ENTRIES Â· <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>
             </h2>
           </div>
           {loading ? (
@@ -357,9 +355,9 @@ function JournalInner() {
                       ) : <span style={{ minWidth: '50px' }} />}
                       <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-muted)', minWidth: 0 }}>
                         {entry.morningFocus
-                          ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '…' : '')
+                          ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? 'â¦' : '')
                           : entry.intention
-                            ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '…' : '')
+                            ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? 'â¦' : '')
                             : <span style={{ opacity: 0.4 }}>No focus logged</span>}
                       </span>
                       {entry.eveningMindsetRating != null && (
@@ -374,13 +372,13 @@ function JournalInner() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                           {entry.morningFocus && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🎯 #1 FOCUS</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>ð¯ #1 FOCUS</p>
                               <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p>
                             </div>
                           )}
                           {entry.tradingMindset && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 MORNING MINDSET</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>ð MORNING MINDSET</p>
                               <span className="text-xs font-mono px-2 py-0.5 rounded-full border"
                                 style={{ color: MINDSET_COLORS[entry.tradingMindset], borderColor: MINDSET_COLORS[entry.tradingMindset] + '55', background: MINDSET_COLORS[entry.tradingMindset] + '11' }}>
                                 {entry.tradingMindset}
@@ -389,45 +387,45 @@ function JournalInner() {
                           )}
                           {entry.grateful && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🙏 GRATEFUL FOR</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>ð GRATEFUL FOR</p>
                               <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p>
                             </div>
                           )}
                           {entry.intention && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✨ INTENTION</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>â¨ INTENTION</p>
                               <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p>
                             </div>
                           )}
                           {entry.hitFocus !== undefined && entry.hitFocus !== null && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>✅ HIT FOCUS?</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>â HIT FOCUS?</p>
                               <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
-                                {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
+                                {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' â ' + entry.hitFocusNotes : ''}
                               </p>
                             </div>
                           )}
                           {entry.bestMoment && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>⭐ BEST MOMENT</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>â­ BEST MOMENT</p>
                               <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p>
                             </div>
                           )}
                           {entry.doDifferently && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>🔄 DO DIFFERENTLY</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>ð DO DIFFERENTLY</p>
                               <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p>
                             </div>
                           )}
                           {entry.eveningMindsetRating != null && (
                             <div>
-                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>📊 EVENING MINDSET RATING</p>
+                              <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>ð EVENING MINDSET RATING</p>
                               <p className="text-sm font-mono" style={{ color: '#c084fc' }}>{entry.eveningMindsetRating}/10</p>
                             </div>
                           )}
                           {entry.moodTags && entry.moodTags.length > 0 && (
                             <div>
-                              <p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>🏷️ MOOD TAGS</p>
+                              <p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>ð·ï¸ MOOD TAGS</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {entry.moodTags.map(tag => (
                                   <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded-full border"
