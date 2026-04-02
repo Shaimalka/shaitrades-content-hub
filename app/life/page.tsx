@@ -145,6 +145,7 @@ export default function LifeHubPage() {
     weekScore: 'N/A',
     incomeMonth: '$0',
   })
+  const [journalTodaySaved, setJournalTodaySaved] = useState(false)
 
   useEffect(() => {
     async function loadStats() {
@@ -158,7 +159,9 @@ export default function LifeHubPage() {
           fetch('/api/life/finance').then(r => r.json()),
           fetch('/api/life/review').then(r => r.json()),
         ])
+
         const [tradingRes, goalsRes, habitsRes, healthRes, journalRes, financeRes, reviewRes] = results
+
         const trading = tradingRes.status === 'fulfilled' ? tradingRes.value : {}
         const goals = goalsRes.status === 'fulfilled' ? goalsRes.value : {}
         const habits = habitsRes.status === 'fulfilled' ? habitsRes.value : {}
@@ -170,28 +173,42 @@ export default function LifeHubPage() {
         const tradingLogs = trading.logs || []
         const today = new Date().toISOString().split('T')[0]
         const todayTrades = tradingLogs.filter((t: any) => t.date === today).length
+
         const goalsList = goals.goals || []
         const activeGoals = goalsList.length
+
         const habitsList = habits.habits || []
         const completions = habits.completions || {}
         const todayCompletions = habitsList.filter((h: any) => completions[today]?.[h.id]).length
+
         const healthLogs = health.logs || []
         const lastHealth = healthLogs[healthLogs.length - 1]
-        const healthStatus = lastHealth ? `Last: ${new Date(lastHealth.date).toLocaleDateString()}` : 'No entries yet'
-        const journalEntries = journal.entries || []
-        const lastJournal = journalEntries[journalEntries.length - 1]
-        const journalStatus = lastJournal ? `Last: ${new Date(lastJournal.date).toLocaleDateString()}` : 'No entries yet'
+        const healthStatus = lastHealth ? "Last: " + new Date(lastHealth.date).toLocaleDateString() : 'No entries yet'
+
+        // Fix: journal API returns { data: [] } not { entries: [] }
+        const journalEntries: any[] = Array.isArray(journal.data) ? journal.data : (Array.isArray(journal.entries) ? journal.entries : [])
+        const todayJournalEntry = journalEntries.find((e: any) => e.date === today)
+        const hasTodayJournal = !!todayJournalEntry
+        setJournalTodaySaved(hasTodayJournal)
+        const journalStatus = hasTodayJournal
+          ? "Today's entry saved"
+          : journalEntries.length > 0
+            ? "Last: " + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
+            : 'No entries yet'
+
         const incomeEntries = finance.income || []
         const currentMonth = new Date().toISOString().slice(0, 7)
         const monthlyIncome = incomeEntries
           .filter((e: any) => e.date?.startsWith(currentMonth))
           .reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
+
         const weekStart = new Date()
         weekStart.setDate(weekStart.getDate() - weekStart.getDay())
         const weekStartStr = weekStart.toISOString().split('T')[0]
         const weekPnl = tradingLogs
           .filter((t: any) => t.date >= weekStartStr)
           .reduce((sum: number, t: any) => sum + (t.pnl || 0), 0)
+
         let maxStreak = 0
         if (habitsList.length > 0) {
           let streak = 0
@@ -203,23 +220,24 @@ export default function LifeHubPage() {
             d.setDate(d.getDate() - 1)
           }
         }
+
         const reviews = review.reviews || []
         const latestReview = reviews[reviews.length - 1]
         const weekScore = latestReview?.score ?? null
 
         setStats({
-          trading: todayTrades > 0 ? `${todayTrades} trade${todayTrades !== 1 ? 's' : ''} today` : tradingLogs.length > 0 ? `${tradingLogs.length} total trades` : 'No trades logged',
-          goals: activeGoals > 0 ? `${activeGoals} active goal${activeGoals !== 1 ? 's' : ''}` : 'No goals set',
-          habits: habitsList.length > 0 ? `${todayCompletions}/${habitsList.length} habits done today` : 'No habits created',
+          trading: todayTrades > 0 ? todayTrades + " trade" + (todayTrades !== 1 ? 's' : '') + " today" : tradingLogs.length > 0 ? tradingLogs.length + " total trades" : 'No trades logged',
+          goals: activeGoals > 0 ? activeGoals + " active goal" + (activeGoals !== 1 ? 's' : '') : 'No goals set',
+          habits: habitsList.length > 0 ? todayCompletions + "/" + habitsList.length + " habits done today" : 'No habits created',
           health: healthStatus,
           journal: journalStatus,
-          finance: monthlyIncome > 0 ? `$${monthlyIncome.toLocaleString()} income this month` : 'No entries yet',
+          finance: monthlyIncome > 0 ? "$" + monthlyIncome.toLocaleString() + " income this month" : 'No entries yet',
         })
         setMetrics({
-          pnlWeek: weekPnl !== 0 ? `${weekPnl >= 0 ? '+' : ''}$${Math.abs(weekPnl).toLocaleString()}` : '$0',
-          habitStreak: maxStreak > 0 ? `${maxStreak}d` : '0d',
-          weekScore: weekScore !== null ? `${weekScore}/10` : 'N/A',
-          incomeMonth: monthlyIncome > 0 ? `$${monthlyIncome.toLocaleString()}` : '$0',
+          pnlWeek: weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + "$" + Math.abs(weekPnl).toLocaleString() : '$0',
+          habitStreak: maxStreak > 0 ? maxStreak + "d" : '0d',
+          weekScore: weekScore !== null ? weekScore + "/10" : 'N/A',
+          incomeMonth: monthlyIncome > 0 ? "$" + monthlyIncome.toLocaleString() : '$0',
         })
       } catch {
         // keep defaults
@@ -238,32 +256,17 @@ export default function LifeHubPage() {
   return (
     <div className="cyber-bg-grid min-h-screen" style={{ padding: '40px 48px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-
         {/* Header */}
         <div style={{ marginBottom: '40px' }}>
           <div className="section-header">// LIFE HUB</div>
-          <h1 style={{
-            fontFamily: 'Georgia, serif',
-            fontSize: '32px',
-            fontWeight: 700,
-            color: '#ffffff',
-            letterSpacing: '-0.02em',
-            margin: '0 0 8px',
-          }}>Personal Command Center</h1>
-          <p style={{
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '10px',
-            color: 'rgba(0,242,255,0.6)',
-            letterSpacing: '4px',
-            textTransform: 'uppercase',
-            margin: 0,
-          }}>TRACK EVERYTHING · MISS NOTHING · EVOLVE DAILY</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', margin: '0 0 8px' }}>Personal Command Center</h1>
+          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(0,242,255,0.6)', letterSpacing: '4px', textTransform: 'uppercase', margin: 0 }}>TRACK EVERYTHING · MISS NOTHING · EVOLVE DAILY</p>
         </div>
 
         {/* Live Metrics Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '32px' }}>
           {liveMetrics.map((m) => (
-            <div key={m.label} className="stat-card-premium accent-cyan" style={{ borderTop: `2px solid ${m.borderColor}` }}>
+            <div key={m.label} className="stat-card-premium accent-cyan" style={{ borderTop: "2px solid " + m.borderColor }}>
               <div className="stat-label">{m.label}</div>
               <div className="stat-value" style={{ color: m.color }}>{m.value}</div>
               <div className="stat-hint">LIVE · REDIS</div>
@@ -279,22 +282,20 @@ export default function LifeHubPage() {
           {sections.map((section) => {
             const Icon = section.icon
             const statusText = stats[section.statusKey as keyof SectionStats]
+            const isJournal = section.key === 'journal'
+            const badgeLabel = isJournal ? (journalTodaySaved ? 'ENTRY SAVED' : 'NO ENTRY') : section.statusBadge
+            const badgeColor = isJournal && journalTodaySaved ? '#00ff88' : section.badgeColor
+            const badgeBg = isJournal && journalTodaySaved ? 'rgba(0,255,136,0.08)' : section.badgeBg
+            const badgeBorder = isJournal && journalTodaySaved ? 'rgba(0,255,136,0.2)' : section.badgeBorder
             return (
               <div key={section.key} className="premium-card" style={{ minHeight: '210px' }}>
                 {/* Colored top line */}
                 <div style={{ height: '1px', background: section.topGradient, position: 'relative', zIndex: 1 }} />
-
                 <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', height: 'calc(100% - 1px)' }}>
                   {/* Top row */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '36px', height: '36px',
-                        borderRadius: '8px',
-                        background: section.iconBg,
-                        border: `1px solid ${section.iconBorder}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                      }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: section.iconBg, border: "1px solid " + section.iconBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Icon size={16} color={section.accentColor} />
                       </div>
                       <div>
@@ -305,51 +306,27 @@ export default function LifeHubPage() {
                     {/* Status badge */}
                     <span style={{
                       fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '8px', letterSpacing: '1px',
-                      padding: '3px 7px', borderRadius: '4px',
-                      background: section.badgeBg,
-                      border: `1px solid ${section.badgeBorder}`,
-                      color: section.badgeColor,
-                      flexShrink: 0, whiteSpace: 'nowrap',
-                    }}>{section.statusBadge}</span>
+                      fontSize: '8px',
+                      letterSpacing: '1px',
+                      padding: '3px 7px',
+                      borderRadius: '4px',
+                      background: badgeBg,
+                      border: "1px solid " + badgeBorder,
+                      color: badgeColor,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                    }}>{badgeLabel}</span>
                   </div>
-
                   {/* Status text */}
-                  <p style={{
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '11px',
-                    color: 'rgba(255,255,255,0.25)',
-                    margin: 0, flex: 1,
-                  }}>{statusText}</p>
-
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'rgba(255,255,255,0.25)', margin: 0, flex: 1 }}>{statusText}</p>
                   {/* Divider */}
                   <div style={{ height: '1px', background: '#1a1a28' }} />
-
                   {/* Bottom row */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Link href={section.href} style={{
-                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      padding: '7px 12px', borderRadius: '6px',
-                      background: section.btnBg,
-                      border: `1px solid ${section.btnBorder}`,
-                      color: section.accentColor,
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '9px', letterSpacing: '2px',
-                      textDecoration: 'none', fontWeight: 600,
-                      transition: 'all 0.2s',
-                    }}>
+                    <Link href={section.href} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '7px 12px', borderRadius: '6px', background: section.btnBg, border: "1px solid " + section.btnBorder, color: section.accentColor, fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', letterSpacing: '2px', textDecoration: 'none', fontWeight: 600, transition: 'all 0.2s' }}>
                       OPEN →
                     </Link>
-                    <Link href={`${section.href}?chat=1`} title="Open AI Chat" style={{
-                      width: '32px', height: '32px', borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(255,0,229,0.05)',
-                      border: '1px solid rgba(255,0,229,0.2)',
-                      color: 'rgba(255,0,229,0.5)',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '8px', fontWeight: 700,
-                      textDecoration: 'none', flexShrink: 0,
-                    }}>AI</Link>
+                    <Link href={section.href + "?chat=1"} title="Open AI Chat" style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,0,229,0.05)', border: '1px solid rgba(255,0,229,0.2)', color: 'rgba(255,0,229,0.5)', fontFamily: 'JetBrains Mono, monospace', fontSize: '8px', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>AI</Link>
                   </div>
                 </div>
               </div>
@@ -358,12 +335,7 @@ export default function LifeHubPage() {
         </div>
 
         {/* Footer */}
-        <p style={{
-          marginTop: '48px', textAlign: 'center',
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '9px', letterSpacing: '2px',
-          color: 'rgba(255,255,255,0.1)',
-        }}>{'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE SONNET'}</p>
+        <p style={{ marginTop: '48px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', letterSpacing: '2px', color: 'rgba(255,255,255,0.1)' }}>{'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE SONNET'}</p>
       </div>
     </div>
   )
