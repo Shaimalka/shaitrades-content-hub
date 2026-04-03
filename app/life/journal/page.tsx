@@ -186,7 +186,6 @@ function JournalInner() {
   }
 
   const pastEntries = [...entries]
-    .filter(e => e.date !== today)
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 30)
 
@@ -391,7 +390,7 @@ function JournalInner() {
                             <div>
                               <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#9989; HIT FOCUS?</p>
                               <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
-                                {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
+                                {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' â ' + entry.hitFocusNotes : ''}
                               </p>
                             </div>
                           )}
