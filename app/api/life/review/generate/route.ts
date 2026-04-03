@@ -1,3 +1,4 @@
+// Weekly Review Generate Route — prose letter format (Feature 3)
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
