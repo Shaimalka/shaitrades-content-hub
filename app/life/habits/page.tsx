@@ -185,11 +185,61 @@ function HabitsInner() {
   const todayHabits = habits
   const todayCompleted = todayHabits.filter(h => completions[today]?.[h.id]).length
 
+  // Daily Habit Score — derived from existing state, no new fetch needed
+  const dailyScore = habits.length === 0
+    ? null
+    : Math.round((todayCompleted / habits.length) * 100)
+
+  const scoreColor = dailyScore === null
+    ? '#888888'
+    : dailyScore >= 80
+      ? '#00ff88'
+      : dailyScore >= 50
+        ? '#00f2ff'
+        : '#ff00e5'
+
   const stackHabits = (stack: Stack) => habits.filter(h => (h.stack || 'Morning') === stack)
 
   return (
     <div className="cyber-bg-grid min-h-screen">
       <div className="max-w-[1100px] mx-auto p-6">
+
+        {/* Daily Habit Score */}
+        <div
+          className="mb-6 flex flex-col items-center justify-center"
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(0,242,255,0.2)',
+            borderRadius: '16px',
+            padding: '32px',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', 'Fira Mono', monospace",
+              fontSize: '72px',
+              fontWeight: 700,
+              color: scoreColor,
+              lineHeight: 1,
+              letterSpacing: '-2px',
+            }}
+          >
+            {dailyScore === null ? '--' : `${dailyScore}%`}
+          </span>
+          <span
+            style={{
+              marginTop: '12px',
+              fontSize: '11px',
+              fontVariant: 'small-caps',
+              letterSpacing: '0.2em',
+              color: 'var(--text-muted)',
+              fontFamily: "'JetBrains Mono', 'Fira Mono', monospace",
+              textTransform: 'uppercase',
+            }}
+          >
+            Today&apos;s Habit Score
+          </span>
+        </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
