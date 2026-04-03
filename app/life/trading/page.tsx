@@ -1,6 +1,6 @@
 // v3 - Tradovate integration added
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
@@ -14,7 +14,66 @@ type Trade = {
   source?: string; accountName?: string; symbol?: string
 }
 
+type CoachInsight = {
+  text: string
+  visible: boolean
+  fading: boolean
+}
+
 const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
+
+function CoachShaiCard({ insight }: { insight: CoachInsight }) {
+  const [progress, setProgress] = useState(100)
+
+  useEffect(() => {
+    if (!insight.visible) return
+    setProgress(100)
+    const start = Date.now()
+    const duration = 15000
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100)
+      setProgress(remaining)
+      if (elapsed >= duration) clearInterval(interval)
+    }, 50)
+    return () => clearInterval(interval)
+  }, [insight.text, insight.visible])
+
+  if (!insight.visible) return null
+
+  return (
+    <div
+      style={{
+        background: 'rgba(0, 242, 255, 0.05)',
+        border: '1px solid #00f2ff',
+        borderRadius: 8,
+        padding: '14px 16px 0 16px',
+        marginBottom: 16,
+        opacity: insight.fading ? 0 : 1,
+        transition: 'opacity 2s ease',
+        overflow: 'hidden',
+      }}
+    >
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#00f2ff', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 600 }}>
+        ⚡ COACH SHAI
+      </p>
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, color: 'var(--text-secondary, #ccc)', lineHeight: 1.6, marginBottom: 12 }}>
+        {insight.text}
+      </p>
+      <div style={{ height: 2, background: 'rgba(0,242,255,0.15)', borderRadius: 1, marginBottom: 0 }}>
+        <div
+          style={{
+            height: '100%',
+            width: `${progress}%`,
+            background: '#00f2ff',
+            borderRadius: 1,
+            transition: 'width 0.1s linear',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
 
 function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) {
   const [status, setStatus] = useState<{ connected: boolean; lastSync: string | null } | null>(null)
@@ -47,13 +106,9 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   }
 
   if (!status) return null
-
   if (!status.connected) {
     return (
-      <div className="flex items-center gap-2 mb-5 px-4 py-2.5 rounded-lg text-xs" style={{
-        background: 'rgba(255,180,0,0.06)',
-        border: '1px solid rgba(255,180,0,0.2)',
-      }}>
+      <div className="flex items-center gap-2 mb-5 px-4 py-2.5 rounded-lg text-xs" style={{ background: 'rgba(255,180,0,0.06)', border: '1px solid rgba(255,180,0,0.2)', }}>
         <XCircle size={13} style={{ color: '#ffb400', flexShrink: 0 }} />
         <span className="font-mono" style={{ color: '#ffb400' }}>Tradovate not connected</span>
         <Link href="/life/trading/settings" className="ml-auto font-mono hover:underline" style={{ color: '#00f2ff' }}>
@@ -64,10 +119,7 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   }
 
   return (
-    <div className="flex items-center gap-3 mb-5 px-4 py-2.5 rounded-lg text-xs" style={{
-      background: 'rgba(0,255,136,0.06)',
-      border: '1px solid rgba(0,255,136,0.2)',
-    }}>
+    <div className="flex items-center gap-3 mb-5 px-4 py-2.5 rounded-lg text-xs" style={{ background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.2)', }}>
       <CheckCircle size={13} style={{ color: '#00ff88', flexShrink: 0 }} />
       <span className="font-mono" style={{ color: '#00ff88' }}>Tradovate Connected</span>
       {status.lastSync && (
@@ -77,12 +129,7 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
       )}
       {syncMsg && <span className="font-mono" style={{ color: syncMsg.startsWith('✓') ? '#00ff88' : '#ff00e5' }}>{syncMsg}</span>}
       <div className="flex items-center gap-2 ml-auto">
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs disabled:opacity-50 transition-all"
-          style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.3)', color: '#00f2ff' }}
-        >
+        <button onClick={handleSync} disabled={syncing} className="flex items-center gap-1.5 px-3 py-1 rounded font-mono text-xs disabled:opacity-50 transition-all" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.3)', color: '#00f2ff' }} >
           {syncing ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
           {syncing ? 'Syncing…' : 'Sync Now'}
         </button>
@@ -100,11 +147,19 @@ function TradingJournalInner() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [chatOpen] = useState(searchParams.get('chat') === '1')
+  const [coachInsight, setCoachInsight] = useState<CoachInsight>({ text: '', visible: false, fading: false })
+  const insightTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const fadeTimerRef = useRef<NodeJS.Timeout | null>(null)
+
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
     direction: 'Long' as 'Long' | 'Short',
-    entryPrice: '', exitPrice: '', contracts: '', notes: '', emotion: 3,
+    entryPrice: '',
+    exitPrice: '',
+    contracts: '',
+    notes: '',
+    emotion: 3,
   })
 
   function loadTrades() {
@@ -113,20 +168,105 @@ function TradingJournalInner() {
     }).catch(() => setLoading(false))
   }
 
-  useEffect(() => { loadTrades() }, [])
+  useEffect(() => {
+    loadTrades()
+  }, [])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (insightTimerRef.current) clearTimeout(insightTimerRef.current)
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+    }
+  }, [])
+
+  async function triggerCoachInsight(trade: Trade) {
+    // Clear any existing timers
+    if (insightTimerRef.current) clearTimeout(insightTimerRef.current)
+    if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+
+    // Show loading state immediately
+    setCoachInsight({ text: 'Coach Shai is watching...', visible: true, fading: false })
+
+    try {
+      const res = await fetch('/api/life/trading/coach-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trade }),
+      })
+      const data = await res.json()
+      const insightText = data.insight || 'Keep grinding. Every trade is data.'
+
+      // Update with actual insight
+      setCoachInsight({ text: insightText, visible: true, fading: false })
+
+      // Start fade at 13s mark
+      fadeTimerRef.current = setTimeout(() => {
+        setCoachInsight(prev => ({ ...prev, fading: true }))
+      }, 13000)
+
+      // Remove at 15s mark
+      insightTimerRef.current = setTimeout(() => {
+        setCoachInsight({ text: '', visible: false, fading: false })
+      }, 15000)
+    } catch {
+      setCoachInsight({ text: 'Stay sharp. Log the next one.', visible: true, fading: false })
+      fadeTimerRef.current = setTimeout(() => {
+        setCoachInsight(prev => ({ ...prev, fading: true }))
+      }, 13000)
+      insightTimerRef.current = setTimeout(() => {
+        setCoachInsight({ text: '', visible: false, fading: false })
+      }, 15000)
+    }
+  }
 
   async function submitTrade(e: React.FormEvent) {
     e.preventDefault()
-    const entry = { date: form.date, time: form.time, direction: form.direction, entryPrice: parseFloat(form.entryPrice), exitPrice: parseFloat(form.exitPrice), contracts: parseFloat(form.contracts), notes: form.notes, emotion: form.emotion }
-    const res = await fetch('/api/life/trading', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry }) })
+    const entry = {
+      date: form.date,
+      time: form.time,
+      direction: form.direction,
+      entryPrice: parseFloat(form.entryPrice),
+      exitPrice: parseFloat(form.exitPrice),
+      contracts: parseFloat(form.contracts),
+      notes: form.notes,
+      emotion: form.emotion
+    }
+    const res = await fetch('/api/life/trading', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry })
+    })
     const data = await res.json()
-    setTrades(data.logs || [])
+    const savedLogs: Trade[] = data.logs || []
+    setTrades(savedLogs)
     setShowForm(false)
-    setForm({ date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().slice(0, 5), direction: 'Long', entryPrice: '', exitPrice: '', contracts: '', notes: '', emotion: 3 })
+    setForm({
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toTimeString().slice(0, 5),
+      direction: 'Long',
+      entryPrice: '',
+      exitPrice: '',
+      contracts: '',
+      notes: '',
+      emotion: 3
+    })
+
+    // Trigger Coach Shai insight non-blocking after trade save
+    if (res.ok) {
+      const savedTrade = savedLogs[savedLogs.length - 1]
+      if (savedTrade) {
+        triggerCoachInsight(savedTrade)
+      }
+    }
   }
 
   async function deleteTrade(id: string) {
-    const res = await fetch('/api/life/trading', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', entry: { id } }) })
+    const res = await fetch('/api/life/trading', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', entry: { id } })
+    })
     const data = await res.json()
     setTrades(data.logs || [])
   }
@@ -211,6 +351,9 @@ function TradingJournalInner() {
           </div>
         )}
 
+        {/* Coach Shai Insight Card */}
+        <CoachShaiCard insight={coachInsight} />
+
         {chartData.length > 0 && (
           <div className="chart-container mb-6">
             <h3 className="section-header mb-4">MONTHLY P&L</h3>
@@ -227,9 +370,7 @@ function TradingJournalInner() {
 
         <div className="premium-card overflow-hidden">
           <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}><h3 className="section-header">TRADE LOG · {trades.length} ENTRIES</h3></div>
-          {loading ? <div className="p-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
-          : trades.length === 0 ? <div className="p-8 text-center"><p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>No trades logged yet.</p><button onClick={() => setShowForm(true)} className="btn-cyber-primary mt-3">Log Your First Trade</button></div>
-          : (
+          {loading ? <div className="p-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div> : trades.length === 0 ? <div className="p-8 text-center"><p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>No trades logged yet.</p><button onClick={() => setShowForm(true)} className="btn-cyber-primary mt-3">Log Your First Trade</button></div> : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead><tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>{['DATE', 'TIME', 'DIR', 'ENTRY', 'EXIT', 'QTY', 'P&L', '😊', 'ACCOUNT', 'NOTES', ''].map(h => <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>)}</tr></thead>
