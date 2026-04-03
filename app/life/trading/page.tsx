@@ -1,4 +1,4 @@
-// v4 - Trading Calendar added
+// v5 - Playbook feature added
 'use client'
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
@@ -12,6 +12,14 @@ type Trade = {
   entryPrice: number; exitPrice: number; contracts: number
   pnl: number; notes: string; emotion: number; time?: string
   source?: string; accountName?: string; symbol?: string
+  playbookId?: string | null
+}
+
+type Playbook = {
+  id: string
+  name: string
+  description: string
+  createdAt: string
 }
 
 type CoachInsight = {
@@ -148,10 +156,8 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
-
   const todayStr = today.toISOString().split('T')[0]
 
-  // Aggregate trades by day for the current month
   const dayMap = useMemo(() => {
     const map: Record<string, { pnl: number; trades: Trade[] }> = {}
     for (const trade of trades) {
@@ -162,7 +168,6 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
     return map
   }, [trades])
 
-  // Month total PnL
   const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
   const monthPnl = useMemo(() => {
     return Object.entries(dayMap)
@@ -170,14 +175,12 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
       .reduce((sum, [, val]) => sum + val.pnl, 0)
   }, [dayMap, monthStr])
 
-  // Build calendar grid
   const calendarDays = useMemo(() => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay()
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
     const cells: (number | null)[] = []
     for (let i = 0; i < firstDay; i++) cells.push(null)
     for (let d = 1; d <= daysInMonth; d++) cells.push(d)
-    // Pad to complete last row
     while (cells.length % 7 !== 0) cells.push(null)
     return cells
   }, [currentMonth, currentYear])
@@ -192,23 +195,16 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
     else setCurrentMonth(m => m + 1)
     setSelectedDay(null)
   }
-
   function handleDayClick(dateStr: string) {
     if (!dayMap[dateStr]) return
     setSelectedDay(prev => prev === dateStr ? null : dateStr)
   }
-
   const selectedTrades = selectedDay ? (dayMap[selectedDay]?.trades || []) : []
 
   return (
     <div className="premium-card p-5 mb-6">
-      {/* Calendar Header */}
       <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={prevMonth}
-          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/[0.08]"
-          style={{ color: '#00f2ff', border: '1px solid rgba(0,242,255,0.3)' }}
-        >
+        <button onClick={prevMonth} className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/[0.08]" style={{ color: '#00f2ff', border: '1px solid rgba(0,242,255,0.3)' }}>
           <ChevronLeft size={14} />
         </button>
         <div className="flex items-center gap-3">
@@ -216,40 +212,23 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
             {MONTH_NAMES[currentMonth]} {currentYear}
           </h3>
           {monthPnl !== 0 && (
-            <span
-              className="text-xs font-mono font-bold px-2 py-0.5 rounded"
-              style={{
-                color: monthPnl > 0 ? '#00ff88' : '#ff00e5',
-                background: monthPnl > 0 ? 'rgba(0,255,136,0.1)' : 'rgba(255,0,229,0.1)',
-                border: `1px solid ${monthPnl > 0 ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,229,0.3)'}`,
-              }}
-            >
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded" style={{ color: monthPnl > 0 ? '#00ff88' : '#ff00e5', background: monthPnl > 0 ? 'rgba(0,255,136,0.1)' : 'rgba(255,0,229,0.1)', border: `1px solid ${monthPnl > 0 ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,229,0.3)'}` }}>
               {monthPnl > 0 ? '+' : ''}{monthPnl.toFixed(2)}
             </span>
           )}
         </div>
-        <button
-          onClick={nextMonth}
-          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/[0.08]"
-          style={{ color: '#00f2ff', border: '1px solid rgba(0,242,255,0.3)' }}
-        >
+        <button onClick={nextMonth} className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/[0.08]" style={{ color: '#00f2ff', border: '1px solid rgba(0,242,255,0.3)' }}>
           <ChevronRight size={14} />
         </button>
       </div>
-
-      {/* Day headers */}
       <div className="grid grid-cols-7 gap-1 mb-1">
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
           <div key={d} className="text-center text-[10px] font-mono py-1" style={{ color: 'var(--text-muted)' }}>{d}</div>
         ))}
       </div>
-
-      {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((day, idx) => {
-          if (day === null) {
-            return <div key={`empty-${idx}`} className="rounded-lg" style={{ minHeight: 60 }} />
-          }
+          if (day === null) return <div key={`empty-${idx}`} className="rounded-lg" style={{ minHeight: 60 }} />
           const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           const dayData = dayMap[dateStr]
           const isToday = dateStr === todayStr
@@ -258,111 +237,35 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
           const pnl = dayData?.pnl ?? 0
           const isGreen = hasTrades && pnl > 0
           const isRed = hasTrades && pnl < 0
-
           let bg = 'rgba(255,255,255,0.02)'
           let border = '1px solid rgba(255,255,255,0.05)'
           let pnlColor = 'transparent'
           if (isGreen) { bg = 'rgba(0,255,136,0.15)'; border = '1px solid #00ff88'; pnlColor = '#00ff88' }
           if (isRed) { bg = 'rgba(255,0,229,0.15)'; border = '1px solid #ff00e5'; pnlColor = '#ff00e5' }
           if (isSelected) { border = isGreen ? '2px solid #00ff88' : isRed ? '2px solid #ff00e5' : '1px solid rgba(255,255,255,0.3)' }
-
           const boxShadow = isToday ? '0 0 0 2px #00f2ff' : undefined
           const transform = isSelected ? 'scale(1.05)' : undefined
-
           return (
-            <div
-              key={dateStr}
-              onClick={() => handleDayClick(dateStr)}
-              style={{
-                minHeight: 60,
-                borderRadius: 8,
-                background: bg,
-                border,
-                boxShadow,
-                transform,
-                cursor: hasTrades ? 'pointer' : 'default',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '4px 2px',
-                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                position: 'relative',
-              }}
-            >
-              <span
-                className="text-xs font-mono font-semibold"
-                style={{ color: isToday ? '#00f2ff' : hasTrades ? 'var(--text-primary)' : 'var(--text-muted)' }}
-              >
-                {day}
-              </span>
-              {hasTrades && (
-                <span
-                  className="text-[9px] font-mono mt-0.5"
-                  style={{ color: pnlColor, lineHeight: 1 }}
-                >
-                  {pnl > 0 ? '+' : ''}{pnl.toFixed(0)}
-                </span>
-              )}
+            <div key={dateStr} onClick={() => handleDayClick(dateStr)} style={{ minHeight: 60, borderRadius: 8, background: bg, border, boxShadow, transform, cursor: hasTrades ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 2px', transition: 'transform 0.15s ease, box-shadow 0.15s ease', position: 'relative', }}>
+              <span className="text-xs font-mono font-semibold" style={{ color: isToday ? '#00f2ff' : hasTrades ? 'var(--text-primary)' : 'var(--text-muted)' }}>{day}</span>
+              {hasTrades && (<span className="text-[9px] font-mono mt-0.5" style={{ color: pnlColor, lineHeight: 1 }}>{pnl > 0 ? '+' : ''}{pnl.toFixed(0)}</span>)}
             </div>
           )
         })}
       </div>
-
-      {/* Selected day trades */}
       {selectedDay && selectedTrades.length > 0 && (
         <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <p
-            className="text-xs font-mono mb-3"
-            style={{
-              color: '#00f2ff',
-              letterSpacing: '0.15em',
-              fontVariant: 'small-caps',
-              textTransform: 'uppercase',
-            }}
-          >
+          <p className="text-xs font-mono mb-3" style={{ color: '#00f2ff', letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase' }}>
             Trades — {selectedDay}
           </p>
           <div className="space-y-2">
             {selectedTrades.map(trade => (
-              <div
-                key={trade.id}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
-                style={{
-                  background: trade.pnl >= 0 ? 'rgba(0,255,136,0.06)' : 'rgba(255,0,229,0.06)',
-                  border: `1px solid ${trade.pnl >= 0 ? 'rgba(0,255,136,0.2)' : 'rgba(255,0,229,0.2)'}`,
-                }}
-              >
-                <span
-                  className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                  style={{
-                    color: trade.direction === 'Long' ? '#00ff88' : '#ff00e5',
-                    background: trade.direction === 'Long' ? 'rgba(0,255,136,0.12)' : 'rgba(255,0,229,0.12)',
-                    border: `1px solid ${trade.direction === 'Long' ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,229,0.3)'}`,
-                    flexShrink: 0,
-                  }}
-                >
-                  {trade.direction}
-                </span>
-                {trade.symbol && (
-                  <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)', flexShrink: 0 }}>
-                    {trade.symbol}
-                  </span>
-                )}
-                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                  {trade.time || '--:--'}
-                </span>
-                {trade.notes && (
-                  <span className="text-xs truncate flex-1" style={{ color: 'var(--text-muted)' }}>
-                    {trade.notes}
-                  </span>
-                )}
-                <span
-                  className="text-xs font-mono font-bold ml-auto flex-shrink-0"
-                  style={{ color: trade.pnl >= 0 ? '#00ff88' : '#ff00e5' }}
-                >
-                  {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
-                </span>
+              <div key={trade.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ background: trade.pnl >= 0 ? 'rgba(0,255,136,0.06)' : 'rgba(255,0,229,0.06)', border: `1px solid ${trade.pnl >= 0 ? 'rgba(0,255,136,0.2)' : 'rgba(255,0,229,0.2)'}` }}>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ color: trade.direction === 'Long' ? '#00ff88' : '#ff00e5', background: trade.direction === 'Long' ? 'rgba(0,255,136,0.12)' : 'rgba(255,0,229,0.12)', border: `1px solid ${trade.direction === 'Long' ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,229,0.3)'}`, flexShrink: 0 }}>{trade.direction}</span>
+                {trade.symbol && (<span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)', flexShrink: 0 }}>{trade.symbol}</span>)}
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{trade.time || '--:--'}</span>
+                {trade.notes && (<span className="text-xs truncate flex-1" style={{ color: 'var(--text-muted)' }}>{trade.notes}</span>)}
+                <span className="text-xs font-mono font-bold ml-auto flex-shrink-0" style={{ color: trade.pnl >= 0 ? '#00ff88' : '#ff00e5' }}>{trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}</span>
                 <span className="text-base flex-shrink-0">{EMOTIONS[(trade.emotion || 3) - 1]}</span>
               </div>
             ))}
@@ -376,6 +279,7 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
 function TradingJournalInner() {
   const searchParams = useSearchParams()
   const [trades, setTrades] = useState<Trade[]>([])
+  const [playbooks, setPlaybooks] = useState<Playbook[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [chatOpen] = useState(searchParams.get('chat') === '1')
@@ -392,6 +296,7 @@ function TradingJournalInner() {
     contracts: '',
     notes: '',
     emotion: 3,
+    playbookId: '',
   })
 
   function loadTrades() {
@@ -400,11 +305,17 @@ function TradingJournalInner() {
     }).catch(() => setLoading(false))
   }
 
+  function loadPlaybooks() {
+    fetch('/api/life/trading/playbook').then(r => r.json()).then((d: { playbooks: Playbook[] }) => {
+      setPlaybooks(d.playbooks || [])
+    }).catch(() => setPlaybooks([]))
+  }
+
   useEffect(() => {
     loadTrades()
+    loadPlaybooks()
   }, [])
 
-  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
       if (insightTimerRef.current) clearTimeout(insightTimerRef.current)
@@ -425,20 +336,12 @@ function TradingJournalInner() {
       const data = await res.json()
       const insightText = data.insight || 'Keep grinding. Every trade is data.'
       setCoachInsight({ text: insightText, visible: true, fading: false })
-      fadeTimerRef.current = setTimeout(() => {
-        setCoachInsight(prev => ({ ...prev, fading: true }))
-      }, 13000)
-      insightTimerRef.current = setTimeout(() => {
-        setCoachInsight({ text: '', visible: false, fading: false })
-      }, 15000)
+      fadeTimerRef.current = setTimeout(() => { setCoachInsight(prev => ({ ...prev, fading: true })) }, 13000)
+      insightTimerRef.current = setTimeout(() => { setCoachInsight({ text: '', visible: false, fading: false }) }, 15000)
     } catch {
       setCoachInsight({ text: 'Stay sharp. Log the next one.', visible: true, fading: false })
-      fadeTimerRef.current = setTimeout(() => {
-        setCoachInsight(prev => ({ ...prev, fading: true }))
-      }, 13000)
-      insightTimerRef.current = setTimeout(() => {
-        setCoachInsight({ text: '', visible: false, fading: false })
-      }, 15000)
+      fadeTimerRef.current = setTimeout(() => { setCoachInsight(prev => ({ ...prev, fading: true })) }, 13000)
+      insightTimerRef.current = setTimeout(() => { setCoachInsight({ text: '', visible: false, fading: false }) }, 15000)
     }
   }
 
@@ -452,7 +355,8 @@ function TradingJournalInner() {
       exitPrice: parseFloat(form.exitPrice),
       contracts: parseFloat(form.contracts),
       notes: form.notes,
-      emotion: form.emotion
+      emotion: form.emotion,
+      playbookId: form.playbookId || null,
     }
     const res = await fetch('/api/life/trading', {
       method: 'POST',
@@ -471,13 +375,12 @@ function TradingJournalInner() {
       exitPrice: '',
       contracts: '',
       notes: '',
-      emotion: 3
+      emotion: 3,
+      playbookId: '',
     })
     if (res.ok) {
       const savedTrade = savedLogs[savedLogs.length - 1]
-      if (savedTrade) {
-        triggerCoachInsight(savedTrade)
-      }
+      if (savedTrade) { triggerCoachInsight(savedTrade) }
     }
   }
 
@@ -521,6 +424,7 @@ function TradingJournalInner() {
           </div>
           <div className="flex items-center gap-3">
             {streak > 0 && <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88' }}><Flame size={12} /> {streak} day streak</div>}
+            <Link href="/life/trading/playbook" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.4)', color: '#00f2ff' }}>PLAYBOOK</Link>
             <Link href="/life/trading/settings" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono" style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', color: 'var(--text-muted)' }}><Settings size={12} /> Settings</Link>
             <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2"><Plus size={14} /> Log Trade</button>
           </div>
@@ -546,7 +450,7 @@ function TradingJournalInner() {
           ))}
         </div>
 
-        {/* Trading Calendar — between stats and form */}
+        {/* Trading Calendar */}
         <TradingCalendar trades={trades} />
 
         {showForm && (
@@ -568,6 +472,27 @@ function TradingJournalInner() {
                 <div className="cyber-input flex items-center" style={{ fontFamily: 'JetBrains Mono' }}>
                   {form.entryPrice && form.exitPrice && form.contracts ? (() => { const pnl = form.direction === 'Long' ? (parseFloat(form.exitPrice) - parseFloat(form.entryPrice)) * parseFloat(form.contracts) : (parseFloat(form.entryPrice) - parseFloat(form.exitPrice)) * parseFloat(form.contracts); return <span style={{ color: pnl >= 0 ? '#00ff88' : '#ff00e5' }}>${pnl.toFixed(2)}</span> })() : <span style={{ color: 'var(--text-muted)' }}>—</span>}
                 </div>
+              </div>
+              <div className="col-span-2 md:col-span-4">
+                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>TAG PLAYBOOK (OPTIONAL)</label>
+                <select
+                  value={form.playbookId}
+                  onChange={e => setForm(f => ({ ...f, playbookId: e.target.value }))}
+                  className="cyber-input w-full"
+                  disabled={playbooks.length === 0}
+                  style={{ fontFamily: 'JetBrains Mono', background: '#0a0a0f', color: playbooks.length === 0 ? 'var(--text-muted)' : 'var(--text-primary)', borderColor: 'rgba(0,242,255,0.3)' }}
+                >
+                  {playbooks.length === 0 ? (
+                    <option value="">No playbooks yet — create one</option>
+                  ) : (
+                    <>
+                      <option value="">None</option>
+                      {playbooks.map(pb => (
+                        <option key={pb.id} value={pb.id}>{pb.name}</option>
+                      ))}
+                    </>
+                  )}
+                </select>
               </div>
               <div className="col-span-2 md:col-span-4"><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>NOTES</label><textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="cyber-input w-full h-20 resize-none" placeholder="What happened? Mistakes? Lessons?" /></div>
               <div className="col-span-2 md:col-span-4 flex gap-3"><button type="submit" className="btn-cyber-primary">Save Trade</button><button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button></div>
@@ -608,13 +533,7 @@ function TradingJournalInner() {
                     <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{trade.contracts}</td>
                     <td className="px-4 py-3 font-mono font-bold" style={{ color: trade.pnl >= 0 ? '#00ff88' : '#ff00e5' }}>${trade.pnl.toFixed(2)}</td>
                     <td className="px-4 py-3 text-base">{EMOTIONS[(trade.emotion || 3) - 1]}</td>
-                    <td className="px-4 py-3">
-                      {trade.accountName ? (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.25)', color: '#00f2ff' }}>
-                          {trade.accountName}
-                        </span>
-                      ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
-                    </td>
+                    <td className="px-4 py-3">{trade.accountName ? (<span className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.25)', color: '#00f2ff' }}>{trade.accountName}</span>) : <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                     <td className="px-4 py-3 max-w-[180px] truncate" style={{ color: 'var(--text-muted)' }}>{trade.notes}</td>
                     <td className="px-4 py-3"><button onClick={() => deleteTrade(trade.id)} className="opacity-30 hover:opacity-70 transition-opacity"><Trash2 size={12} style={{ color: '#ff00e5' }} /></button></td>
                   </tr>
