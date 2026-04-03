@@ -1,7 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, BarChart2 } from 'lucide-react'
+import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw } from 'lucide-react'
 
 const sections = [
   {
@@ -130,6 +130,12 @@ type LiveMetrics = {
   incomeMonth: string
 }
 
+type DailyBrief = {
+  text: string
+  generatedAt: string
+  date: string
+}
+
 export default function LifeHubPage() {
   const [stats, setStats] = useState<SectionStats>({
     trading: 'No trades logged',
@@ -146,6 +152,40 @@ export default function LifeHubPage() {
     incomeMonth: '$0',
   })
   const [journalTodaySaved, setJournalTodaySaved] = useState(false)
+  const [brief, setBrief] = useState<DailyBrief | null>(null)
+  const [briefLoading, setBriefLoading] = useState(true)
+  const [briefNoData, setBriefNoData] = useState(false)
+  const [briefError, setBriefError] = useState(false)
+
+  const fetchBrief = useCallback(async (refresh = false) => {
+    setBriefLoading(true)
+    setBriefError(false)
+    try {
+      const res = await fetch('/api/life/daily-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh }),
+      })
+      const data = await res.json()
+      if (data.noData) {
+        setBriefNoData(true)
+        setBrief(null)
+      } else if (data.brief) {
+        setBrief(data.brief)
+        setBriefNoData(false)
+      } else {
+        setBriefError(true)
+      }
+    } catch {
+      setBriefError(true)
+    } finally {
+      setBriefLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchBrief(false)
+  }, [fetchBrief])
 
   useEffect(() => {
     async function loadStats() {
@@ -183,18 +223,23 @@ export default function LifeHubPage() {
 
         const healthLogs = health.logs || []
         const lastHealth = healthLogs[healthLogs.length - 1]
-        const healthStatus = lastHealth ? "Last: " + new Date(lastHealth.date).toLocaleDateString() : 'No entries yet'
+        const healthStatus = lastHealth
+          ? 'Last: ' + new Date(lastHealth.date).toLocaleDateString()
+          : 'No entries yet'
 
-        // Fix: journal API returns { data: [] } not { entries: [] }
-        const journalEntries: any[] = Array.isArray(journal.data) ? journal.data : (Array.isArray(journal.entries) ? journal.entries : [])
+        const journalEntries: any[] = Array.isArray(journal.data)
+          ? journal.data
+          : Array.isArray(journal.entries)
+          ? journal.entries
+          : []
         const todayJournalEntry = journalEntries.find((e: any) => e.date === today)
         const hasTodayJournal = !!todayJournalEntry
         setJournalTodaySaved(hasTodayJournal)
         const journalStatus = hasTodayJournal
           ? "Today's entry saved"
           : journalEntries.length > 0
-            ? "Last: " + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
-            : 'No entries yet'
+          ? 'Last: ' + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
+          : 'No entries yet'
 
         const incomeEntries = finance.income || []
         const currentMonth = new Date().toISOString().slice(0, 7)
@@ -216,7 +261,12 @@ export default function LifeHubPage() {
           for (let i = 0; i < 60; i++) {
             const ds = d.toISOString().split('T')[0]
             const done = habitsList.filter((h: any) => completions[ds]?.[h.id]).length
-            if (done > 0) { streak++; maxStreak = Math.max(maxStreak, streak) } else { streak = 0 }
+            if (done > 0) {
+              streak++
+              maxStreak = Math.max(maxStreak, streak)
+            } else {
+              streak = 0
+            }
             d.setDate(d.getDate() - 1)
           }
         }
@@ -226,18 +276,26 @@ export default function LifeHubPage() {
         const weekScore = latestReview?.score ?? null
 
         setStats({
-          trading: todayTrades > 0 ? todayTrades + " trade" + (todayTrades !== 1 ? 's' : '') + " today" : tradingLogs.length > 0 ? tradingLogs.length + " total trades" : 'No trades logged',
-          goals: activeGoals > 0 ? activeGoals + " active goal" + (activeGoals !== 1 ? 's' : '') : 'No goals set',
-          habits: habitsList.length > 0 ? todayCompletions + "/" + habitsList.length + " habits done today" : 'No habits created',
+          trading:
+            todayTrades > 0
+              ? todayTrades + ' trade' + (todayTrades !== 1 ? 's' : '') + ' today'
+              : tradingLogs.length > 0
+              ? tradingLogs.length + ' total trades'
+              : 'No trades logged',
+          goals: activeGoals > 0 ? activeGoals + ' active goal' + (activeGoals !== 1 ? 's' : '') : 'No goals set',
+          habits:
+            habitsList.length > 0
+              ? todayCompletions + '/' + habitsList.length + ' habits done today'
+              : 'No habits created',
           health: healthStatus,
           journal: journalStatus,
-          finance: monthlyIncome > 0 ? "$" + monthlyIncome.toLocaleString() + " income this month" : 'No entries yet',
+          finance: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() + ' income this month' : 'No entries yet',
         })
         setMetrics({
-          pnlWeek: weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + "$" + Math.abs(weekPnl).toLocaleString() : '$0',
-          habitStreak: maxStreak > 0 ? maxStreak + "d" : '0d',
-          weekScore: weekScore !== null ? weekScore + "/10" : 'N/A',
-          incomeMonth: monthlyIncome > 0 ? "$" + monthlyIncome.toLocaleString() : '$0',
+          pnlWeek: weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + '$' + Math.abs(weekPnl).toLocaleString() : '$0',
+          habitStreak: maxStreak > 0 ? maxStreak + 'd' : '0d',
+          weekScore: weekScore !== null ? weekScore + '/10' : 'N/A',
+          incomeMonth: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() : '$0',
         })
       } catch {
         // keep defaults
@@ -253,29 +311,218 @@ export default function LifeHubPage() {
     { label: 'INCOME THIS MONTH', value: metrics.incomeMonth, color: '#ffb400', borderColor: '#ffb400' },
   ]
 
+  const formatGeneratedAt = (iso: string) => {
+    try {
+      const d = new Date(iso)
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+        ' · ' +
+        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    } catch {
+      return iso
+    }
+  }
+
   return (
     <div className="cyber-bg-grid min-h-screen" style={{ padding: '40px 48px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: '40px' }}>
           <div className="section-header">// LIFE HUB</div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '32px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', margin: '0 0 8px' }}>Personal Command Center</h1>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(0,242,255,0.6)', letterSpacing: '4px', textTransform: 'uppercase', margin: 0 }}>TRACK EVERYTHING · MISS NOTHING · EVOLVE DAILY</p>
+          <h1
+            style={{
+              fontFamily: 'Georgia, serif',
+              fontSize: '32px',
+              fontWeight: 700,
+              color: '#ffffff',
+              letterSpacing: '-0.02em',
+              margin: '0 0 8px',
+            }}
+          >
+            Personal Command Center
+          </h1>
+          <p
+            style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '10px',
+              color: 'rgba(0,242,255,0.6)',
+              letterSpacing: '4px',
+              textTransform: 'uppercase',
+              margin: 0,
+            }}
+          >
+            TRACK EVERYTHING · MISS NOTHING · EVOLVE DAILY
+          </p>
+        </div>
+
+        {/* Daily Brief Card */}
+        <div
+          style={{
+            background: 'rgba(0,0,0,0.6)',
+            border: '1px solid rgba(0,242,255,0.15)',
+            borderLeft: '3px solid #00f2ff',
+            borderRadius: '12px',
+            padding: '24px 28px',
+            marginBottom: '32px',
+            backdropFilter: 'blur(10px)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Subtle glow background */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: 'linear-gradient(90deg, #00f2ff, transparent)',
+              opacity: 0.5,
+            }}
+          />
+
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span
+                style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '9px',
+                  letterSpacing: '3px',
+                  color: '#00f2ff',
+                  fontWeight: 700,
+                }}
+              >
+                COACH SHAI · DAILY BRIEF
+              </span>
+              {brief && (
+                <span
+                  style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '8px',
+                    color: 'rgba(255,255,255,0.25)',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  {formatGeneratedAt(brief.generatedAt)}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => fetchBrief(true)}
+              disabled={briefLoading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 12px',
+                borderRadius: '6px',
+                background: 'rgba(0,242,255,0.06)',
+                border: '1px solid rgba(0,242,255,0.2)',
+                color: briefLoading ? 'rgba(0,242,255,0.3)' : '#00f2ff',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '8px',
+                letterSpacing: '2px',
+                cursor: briefLoading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              <RefreshCw size={10} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
+              REFRESH
+            </button>
+          </div>
+
+          {/* Brief content */}
+          {briefLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#00f2ff',
+                  animation: 'pulse 1.5s ease-in-out infinite',
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '11px',
+                  color: 'rgba(0,242,255,0.5)',
+                  letterSpacing: '1px',
+                }}
+              >
+                Coach Shai is reading your data...
+              </span>
+            </div>
+          ) : briefNoData ? (
+            <p
+              style={{
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '12px',
+                color: 'rgba(255,255,255,0.35)',
+                margin: 0,
+                lineHeight: 1.7,
+                letterSpacing: '0.5px',
+              }}
+            >
+              Start logging your data and Coach Shai will brief you every morning.
+            </p>
+          ) : briefError ? (
+            <p
+              style={{
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '11px',
+                color: 'rgba(255,100,100,0.6)',
+                margin: 0,
+              }}
+            >
+              Failed to load brief. Click Refresh to try again.
+            </p>
+          ) : brief ? (
+            <p
+              style={{
+                fontFamily: 'Georgia, serif',
+                fontSize: '14px',
+                color: 'rgba(255,255,255,0.85)',
+                margin: 0,
+                lineHeight: 1.8,
+                letterSpacing: '0.2px',
+              }}
+            >
+              {brief.text}
+            </p>
+          ) : null}
         </div>
 
         {/* Live Metrics Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '32px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '12px',
+            marginBottom: '32px',
+          }}
+        >
           {liveMetrics.map((m) => (
-            <div key={m.label} className="stat-card-premium accent-cyan" style={{ borderTop: "2px solid " + m.borderColor }}>
+            <div
+              key={m.label}
+              className="stat-card-premium accent-cyan"
+              style={{ borderTop: '2px solid ' + m.borderColor }}
+            >
               <div className="stat-label">{m.label}</div>
-              <div className="stat-value" style={{ color: m.color }}>{m.value}</div>
+              <div className="stat-value" style={{ color: m.color }}>
+                {m.value}
+              </div>
               <div className="stat-hint">LIVE · REDIS</div>
             </div>
           ))}
         </div>
 
         {/* Section Header */}
-        <div className="section-header" style={{ marginBottom: '20px' }}>MODULES</div>
+        <div className="section-header" style={{ marginBottom: '20px' }}>
+          MODULES
+        </div>
 
         {/* 3x2 Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
@@ -287,46 +534,151 @@ export default function LifeHubPage() {
             const badgeColor = isJournal && journalTodaySaved ? '#00ff88' : section.badgeColor
             const badgeBg = isJournal && journalTodaySaved ? 'rgba(0,255,136,0.08)' : section.badgeBg
             const badgeBorder = isJournal && journalTodaySaved ? 'rgba(0,255,136,0.2)' : section.badgeBorder
+
             return (
               <div key={section.key} className="premium-card" style={{ minHeight: '210px' }}>
                 {/* Colored top line */}
-                <div style={{ height: '1px', background: section.topGradient, position: 'relative', zIndex: 1 }} />
-                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', height: 'calc(100% - 1px)' }}>
+                <div
+                  style={{
+                    height: '1px',
+                    background: section.topGradient,
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                />
+                <div
+                  style={{
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    height: 'calc(100% - 1px)',
+                  }}
+                >
                   {/* Top row */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: section.iconBg, border: "1px solid " + section.iconBorder, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          background: section.iconBg,
+                          border: '1px solid ' + section.iconBorder,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
                         <Icon size={16} color={section.accentColor} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#ffffff', marginBottom: '2px' }}>{section.name}</div>
-                        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>{section.descriptor}</div>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '13px',
+                            color: '#ffffff',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          {section.name}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: 'JetBrains Mono, monospace',
+                            fontSize: '10px',
+                            color: 'rgba(255,255,255,0.3)',
+                          }}
+                        >
+                          {section.descriptor}
+                        </div>
                       </div>
                     </div>
                     {/* Status badge */}
-                    <span style={{
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '8px',
-                      letterSpacing: '1px',
-                      padding: '3px 7px',
-                      borderRadius: '4px',
-                      background: badgeBg,
-                      border: "1px solid " + badgeBorder,
-                      color: badgeColor,
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                    }}>{badgeLabel}</span>
+                    <span
+                      style={{
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fontSize: '8px',
+                        letterSpacing: '1px',
+                        padding: '3px 7px',
+                        borderRadius: '4px',
+                        background: badgeBg,
+                        border: '1px solid ' + badgeBorder,
+                        color: badgeColor,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {badgeLabel}
+                    </span>
                   </div>
                   {/* Status text */}
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'rgba(255,255,255,0.25)', margin: 0, flex: 1 }}>{statusText}</p>
+                  <p
+                    style={{
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontSize: '11px',
+                      color: 'rgba(255,255,255,0.25)',
+                      margin: 0,
+                      flex: 1,
+                    }}
+                  >
+                    {statusText}
+                  </p>
                   {/* Divider */}
                   <div style={{ height: '1px', background: '#1a1a28' }} />
                   {/* Bottom row */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Link href={section.href} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '7px 12px', borderRadius: '6px', background: section.btnBg, border: "1px solid " + section.btnBorder, color: section.accentColor, fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', letterSpacing: '2px', textDecoration: 'none', fontWeight: 600, transition: 'all 0.2s' }}>
+                    <Link
+                      href={section.href}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '7px 12px',
+                        borderRadius: '6px',
+                        background: section.btnBg,
+                        border: '1px solid ' + section.btnBorder,
+                        color: section.accentColor,
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fontSize: '9px',
+                        letterSpacing: '2px',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        transition: 'all 0.2s',
+                      }}
+                    >
                       OPEN →
                     </Link>
-                    <Link href={section.href + "?chat=1"} title="Open AI Chat" style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,0,229,0.05)', border: '1px solid rgba(255,0,229,0.2)', color: 'rgba(255,0,229,0.5)', fontFamily: 'JetBrains Mono, monospace', fontSize: '8px', fontWeight: 700, textDecoration: 'none', flexShrink: 0 }}>AI</Link>
+                    <Link
+                      href={section.href + '?chat=1'}
+                      title="Open AI Chat"
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'rgba(255,0,229,0.05)',
+                        border: '1px solid rgba(255,0,229,0.2)',
+                        color: 'rgba(255,0,229,0.5)',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fontSize: '8px',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        flexShrink: 0,
+                      }}
+                    >
+                      AI
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -335,8 +687,30 @@ export default function LifeHubPage() {
         </div>
 
         {/* Footer */}
-        <p style={{ marginTop: '48px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', letterSpacing: '2px', color: 'rgba(255,255,255,0.1)' }}>{'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE SONNET'}</p>
+        <p
+          style={{
+            marginTop: '48px',
+            textAlign: 'center',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '9px',
+            letterSpacing: '2px',
+            color: 'rgba(255,255,255,0.1)',
+          }}
+        >
+          {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
+        </p>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
     </div>
   )
 }
