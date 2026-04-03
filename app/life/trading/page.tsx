@@ -1,8 +1,8 @@
-// v3 - Tradovate integration added
+// v4 - Trading Calendar added
 'use client'
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings } from 'lucide-react'
+import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -21,6 +21,7 @@ type CoachInsight = {
 }
 
 const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 function CoachShaiCard({ insight }: { insight: CoachInsight }) {
   const [progress, setProgress] = useState(100)
@@ -141,6 +142,237 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   )
 }
 
+// ---- Trading Calendar Component ----
+function TradingCalendar({ trades }: { trades: Trade[] }) {
+  const today = new Date()
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth())
+  const [currentYear, setCurrentYear] = useState(today.getFullYear())
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+
+  const todayStr = today.toISOString().split('T')[0]
+
+  // Aggregate trades by day for the current month
+  const dayMap = useMemo(() => {
+    const map: Record<string, { pnl: number; trades: Trade[] }> = {}
+    for (const trade of trades) {
+      if (!map[trade.date]) map[trade.date] = { pnl: 0, trades: [] }
+      map[trade.date].pnl += trade.pnl
+      map[trade.date].trades.push(trade)
+    }
+    return map
+  }, [trades])
+
+  // Month total PnL
+  const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+  const monthPnl = useMemo(() => {
+    return Object.entries(dayMap)
+      .filter(([date]) => date.startsWith(monthStr))
+      .reduce((sum, [, val]) => sum + val.pnl, 0)
+  }, [dayMap, monthStr])
+
+  // Build calendar grid
+  const calendarDays = useMemo(() => {
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay()
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+    const cells: (number | null)[] = []
+    for (let i = 0; i < firstDay; i++) cells.push(null)
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+    // Pad to complete last row
+    while (cells.length % 7 !== 0) cells.push(null)
+    return cells
+  }, [currentMonth, currentYear])
+
+  function prevMonth() {
+    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1) }
+    else setCurrentMonth(m => m - 1)
+    setSelectedDay(null)
+  }
+  function nextMonth() {
+    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1) }
+    else setCurrentMonth(m => m + 1)
+    setSelectedDay(null)
+  }
+
+  function handleDayClick(dateStr: string) {
+    if (!dayMap[dateStr]) return
+    setSelectedDay(prev => prev === dateStr ? null : dateStr)
+  }
+
+  const selectedTrades = selectedDay ? (dayMap[selectedDay]?.trades || []) : []
+
+  return (
+    <div className="premium-card p-5 mb-6">
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={prevMonth}
+          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/[0.08]"
+          style={{ color: '#00f2ff', border: '1px solid rgba(0,242,255,0.3)' }}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <div className="flex items-center gap-3">
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {MONTH_NAMES[currentMonth]} {currentYear}
+          </h3>
+          {monthPnl !== 0 && (
+            <span
+              className="text-xs font-mono font-bold px-2 py-0.5 rounded"
+              style={{
+                color: monthPnl > 0 ? '#00ff88' : '#ff00e5',
+                background: monthPnl > 0 ? 'rgba(0,255,136,0.1)' : 'rgba(255,0,229,0.1)',
+                border: `1px solid ${monthPnl > 0 ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,229,0.3)'}`,
+              }}
+            >
+              {monthPnl > 0 ? '+' : ''}{monthPnl.toFixed(2)}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={nextMonth}
+          className="flex items-center justify-center w-7 h-7 rounded-lg transition-all hover:bg-white/[0.08]"
+          style={{ color: '#00f2ff', border: '1px solid rgba(0,242,255,0.3)' }}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+          <div key={d} className="text-center text-[10px] font-mono py-1" style={{ color: 'var(--text-muted)' }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {calendarDays.map((day, idx) => {
+          if (day === null) {
+            return <div key={`empty-${idx}`} className="rounded-lg" style={{ minHeight: 60 }} />
+          }
+          const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+          const dayData = dayMap[dateStr]
+          const isToday = dateStr === todayStr
+          const isSelected = selectedDay === dateStr
+          const hasTrades = !!dayData
+          const pnl = dayData?.pnl ?? 0
+          const isGreen = hasTrades && pnl > 0
+          const isRed = hasTrades && pnl < 0
+
+          let bg = 'rgba(255,255,255,0.02)'
+          let border = '1px solid rgba(255,255,255,0.05)'
+          let pnlColor = 'transparent'
+          if (isGreen) { bg = 'rgba(0,255,136,0.15)'; border = '1px solid #00ff88'; pnlColor = '#00ff88' }
+          if (isRed) { bg = 'rgba(255,0,229,0.15)'; border = '1px solid #ff00e5'; pnlColor = '#ff00e5' }
+          if (isSelected) { border = isGreen ? '2px solid #00ff88' : isRed ? '2px solid #ff00e5' : '1px solid rgba(255,255,255,0.3)' }
+
+          const boxShadow = isToday ? '0 0 0 2px #00f2ff' : undefined
+          const transform = isSelected ? 'scale(1.05)' : undefined
+
+          return (
+            <div
+              key={dateStr}
+              onClick={() => handleDayClick(dateStr)}
+              style={{
+                minHeight: 60,
+                borderRadius: 8,
+                background: bg,
+                border,
+                boxShadow,
+                transform,
+                cursor: hasTrades ? 'pointer' : 'default',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px 2px',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                position: 'relative',
+              }}
+            >
+              <span
+                className="text-xs font-mono font-semibold"
+                style={{ color: isToday ? '#00f2ff' : hasTrades ? 'var(--text-primary)' : 'var(--text-muted)' }}
+              >
+                {day}
+              </span>
+              {hasTrades && (
+                <span
+                  className="text-[9px] font-mono mt-0.5"
+                  style={{ color: pnlColor, lineHeight: 1 }}
+                >
+                  {pnl > 0 ? '+' : ''}{pnl.toFixed(0)}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Selected day trades */}
+      {selectedDay && selectedTrades.length > 0 && (
+        <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <p
+            className="text-xs font-mono mb-3"
+            style={{
+              color: '#00f2ff',
+              letterSpacing: '0.15em',
+              fontVariant: 'small-caps',
+              textTransform: 'uppercase',
+            }}
+          >
+            Trades — {selectedDay}
+          </p>
+          <div className="space-y-2">
+            {selectedTrades.map(trade => (
+              <div
+                key={trade.id}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
+                style={{
+                  background: trade.pnl >= 0 ? 'rgba(0,255,136,0.06)' : 'rgba(255,0,229,0.06)',
+                  border: `1px solid ${trade.pnl >= 0 ? 'rgba(0,255,136,0.2)' : 'rgba(255,0,229,0.2)'}`,
+                }}
+              >
+                <span
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                  style={{
+                    color: trade.direction === 'Long' ? '#00ff88' : '#ff00e5',
+                    background: trade.direction === 'Long' ? 'rgba(0,255,136,0.12)' : 'rgba(255,0,229,0.12)',
+                    border: `1px solid ${trade.direction === 'Long' ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,229,0.3)'}`,
+                    flexShrink: 0,
+                  }}
+                >
+                  {trade.direction}
+                </span>
+                {trade.symbol && (
+                  <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)', flexShrink: 0 }}>
+                    {trade.symbol}
+                  </span>
+                )}
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                  {trade.time || '--:--'}
+                </span>
+                {trade.notes && (
+                  <span className="text-xs truncate flex-1" style={{ color: 'var(--text-muted)' }}>
+                    {trade.notes}
+                  </span>
+                )}
+                <span
+                  className="text-xs font-mono font-bold ml-auto flex-shrink-0"
+                  style={{ color: trade.pnl >= 0 ? '#00ff88' : '#ff00e5' }}
+                >
+                  {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
+                </span>
+                <span className="text-base flex-shrink-0">{EMOTIONS[(trade.emotion || 3) - 1]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function TradingJournalInner() {
   const searchParams = useSearchParams()
   const [trades, setTrades] = useState<Trade[]>([])
@@ -181,13 +413,9 @@ function TradingJournalInner() {
   }, [])
 
   async function triggerCoachInsight(trade: Trade) {
-    // Clear any existing timers
     if (insightTimerRef.current) clearTimeout(insightTimerRef.current)
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
-
-    // Show loading state immediately
     setCoachInsight({ text: 'Coach Shai is watching...', visible: true, fading: false })
-
     try {
       const res = await fetch('/api/life/trading/coach-insight', {
         method: 'POST',
@@ -196,16 +424,10 @@ function TradingJournalInner() {
       })
       const data = await res.json()
       const insightText = data.insight || 'Keep grinding. Every trade is data.'
-
-      // Update with actual insight
       setCoachInsight({ text: insightText, visible: true, fading: false })
-
-      // Start fade at 13s mark
       fadeTimerRef.current = setTimeout(() => {
         setCoachInsight(prev => ({ ...prev, fading: true }))
       }, 13000)
-
-      // Remove at 15s mark
       insightTimerRef.current = setTimeout(() => {
         setCoachInsight({ text: '', visible: false, fading: false })
       }, 15000)
@@ -251,8 +473,6 @@ function TradingJournalInner() {
       notes: '',
       emotion: 3
     })
-
-    // Trigger Coach Shai insight non-blocking after trade save
     if (res.ok) {
       const savedTrade = savedLogs[savedLogs.length - 1]
       if (savedTrade) {
@@ -309,6 +529,7 @@ function TradingJournalInner() {
         {/* Tradovate Status Bar */}
         <TradovateStatusBar onSyncComplete={loadTrades} />
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
           {[
             { label: 'TOTAL P&L', value: `$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? '#00ff88' : '#ff00e5' },
@@ -324,6 +545,9 @@ function TradingJournalInner() {
             </div>
           ))}
         </div>
+
+        {/* Trading Calendar — between stats and form */}
+        <TradingCalendar trades={trades} />
 
         {showForm && (
           <div className="premium-card p-5 mb-6">
