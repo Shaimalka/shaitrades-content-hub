@@ -492,4 +492,5 @@ export default function JournalPage() {
                 <JournalInner />
           </Suspense>
         )
-}</div>
+}
+</div>
