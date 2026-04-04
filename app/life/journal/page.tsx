@@ -184,12 +184,12 @@ function JournalInner() {
               <div className="max-w-[900px] mx-auto p-6">
                       <div className="flex items-center justify-between mb-8">
                                 <div>
-                                            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>&#8592; LIFE HUB</Link>Link>
-                                            <span className="section-header">JOURNAL</span>span>
-                                            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Daily Journal</h1>h1>
-                                </div>div>
+                                            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>&#8592; LIFE HUB</Link>
+                                            <span className="section-header">JOURNAL</span>
+                                            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Daily Journal</h1>
+                                </div>
                                 <NotebookPen size={32} style={{ color: '#ff00e5', opacity: 0.4 }} />
-                      </div>div>
+                      </div>
               
                 {/* DATE PICKER */}
                       <div className="mb-5">
@@ -206,7 +206,7 @@ function JournalInner() {
                                               }}
                                             >
                                             JOURNALING FOR
-                                </label>label>
+                                </label>
                                 <input
                                               id="journal-date-picker"
                                               type="date"
@@ -228,25 +228,25 @@ function JournalInner() {
                                               onFocus={e => { e.currentTarget.style.borderColor = '#00f2ff'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.15)' }}
                                               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,242,255,0.3)'; e.currentTarget.style.boxShadow = 'none' }}
                                             />
-                      </div>div>
+                      </div>
               
                 {/* MORNING ENTRY */}
                       <div className="premium-card p-5 mb-5">
                                 <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-2">
-                                                          <span style={{ fontSize: '1.1rem' }}>&#127774;</span>span>
-                                                          <h2 className="text-sm font-mono font-semibold" style={{ color: '#ffb400' }}>MORNING ENTRY</h2>h2>
-                                                          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{selectedDate}</span>span>
-                                            </div>div>
-                                  {saved === 'morning' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>&#10003; SAVED</span>span>}
-                                </div>div>
+                                                          <span style={{ fontSize: '1.1rem' }}>&#127774;</span>
+                                                          <h2 className="text-sm font-mono font-semibold" style={{ color: '#ffb400' }}>MORNING ENTRY</h2>
+                                                          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{selectedDate}</span>
+                                            </div>
+                                  {saved === 'morning' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>&#10003; SAVED</span>}
+                                </div>
                                 <form onSubmit={saveMorning} className="space-y-4">
                                             <div>
-                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#127919; What is my #1 focus today?</label>label>
+                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#127919; What is my #1 focus today?</label>
                                                           <input value={morning.morningFocus} onChange={e => setMorning(m => ({ ...m, morningFocus: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Execute 3 clean ES scalps" />
-                                            </div>div>
+                                            </div>
                                             <div>
-                                                          <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>&#129504; My trading mindset going in is...</label>label>
+                                                          <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>&#129504; My trading mindset going in is...</label>
                                                           <div className="flex flex-wrap gap-2">
                                                             {MINDSET_OPTIONS.map(m => (
                             <button key={m} type="button" onClick={() => setMorning(f => ({ ...f, tradingMindset: m }))}
@@ -255,72 +255,72 @@ function JournalInner() {
                                                                           ? { background: MINDSET_COLORS[m] + '22', borderColor: MINDSET_COLORS[m], color: MINDSET_COLORS[m] }
                                                                           : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>
                               {m}
-                            </button>button>
+                            </button>
                           ))}
-                                                          </div>div>
-                                            </div>div>
+                                                          </div>
+                                            </div>
                                             <div>
-                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#128591; One thing I am grateful for today...</label>label>
+                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#128591; One thing I am grateful for today...</label>
                                                           <input value={morning.grateful} onChange={e => setMorning(m => ({ ...m, grateful: e.target.value }))} className="cyber-input w-full" placeholder="e.g. My health, my edge, my discipline" />
-                                            </div>div>
+                                            </div>
                                             <div>
-                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#10024; My intention for today is...</label>label>
+                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#10024; My intention for today is...</label>
                                                           <input value={morning.intention} onChange={e => setMorning(m => ({ ...m, intention: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Stay patient. Only A+ setups." />
-                                            </div>div>
+                                            </div>
                                             <button type="submit" disabled={saving === 'morning'} className="btn-cyber-primary w-full" style={{ opacity: saving === 'morning' ? 0.6 : 1 }}>
                                               {saving === 'morning' ? 'Saving...' : 'Save Morning Entry'}
-                                            </button>button>
-                                </form>form>
-                      </div>div>
+                                            </button>
+                                </form>
+                      </div>
               
                 {/* EVENING ENTRY */}
                       <div className="premium-card p-5 mb-8">
                                 <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-2">
-                                                          <span style={{ fontSize: '1.1rem' }}>&#127762;</span>span>
-                                                          <h2 className="text-sm font-mono font-semibold" style={{ color: '#c084fc' }}>EVENING ENTRY</h2>h2>
-                                                          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{selectedDate}</span>span>
-                                            </div>div>
-                                  {saved === 'evening' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>&#10003; SAVED</span>span>}
-                                </div>div>
+                                                          <span style={{ fontSize: '1.1rem' }}>&#127762;</span>
+                                                          <h2 className="text-sm font-mono font-semibold" style={{ color: '#c084fc' }}>EVENING ENTRY</h2>
+                                                          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{selectedDate}</span>
+                                            </div>
+                                  {saved === 'evening' && <span className="text-xs font-mono px-2 py-1 rounded" style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)' }}>&#10003; SAVED</span>}
+                                </div>
                                 <form onSubmit={saveEvening} className="space-y-4">
                                             <div>
-                                                          <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>&#127919; Did I hit my #1 focus?</label>label>
+                                                          <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>&#127919; Did I hit my #1 focus?</label>
                                                           <div className="flex gap-2 mb-2">
                                                                           <button type="button" onClick={() => setEvening(e => ({ ...e, hitFocus: true }))}
                                                                                               className="px-4 py-2 rounded text-xs font-mono font-semibold border transition-all"
                                                                                               style={evening.hitFocus === true
                                                                                                                     ? { background: 'rgba(0,255,136,0.15)', borderColor: '#00ff88', color: '#00ff88' }
-                                                                                                                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>&#10003; YES</button>button>
+                                                                                                                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>&#10003; YES</button>
                                                                           <button type="button" onClick={() => setEvening(e => ({ ...e, hitFocus: false }))}
                                                                                               className="px-4 py-2 rounded text-xs font-mono font-semibold border transition-all"
                                                                                               style={evening.hitFocus === false
                                                                                                                     ? { background: 'rgba(255,45,120,0.1)', borderColor: '#ff2d78', color: '#ff2d78' }
-                                                                                                                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>&#10005; NO</button>button>
-                                                          </div>div>
+                                                                                                                    : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>&#10005; NO</button>
+                                                          </div>
                                                           <input value={evening.hitFocusNotes} onChange={e => setEvening(f => ({ ...f, hitFocusNotes: e.target.value }))} className="cyber-input w-full" placeholder="Notes on your focus..." />
-                                            </div>div>
+                                            </div>
                                             <div>
-                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#11088; Best moment of today...</label>label>
+                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#11088; Best moment of today...</label>
                                                           <input value={evening.bestMoment} onChange={e => setEvening(f => ({ ...f, bestMoment: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Caught a perfect ES reversal" />
-                                            </div>div>
+                                            </div>
                                             <div>
-                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#128260; What would I do differently?</label>label>
+                                                          <label className="text-xs font-mono mb-1.5 block" style={{ color: 'var(--text-muted)' }}>&#128260; What would I do differently?</label>
                                                           <input value={evening.doDifferently} onChange={e => setEvening(f => ({ ...f, doDifferently: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Took 2 revenge trades after the loss" />
-                                            </div>div>
+                                            </div>
                                             <div>
                                                           <label className="text-xs font-mono mb-1.5 flex items-center justify-between" style={{ color: 'var(--text-muted)' }}>
-                                                                          <span>&#129504; How was my trading mindset today?</span>span>
-                                                                          <span style={{ color: '#c084fc' }}>{evening.eveningMindsetRating}/10</span>span>
-                                                          </label>label>
+                                                                          <span>&#129504; How was my trading mindset today?</span>
+                                                                          <span style={{ color: '#c084fc' }}>{evening.eveningMindsetRating}/10</span>
+                                                          </label>
                                                           <input type="range" min="1" max="10" value={evening.eveningMindsetRating}
                                                                             onChange={e => setEvening(f => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))} className="w-full" />
                                                           <div className="flex justify-between text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
-                                                                          <span>Chaotic</span>span><span>Locked in</span>span>
-                                                          </div>div>
-                                            </div>div>
+                                                                          <span>Chaotic</span><span>Locked in</span>
+                                                          </div>
+                                            </div>
                                             <div>
-                                                          <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>&#127991; Mood tags</label>label>
+                                                          <label className="text-xs font-mono mb-2 block" style={{ color: 'var(--text-muted)' }}>&#127991; Mood tags</label>
                                                           <div className="flex flex-wrap gap-2">
                                                             {MOOD_TAGS.map(tag => (
                             <button key={tag} type="button" onClick={() => toggleMoodTag(tag)}
@@ -329,30 +329,30 @@ function JournalInner() {
                                                                           ? { background: MOOD_COLORS[tag] + '22', borderColor: MOOD_COLORS[tag], color: MOOD_COLORS[tag] }
                                                                           : { background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border-panel)', color: 'var(--text-muted)' }}>
                               {tag}
-                            </button>button>
+                            </button>
                           ))}
-                                                          </div>div>
-                                            </div>div>
+                                                          </div>
+                                            </div>
                                             <button type="submit" disabled={saving === 'evening'} className="btn-cyber-primary w-full" style={{ opacity: saving === 'evening' ? 0.6 : 1 }}>
                                               {saving === 'evening' ? 'Saving...' : 'Save Evening Entry'}
-                                            </button>button>
-                                </form>form>
-                      </div>div>
+                                            </button>
+                                </form>
+                      </div>
               
                 {/* PAST ENTRIES */}
                       <div className="mb-8">
                                 <div className="flex items-center justify-between mb-4">
                                             <h2 className="section-header" style={{ fontSize: '11px', letterSpacing: '4px' }}>
-                                                          // PAST ENTRIES &middot; <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>span>
-                                            </h2>h2>
-                                </div>div>
+                                                          // PAST ENTRIES &middot; <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>
+                                            </h2>
+                                </div>
                         {loading ? (
-                      <div className="text-xs font-mono text-center py-8" style={{ color: 'var(--text-muted)' }}>Loading entries...</div>div>
+                      <div className="text-xs font-mono text-center py-8" style={{ color: 'var(--text-muted)' }}>Loading entries...</div>
                     ) : pastEntries.length === 0 ? (
                       <div className="premium-card p-8 text-center">
                                     <NotebookPen size={28} style={{ color: 'rgba(255,255,255,0.1)', margin: '0 auto 12px' }} />
-                                    <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Your journal history will appear here after your first entry</p>p>
-                      </div>div>
+                                    <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Your journal history will appear here after your first entry</p>
+                      </div>
                     ) : (
                       <div className="space-y-2">
                         {pastEntries.map(entry => {
@@ -366,111 +366,111 @@ function JournalInner() {
                                                                                                                                                             <div style={{ minWidth: '150px' }}>
                                                                                                                                                                                     <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-secondary)' }}>
                                                                                                                                                                                                               {formatDate(entry.date)}
-                                                                                                                                                                                                            </span>span>
-                                                                                                                                                              </div>div>
+                                                                                                                                                                                                            </span>
+                                                                                                                                                              </div>
                                                                                                                                         {entry.tradingMindset ? (
                                                                                                                                                                                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0"
                                                                                                                                                                                                                     style={{ color: MINDSET_COLORS[entry.tradingMindset], borderColor: MINDSET_COLORS[entry.tradingMindset] + '55', background: MINDSET_COLORS[entry.tradingMindset] + '11' }}>
                                                                                                                                                                                                                   {entry.tradingMindset}
-                                                                                                                                                                                                                </span>span>
+                                                                                                                                                                                                                </span>
                                                                                                                                                                                       ) : <span style={{ minWidth: '60px' }} />}
                                                                                                                                         {primaryMood ? (
                                                                                                                                                                                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border flex-shrink-0"
                                                                                                                                                                                                                     style={{ color: MOOD_COLORS[primaryMood], borderColor: MOOD_COLORS[primaryMood] + '55', background: MOOD_COLORS[primaryMood] + '11' }}>
                                                                                                                                                                                                                   {primaryMood}
-                                                                                                                                                                                                                </span>span>
+                                                                                                                                                                                                                </span>
                                                                                                                                                                                       ) : <span style={{ minWidth: '50px' }} />}
                                                                                                                                                             <span className="text-xs flex-1 truncate" style={{ color: 'var(--text-muted)', minWidth: 0 }}>
                                                                                                                                                               {entry.morningFocus
                                                                                                                                                                                           ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '...' : '')
                                                                                                                                                                                           : entry.intention
                                                                                                                                                                                           ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '...' : '')
-                                                                                                                                                                                          : <span style={{ opacity: 0.4 }}>No focus logged</span>span>}
-                                                                                                                                                              </span>span>
+                                                                                                                                                                                          : <span style={{ opacity: 0.4 }}>No focus logged</span>}
+                                                                                                                                                              </span>
                                                                                                                                         {entry.eveningMindsetRating != null && (
                                                                                                                                                                                         <span className="text-xs font-mono flex-shrink-0" style={{ color: '#c084fc' }}>
                                                                                                                                                                                                                   {entry.eveningMindsetRating}/10
-                                                                                                                                                                                                                </span>span>
+                                                                                                                                                                                                                </span>
                                                                                                                                                             )}
                                                                                                                                         {isExpanded ? <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} /> : <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
-                                                                                                                                        </button>button>
+                                                                                                                                        </button>
                                                                                                                     {isExpanded && (
                                                                                                                                           <div className="px-4 pb-5 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
                                                                                                                                                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                                                                                                                                                     {entry.morningFocus && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#127919; #1 FOCUS</p>p>
-                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#127919; #1 FOCUS</p>
+                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.tradingMindset && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#129504; MORNING MINDSET</p>p>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#129504; MORNING MINDSET</p>
                                                                                                                                                                                                       <span className="text-xs font-mono px-2 py-0.5 rounded-full border"
                                                                                                                                                                                                                                         style={{ color: MINDSET_COLORS[entry.tradingMindset], borderColor: MINDSET_COLORS[entry.tradingMindset] + '55', background: MINDSET_COLORS[entry.tradingMindset] + '11' }}>
                                                                                                                                                                                                                                       {entry.tradingMindset}
-                                                                                                                                                                                                                                    </span>span>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                                                    </span>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.grateful && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#128591; GRATEFUL FOR</p>p>
-                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#128591; GRATEFUL FOR</p>
+                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.intention && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#10024; INTENTION</p>p>
-                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#10024; INTENTION</p>
+                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.hitFocus !== undefined && entry.hitFocus !== null && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#9989; HIT FOCUS?</p>p>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#9989; HIT FOCUS?</p>
                                                                                                                                                                                                       <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
-                                                                                                                                                                                                                                      {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
-                                                                                                                                                                                                                                    </p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                                                      {entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' â ' + entry.hitFocusNotes : ''}
+                                                                                                                                                                                                                                    </p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.bestMoment && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#11088; BEST MOMENT</p>p>
-                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#11088; BEST MOMENT</p>
+                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.doDifferently && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#128260; DO DIFFERENTLY</p>p>
-                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#128260; DO DIFFERENTLY</p>
+                                                                                                                                                                                                      <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.eveningMindsetRating != null && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#129504; EVENING MINDSET RATING</p>p>
-                                                                                                                                                                                                      <p className="text-sm font-mono" style={{ color: '#c084fc' }}>{entry.eveningMindsetRating}/10</p>p>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>&#129504; EVENING MINDSET RATING</p>
+                                                                                                                                                                                                      <p className="text-sm font-mono" style={{ color: '#c084fc' }}>{entry.eveningMindsetRating}/10</p>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
                                                                                                                                                                     {entry.moodTags && entry.moodTags.length > 0 && (
                                                                                                                                                                         <div>
-                                                                                                                                                                                                      <p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>&#127991; MOOD TAGS</p>p>
+                                                                                                                                                                                                      <p className="text-xs font-mono mb-2" style={{ color: 'var(--text-muted)' }}>&#127991; MOOD TAGS</p>
                                                                                                                                                                                                       <div className="flex flex-wrap gap-1.5">
                                                                                                                                                                                                                                       {entry.moodTags.map(tag => (
                                                                                                                                                                                                             <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded-full border"
-                                                                                                                                                                                                                                                  style={{ color: MOOD_COLORS[tag], borderColor: MOOD_COLORS[tag] + '66', background: MOOD_COLORS[tag] + '11' }}>{tag}</span>span>
+                                                                                                                                                                                                                                                  style={{ color: MOOD_COLORS[tag], borderColor: MOOD_COLORS[tag] + '66', background: MOOD_COLORS[tag] + '11' }}>{tag}</span>
                                                                                                                                                                                                           ))}
-                                                                                                                                                                                                                                    </div>div>
-                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                          </div>
                                                                                                                                                                                             )}
-                                                                                                                                                                    </div>div>
-                                                                                                                                            </div>div>
+                                                                                                                                                                    </div>
+                                                                                                                                            </div>
                                                                                                                                       )}
-                                                                                                                    </div>div>
+                                                                                                                    </div>
                                                                                                                 )
                         })}
-                      </div>div>
+                      </div>
                                 )}
-                      </div>div>
-              </div>div>
+                      </div>
+              </div>
               <LifeHubChat
                         section="journal"
                         apiRoute="/api/life/journal/chat"
@@ -478,7 +478,7 @@ function JournalInner() {
                         systemPrompt="You are Coach Shai, a mindset AI. Read the last 30 journal entries and spot recurring themes, emotional patterns, and mindset trends. Be insightful and direct."
                         defaultOpen={chatOpen}
                       />
-        </div>div>
+        </div>
       )
 }
 
@@ -486,10 +486,10 @@ export default function JournalPage() {
     return (
           <Suspense fallback={
                   <div className="cyber-bg-grid min-h-screen flex items-center justify-center">
-                          <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>div>
-                  </div>div>
+                          <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
+                  </div>
             }>
                 <JournalInner />
-          </Suspense>Suspense>
+          </Suspense>
         )
 }</div>
