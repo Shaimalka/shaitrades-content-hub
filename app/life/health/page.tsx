@@ -28,6 +28,16 @@ function getWeekStart(offsetWeeks = 0) {
   return d
 }
 
+function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
+      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+    </div>
+  )
+}
+
 function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
   const [insights, setInsights] = useState<CorrelationInsight[]>([])
   const [loading, setLoading] = useState(false)
@@ -234,7 +244,7 @@ function HealthInner() {
 
           {(longestStreak>0||bestSleepWeek.avg>0)&&(<div className="premium-card p-4 mb-6"><div className="flex items-center gap-2 mb-3"><Trophy size={14} style={{color:'#ffb400'}}/><h3 className="section-header">PERSONAL BESTS</h3></div><div className="flex gap-6">{longestStreak>0&&<div><p className="text-xs font-mono" style={{color:'var(--text-muted)'}}>LONGEST GYM STREAK</p><p className="text-lg font-mono font-bold" style={{color:'#00ff88'}}>{longestStreak} days 🔥</p></div>}{bestSleepWeek.avg>0&&<div><p className="text-xs font-mono" style={{color:'var(--text-muted)'}}>BEST SLEEP WEEK</p><p className="text-lg font-mono font-bold" style={{color:'#ff00e5'}}>{bestSleepWeek.avg.toFixed(1)}h avg 🌙</p><p className="text-xs font-mono" style={{color:'var(--text-muted)'}}>w/o {bestSleepWeek.week}</p></div>}</div></div>)}
 
-          {logs.length>0&&(<div className="premium-card overflow-hidden"><div className="p-4 border-b" style={{borderColor:'var(--border-panel)'}}><h3 className="section-header">HEALTH LOG · {logs.length} ENTRIES</h3></div><div className="overflow-x-auto"><table className="w-full text-xs"><thead><tr className="border-b" style={{borderColor:'var(--border-panel)'}}>{['DATE','WEIGHT','SLEEP','QUALITY','GYM','ENERGY','NOTES'].map(h=>(<th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{color:'var(--text-muted)'}}>{h}</th>))}</tr></thead><tbody>{[...logs].reverse().map(log=>(<tr key={log.id} className="border-b hover:bg-white/[0.02]" style={{borderColor:'var(--border-subtle)'}}><td className="px-4 py-3 font-mono" style={{color:'var(--text-secondary)'}}>{log.date}</td><td className="px-4 py-3 font-mono" style={{color:'#00f2ff'}}>{log.weight||'—'}</td><td className="px-4 py-3 font-mono" style={{color:'#ff00e5'}}>{log.sleep?log.sleep+'h':'—'}</td><td className="px-4 py-3">{log.sleepQuality?SLEEP_QUALITY_EMOJI[log.sleepQuality]:'—'}</td><td className="px-4 py-3">{log.gym?<span style={{color:'#00ff88'}}>✓</span>:<span style={{color:'var(--text-muted)'}}>✗</span>}</td><td className="px-4 py-3 font-mono" style={{color:'#ffb400'}}>{log.energy||'—'}/10</td><td className="px-4 py-3 max-w-[150px] truncate" style={{color:'var(--text-muted)'}}>{log.notes||'—'}</td></tr>))}</tbody></table></div></div>)}
+          {logs.length===0&&!loading&&(<div><EmptyState icon={Heart} heading="NO HEALTH DATA YET" subtext="Start logging your sleep, nutrition and energy to see correlations." /></div>)}{logs.length>0&&(<div className="premium-card overflow-hidden"><div className="p-4 border-b" style={{borderColor:'var(--border-panel)'}}><h3 className="section-header">HEALTH LOG · {logs.length} ENTRIES</h3></div><div className="overflow-x-auto"><table className="w-full text-xs"><thead><tr className="border-b" style={{borderColor:'var(--border-panel)'}}>{['DATE','WEIGHT','SLEEP','QUALITY','GYM','ENERGY','NOTES'].map(h=>(<th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{color:'var(--text-muted)'}}>{h}</th>))}</tr></thead><tbody>{[...logs].reverse().map(log=>(<tr key={log.id} className="border-b hover:bg-white/[0.02]" style={{borderColor:'var(--border-subtle)'}}><td className="px-4 py-3 font-mono" style={{color:'var(--text-secondary)'}}>{log.date}</td><td className="px-4 py-3 font-mono" style={{color:'#00f2ff'}}>{log.weight||'—'}</td><td className="px-4 py-3 font-mono" style={{color:'#ff00e5'}}>{log.sleep?log.sleep+'h':'—'}</td><td className="px-4 py-3">{log.sleepQuality?SLEEP_QUALITY_EMOJI[log.sleepQuality]:'—'}</td><td className="px-4 py-3">{log.gym?<span style={{color:'#00ff88'}}>✓</span>:<span style={{color:'var(--text-muted)'}}>✗</span>}</td><td className="px-4 py-3 font-mono" style={{color:'#ffb400'}}>{log.energy||'—'}/10</td><td className="px-4 py-3 max-w-[150px] truncate" style={{color:'var(--text-muted)'}}>{log.notes||'—'}</td></tr>))}</tbody></table></div></div>)}
         </>)}
 
         {/* COACH SHAI CORRELATIONS */}
