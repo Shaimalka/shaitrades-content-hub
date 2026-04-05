@@ -1,8 +1,8 @@
-// v5 - Playbook feature added
+// v6 - Edit + Delete Confirmation
 'use client'
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -282,12 +282,13 @@ function TradingJournalInner() {
   const [playbooks, setPlaybooks] = useState<Playbook[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [coachInsight, setCoachInsight] = useState<CoachInsight>({ text: '', visible: false, fading: false })
   const insightTimerRef = useRef<NodeJS.Timeout | null>(null)
   const fadeTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [form, setForm] = useState({
+  const emptyForm = {
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
     direction: 'Long' as 'Long' | 'Short',
@@ -297,7 +298,10 @@ function TradingJournalInner() {
     notes: '',
     emotion: 3,
     playbookId: '',
-  })
+    symbol: '',
+  }
+
+  const [form, setForm] = useState(emptyForm)
 
   function loadTrades() {
     fetch('/api/life/trading').then(r => r.json()).then((d: { logs: Trade[] }) => {
@@ -323,6 +327,30 @@ function TradingJournalInner() {
     }
   }, [])
 
+  function startEdit(trade: Trade) {
+    setEditingId(trade.id)
+    setForm({
+      date: trade.date,
+      time: trade.time || '',
+      direction: trade.direction,
+      entryPrice: String(trade.entryPrice),
+      exitPrice: String(trade.exitPrice),
+      contracts: String(trade.contracts),
+      notes: trade.notes || '',
+      emotion: trade.emotion || 3,
+      playbookId: trade.playbookId || '',
+      symbol: trade.symbol || '',
+    })
+    setShowForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setForm(emptyForm)
+    setShowForm(false)
+  }
+
   async function triggerCoachInsight(trade: Trade) {
     if (insightTimerRef.current) clearTimeout(insightTimerRef.current)
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
@@ -347,7 +375,7 @@ function TradingJournalInner() {
 
   async function submitTrade(e: React.FormEvent) {
     e.preventDefault()
-    const entry = {
+    const fields = {
       date: form.date,
       time: form.time,
       direction: form.direction,
@@ -357,34 +385,43 @@ function TradingJournalInner() {
       notes: form.notes,
       emotion: form.emotion,
       playbookId: form.playbookId || null,
+      symbol: form.symbol || undefined,
     }
-    const res = await fetch('/api/life/trading', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entry })
-    })
-    const data = await res.json()
-    const savedLogs: Trade[] = data.logs || []
-    setTrades(savedLogs)
-    setShowForm(false)
-    setForm({
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-      direction: 'Long',
-      entryPrice: '',
-      exitPrice: '',
-      contracts: '',
-      notes: '',
-      emotion: 3,
-      playbookId: '',
-    })
-    if (res.ok) {
-      const savedTrade = savedLogs[savedLogs.length - 1]
-      if (savedTrade) { triggerCoachInsight(savedTrade) }
+
+    if (editingId) {
+      // Edit mode: PUT request
+      const res = await fetch('/api/life/trading', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingId, ...fields })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setTrades(data.logs || [])
+        cancelEdit()
+      }
+    } else {
+      // Add mode: POST request
+      const res = await fetch('/api/life/trading', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entry: fields })
+      })
+      const data = await res.json()
+      const savedLogs: Trade[] = data.logs || []
+      setTrades(savedLogs)
+      setShowForm(false)
+      setForm(emptyForm)
+      if (res.ok) {
+        const savedTrade = savedLogs[savedLogs.length - 1]
+        if (savedTrade) { triggerCoachInsight(savedTrade) }
+      }
     }
   }
 
   async function deleteTrade(id: string) {
+    const confirmed = window.confirm('Delete this trade? This cannot be undone.')
+    if (!confirmed) return
     const res = await fetch('/api/life/trading', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -426,7 +463,7 @@ function TradingJournalInner() {
             {streak > 0 && <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88' }}><Flame size={12} /> {streak} day streak</div>}
             <Link href="/life/trading/playbook" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.4)', color: '#00f2ff' }}>PLAYBOOK</Link>
             <Link href="/life/trading/settings" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono" style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', color: 'var(--text-muted)' }}><Settings size={12} /> Settings</Link>
-            <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2"><Plus size={14} /> Log Trade</button>
+            <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(!showForm) }} className="btn-cyber-primary flex items-center gap-2"><Plus size={14} /> Log Trade</button>
           </div>
         </div>
 
@@ -454,12 +491,13 @@ function TradingJournalInner() {
         <TradingCalendar trades={trades} />
 
         {showForm && (
-          <div className="premium-card p-5 mb-6">
-            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW TRADE ENTRY</h3>
+          <div className="premium-card p-5 mb-6" style={editingId ? { boxShadow: '0 0 0 2px #00f2ff' } : {}}>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{editingId ? '// EDIT TRADE' : '// NEW TRADE ENTRY'}</h3>
             <form onSubmit={submitTrade} className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required /></div>
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>TIME</label><input type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} className="cyber-input w-full" /></div>
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DIRECTION</label><select value={form.direction} onChange={e => setForm(f => ({ ...f, direction: e.target.value as 'Long' | 'Short' }))} className="cyber-input w-full"><option value="Long">Long</option><option value="Short">Short</option></select></div>
+              <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>SYMBOL</label><input type="text" value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} className="cyber-input w-full" placeholder="NQ, ES..." /></div>
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>CONTRACTS</label><input type="number" step="0.01" value={form.contracts} onChange={e => setForm(f => ({ ...f, contracts: e.target.value }))} className="cyber-input w-full" placeholder="1" required /></div>
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>ENTRY PRICE</label><input type="number" step="0.01" value={form.entryPrice} onChange={e => setForm(f => ({ ...f, entryPrice: e.target.value }))} className="cyber-input w-full" placeholder="0.00" required /></div>
               <div><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>EXIT PRICE</label><input type="number" step="0.01" value={form.exitPrice} onChange={e => setForm(f => ({ ...f, exitPrice: e.target.value }))} className="cyber-input w-full" placeholder="0.00" required /></div>
@@ -475,13 +513,7 @@ function TradingJournalInner() {
               </div>
               <div className="col-span-2 md:col-span-4">
                 <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>TAG PLAYBOOK (OPTIONAL)</label>
-                <select
-                  value={form.playbookId}
-                  onChange={e => setForm(f => ({ ...f, playbookId: e.target.value }))}
-                  className="cyber-input w-full"
-                  disabled={playbooks.length === 0}
-                  style={{ fontFamily: 'JetBrains Mono', background: '#0a0a0f', color: playbooks.length === 0 ? 'var(--text-muted)' : 'var(--text-primary)', borderColor: 'rgba(0,242,255,0.3)' }}
-                >
+                <select value={form.playbookId} onChange={e => setForm(f => ({ ...f, playbookId: e.target.value }))} className="cyber-input w-full" disabled={playbooks.length === 0} style={{ fontFamily: 'JetBrains Mono', background: '#0a0a0f', color: playbooks.length === 0 ? 'var(--text-muted)' : 'var(--text-primary)', borderColor: 'rgba(0,242,255,0.3)' }} >
                   {playbooks.length === 0 ? (
                     <option value="">No playbooks yet — create one</option>
                   ) : (
@@ -495,7 +527,10 @@ function TradingJournalInner() {
                 </select>
               </div>
               <div className="col-span-2 md:col-span-4"><label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>NOTES</label><textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="cyber-input w-full h-20 resize-none" placeholder="What happened? Mistakes? Lessons?" /></div>
-              <div className="col-span-2 md:col-span-4 flex gap-3"><button type="submit" className="btn-cyber-primary">Save Trade</button><button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button></div>
+              <div className="col-span-2 md:col-span-4 flex gap-3">
+                <button type="submit" className="btn-cyber-primary">{editingId ? 'UPDATE TRADE' : 'ADD TRADE'}</button>
+                <button type="button" onClick={cancelEdit} style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text-muted)', background: 'transparent', borderRadius: 6, padding: '6px 16px', fontFamily: 'JetBrains Mono', fontSize: 12, cursor: 'pointer' }}>CANCEL</button>
+              </div>
             </form>
           </div>
         )}
@@ -535,7 +570,16 @@ function TradingJournalInner() {
                     <td className="px-4 py-3 text-base">{EMOTIONS[(trade.emotion || 3) - 1]}</td>
                     <td className="px-4 py-3">{trade.accountName ? (<span className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: 'rgba(0,242,255,0.1)', border: '1px solid rgba(0,242,255,0.25)', color: '#00f2ff' }}>{trade.accountName}</span>) : <span style={{ color: 'var(--text-muted)' }}>—</span>}</td>
                     <td className="px-4 py-3 max-w-[180px] truncate" style={{ color: 'var(--text-muted)' }}>{trade.notes}</td>
-                    <td className="px-4 py-3"><button onClick={() => deleteTrade(trade.id)} className="opacity-30 hover:opacity-70 transition-opacity"><Trash2 size={12} style={{ color: '#ff00e5' }} /></button></td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => startEdit(trade)} className="opacity-40 hover:opacity-80 transition-opacity" title="Edit trade">
+                          <Pencil size={12} style={{ color: '#00f2ff' }} />
+                        </button>
+                        <button onClick={() => deleteTrade(trade.id)} className="opacity-30 hover:opacity-70 transition-opacity" title="Delete trade">
+                          <Trash2 size={12} style={{ color: '#ff00e5' }} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}</tbody>
               </table>
