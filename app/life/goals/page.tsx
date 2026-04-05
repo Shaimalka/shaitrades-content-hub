@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Goals'
+}
+
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { Target, Plus, Trash2, CheckCircle, Clock } from 'lucide-react'
