@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { Trash2, BookOpen } from 'lucide-react'
+import { Trash2, BookOpen, AlertTriangle } from 'lucide-react'
 
 type Playbook = {
   id: string
@@ -149,6 +149,7 @@ export default function PlaybookPage() {
                 const avgPnl = totalTrades > 0 ? (s?.totalPnl ?? 0) / totalTrades : 0
                 const bestPnl = s?.bestPnl === -Infinity ? null : s?.bestPnl
                 const worstPnl = s?.worstPnl === Infinity ? null : s?.worstPnl
+                const hasEnoughData = totalTrades >= 10
                 return (
                   <div
                     key={pb.id}
@@ -185,6 +186,21 @@ export default function PlaybookPage() {
                       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--text-muted, #888)', marginTop: pb.description ? 0 : 12 }}>
                         No trades tagged yet
                       </p>
+                    ) : !hasEnoughData ? (
+                      <div style={{ marginTop: pb.description ? 0 : 12 }}>
+                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
+                          {totalTrades} {totalTrades === 1 ? 'trade' : 'trades'}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                          <AlertTriangle size={16} style={{ color: '#ff00e5', flexShrink: 0 }} />
+                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#ff00e5', letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', margin: 0 }}>
+                            Insufficient Data
+                          </p>
+                        </div>
+                        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, maxWidth: 260, lineHeight: 1.5, margin: 0 }}>
+                          Tag at least 10 trades to this playbook to see reliable stats.
+                        </p>
+                      </div>
                     ) : (
                       <div style={{ marginTop: pb.description ? 0 : 12 }}>
                         {/* Stats grid */}
