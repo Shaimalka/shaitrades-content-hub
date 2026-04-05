@@ -448,11 +448,7 @@ function HabitsInner() {
         {loading ? (
           <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
         ) : habits.length === 0 ? (
-          <div className="premium-card p-8 text-center">
-            <CheckSquare size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-            <p className="text-xs font-mono mb-3" style={{ color: 'var(--text-muted)' }}>No habits created yet.</p>
-            <button onClick={() => setShowForm(true)} className="btn-cyber-primary">Create Your First Habit</button>
-          </div>
+          <div><EmptyState icon={CheckCircle2} heading="NO HABITS YET" subtext="Add your first habit below to start building your streak." /></div>
         ) : (
           <div className="space-y-4">
             {STACKS.map(({ key, label, icon, color }) => {
