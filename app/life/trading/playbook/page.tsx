@@ -138,10 +138,8 @@ export default function PlaybookPage() {
           {loadingPb || loadingTrades ? (
             <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</p>
           ) : playbooks.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-xs font-mono" style={{ color: 'var(--text-muted, #888)' }}>No playbooks yet. Create your first one below.</p>
-            </div>
-          ) : (
+        <div><EmptyState icon={BookOpen} heading="NO PLAYBOOKS YET" subtext="Create your first playbook below to start tracking your setups." /></div>
+      ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {playbooks.map(pb => {
                 const s = statsByPlaybook[pb.id]
