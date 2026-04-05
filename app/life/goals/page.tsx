@@ -253,15 +253,8 @@ function GoalsInner() {
         {loading ? (
           <div className="text-center py-8 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
         ) : filteredGoals.length === 0 ? (
-          <div className="premium-card p-8 text-center">
-            <Target size={32} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-            <p className="text-xs font-mono mb-1" style={{ color: 'var(--text-muted)' }}>No {activeTier} goals yet.</p>
-            <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Set your first {activeTier} goal to start tracking progress.</p>
-            <button onClick={() => { setForm(f => ({ ...f, tier: activeTier })); setShowForm(true) }} className="btn-cyber-primary">
-              Add {activeTier.charAt(0).toUpperCase() + activeTier.slice(1)} Goal
-            </button>
-          </div>
-        ) : (
+      <div><EmptyState icon={Target} heading="NO GOALS SET YET" subtext="Set your first goal below and start making it happen." /></div>
+    ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredGoals.map(goal => {
               const pct = goal.targetValue > 0 ? Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100)) : 0
