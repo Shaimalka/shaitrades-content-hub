@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Habits'
+}
+
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { Plus, Trash2, Flame, CheckSquare, CheckCircle2 } from 'lucide-react'
