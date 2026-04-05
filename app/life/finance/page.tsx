@@ -579,8 +579,8 @@ function FinancePage() {
                         </tr>
                       ))}
                       {activeIncome.length === 0 && (
-                        <tr><td colSpan={5} className="px-4 py-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>No {activeStream.name} income yet</td></tr>
-                      )}
+                <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first income or expense to start tracking your finances." /></td></tr>
+              )}
                     </tbody>
                   </table>
                 </div>
@@ -616,8 +616,8 @@ function FinancePage() {
                         </tr>
                       ))}
                       {expenses.length === 0 && (
-                        <tr><td colSpan={5} className="px-4 py-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>No expenses yet</td></tr>
-                      )}
+                <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first income or expense to start tracking your finances." /></td></tr>
+              )}
                     </tbody>
                   </table>
                 </div>
