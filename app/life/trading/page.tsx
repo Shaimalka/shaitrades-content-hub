@@ -2,7 +2,7 @@
 'use client'
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil } from 'lucide-react'
+import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil, BarChart2 } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -30,6 +30,16 @@ type CoachInsight = {
 
 const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
+      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+    </div>
+  )
+}
 
 function CoachShaiCard({ insight }: { insight: CoachInsight }) {
   const [progress, setProgress] = useState(100)
@@ -554,7 +564,7 @@ function TradingJournalInner() {
 
         <div className="premium-card overflow-hidden">
           <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}><h3 className="section-header">TRADE LOG · {trades.length} ENTRIES</h3></div>
-          {loading ? <div className="p-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div> : trades.length === 0 ? <div className="p-8 text-center"><p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>No trades logged yet.</p><button onClick={() => setShowForm(true)} className="btn-cyber-primary mt-3">Log Your First Trade</button></div> : (
+          {loading ? <div className="p-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div> : trades.length === 0 ? <div><EmptyState icon={BarChart2} heading="NO TRADES LOGGED YET" subtext="Log your first trade above to start tracking your performance." /></div> : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead><tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>{['DATE', 'TIME', 'DIR', 'ENTRY', 'EXIT', 'QTY', 'P&L', '😊', 'ACCOUNT', 'NOTES', ''].map(h => <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>)}</tr></thead>
