@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { NotebookPen, ChevronDown, ChevronUp } from 'lucide-react'
+import { NotebookPen, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -71,6 +71,16 @@ function formatDate(dateStr: string) {
 
 function getPrimaryMood(entry: JournalEntry): MoodTag | null {
   return entry.moodTags && entry.moodTags.length > 0 ? entry.moodTags[0] : null
+}
+
+function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
+      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+    </div>
+  )
 }
 
 function JournalInner() {
