@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Trading Journal'
+}
+
 // v6 - Edit + Delete Confirmation
 'use client'
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
