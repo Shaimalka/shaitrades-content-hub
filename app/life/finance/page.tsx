@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Finance'
+}
+
 'use client'
 import { useState, useEffect, Suspense } from 'react'
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
