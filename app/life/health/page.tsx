@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Health'
+}
+
 'use client'
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
