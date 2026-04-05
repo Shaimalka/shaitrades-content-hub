@@ -3,8 +3,14 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
-  title: 'TRABITS',
-  description: 'Trade better. Live better. Build better habits.',
+  title: {
+    default: 'TRABITS',
+    template: '%s | TRABITS'
+  },
+  description: 'Your personal trading + habits OS. Built for serious traders.',
+  icons: {
+    icon: '/icon.svg'
+  }
 }
 
 export default function RootLayout({
