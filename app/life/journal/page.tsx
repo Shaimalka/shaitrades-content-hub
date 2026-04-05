@@ -744,29 +744,8 @@ function JournalInner() {
           </div>
 
           {pastEntries.length === 0 ? (
-            <div
-              className="p-8 text-center"
-              style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '12px',
-              }}
-            >
-              <NotebookPen
-                size={28}
-                style={{ color: 'rgba(255,255,255,0.1)', margin: '0 auto 12px' }}
-              />
-              <p
-                className="text-xs"
-                style={{
-                  color: 'var(--text-muted)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                Your journal history will appear here after your first entry
-              </p>
-            </div>
-          ) : (
+          <div><EmptyState icon={BookOpen} heading="NO JOURNAL ENTRIES YET" subtext="Your past entries will appear here after you save your first journal." /></div>
+        ) : (
             <div className="space-y-2">
               {pastEntries.map((entry) => {
                 const primaryMood = getPrimaryMood(entry)
