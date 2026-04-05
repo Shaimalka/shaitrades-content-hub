@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Journal'
+}
+
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
