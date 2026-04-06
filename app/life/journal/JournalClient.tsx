@@ -92,7 +92,7 @@ function JournalInner() {
   const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toLocaleDateString('en-CA')
   const [selectedDate, setSelectedDate] = useState(today)
 
   const selectedEntry = entries.find((e) => e.date === selectedDate)
