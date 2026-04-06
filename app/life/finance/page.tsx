@@ -255,7 +255,7 @@ function FinancePage() {
         {streamTotals.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
             {streamTotals.map(s => (
-              <div key={s.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, borderLeft: `3px solid ${s.color}` }}>
+              <div key={s.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, borderLeft: '3px solid #2563eb' }}>
                 <span style={{ fontSize: 24 }}>{s.emoji}</span>
                 <div>
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 2 }}>{s.name}</p>
@@ -316,7 +316,7 @@ function FinancePage() {
                 <TrendingDown size={20} style={{ color: '#ff4d6a', flexShrink: 0 }} />
                 <div>
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', margin: 0 }}>BIGGEST EXPENSE CATEGORY</p>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#ff4d6a', margin: '2px 0 0 0' }}>{biggestCat[0]} — {fmt(biggestCat[1])}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#ff4d6a', margin: '2px 0 0 0' }}>{biggestCat[0] || 'No expenses yet'} — {fmt(biggestCat[1])}</p>
                 </div>
               </div>
             )}
