@@ -61,13 +61,13 @@ export default function PlaybookPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const bg = isDark ? '#0a0a0f' : '#f8f9fc'
-  const surface = isDark ? '#111118' : '#ffffff'
-  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
-  const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
-  const inputBg = isDark ? '#1a1a24' : '#f8f9fc'
+  const bg = isDark ? (isDark ? '#0a0a0f' : '#f8f9fc') : '#f8f9fc'
+  const surface = isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f')
+  const border = isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'
+  const textPrimary = isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc')
+  const textSecondary = isDark ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : 'rgba(0,0,0,0.5)'
+  const textMuted = isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)'
+  const inputBg = isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f8f9fc'
 
   function fetchPlaybooks() {
     fetch('/api/life/trading/playbook')
