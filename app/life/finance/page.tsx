@@ -6,51 +6,20 @@ import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, X, DollarSign } from 'l
 import { useSearchParams } from 'next/navigation'
 import LifeHubChat from '@/components/LifeHubChat'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface IncomeStream {
-  id: string
-  name: string
-  color: string
-  emoji: string
-}
+interface IncomeStream { id: string; name: string; color: string; emoji: string }
+interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string }
+interface ExpenseEntry { id: string; date: string; amount: number; category: string; notes?: string }
+interface NetWorthEntry { date: string; assets: number }
 
-interface IncomeEntry {
-  id: string
-  date: string
-  amount: number
-  streamId: string
-  account?: string
-  payoutType?: string
-  source?: string
-  notes?: string
-}
-
-interface ExpenseEntry {
-  id: string
-  date: string
-  amount: number
-  category: string
-  notes?: string
-}
-
-interface NetWorthEntry {
-  date: string
-  assets: number
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
 const EXPENSE_CATEGORIES = ['Software', 'Education', 'Travel', 'Equipment', 'Food', 'Other']
 const NW_STORAGE_KEY = 'trabits_net_worth_history'
 const GOAL_STORAGE_KEY = 'trabits_trading_monthly_goal'
-
-const PRESET_COLORS = ['#00ff88', '#00f2ff', '#ffb400', '#ff2d78', '#c084fc', '#ff6b35']
-
+const PRESET_COLORS = ['#00c48c', '#2563eb', '#f59e0b', '#ff4d6a', '#a78bfa', '#f97316']
 const DEFAULT_STREAMS: IncomeStream[] = [
-  { id: 'trading', name: 'Trading', color: '#00ff88', emoji: '📈' },
-  { id: 'content', name: 'Content', color: '#00f2ff', emoji: '🎬' },
+  { id: 'trading', name: 'Trading', color: '#00c48c', emoji: '📈' },
+  { id: 'content', name: 'Content', color: '#2563eb', emoji: '🎬' },
 ]
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function today() { return new Date().toISOString().split('T')[0] }
 const fmt = (n: number) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 
@@ -67,76 +36,76 @@ function getNetWorthVerdict(history: NetWorthEntry[]): string {
   return 'Net worth held flat this month — stability is underrated.'
 }
 
+const inputStyle = {
+  background: '#1a1a24', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px',
+  color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px',
+  outline: 'none', width: '100%',
+} as React.CSSProperties
+
+const cardStyle = {
+  background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '20px',
+} as React.CSSProperties
+
+const statCardStyle = {
+  background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px',
+} as React.CSSProperties
+
+const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
+const blurStyle = { borderColor: 'rgba(255,255,255,0.06)', boxShadow: 'none' }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{
-    width,
-    height,
-    borderRadius,
-    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'shimmer 1.5s infinite',
-  }} />
+  <div style={{ width, height, borderRadius, background: 'rgba(255,255,255,0.06)', animation: 'shimmer 1.5s infinite', backgroundSize: '200% 100%' }} />
 )
 
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+      <Icon size={48} style={{ color: 'rgba(255,255,255,0.2)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.25)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
     </div>
   )
 }
 
-
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
+  useEffect(() => { const h = () => setWidth(window.innerWidth); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h) }, [])
   return width
 }
 
-// ─── New Stream Form ──────────────────────────────────────────────────────────
 function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id'>) => void; onCancel: () => void }) {
   const [name, setName] = useState('')
-  const [color, setColor] = useState('#00ff88')
+  const [color, setColor] = useState('#00c48c')
   const [emoji, setEmoji] = useState('💰')
   return (
-    <div className="premium-card p-4 mb-4">
-      <h3 className="text-xs font-mono font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>// NEW INCOME STREAM</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="col-span-2 md:col-span-1">
-          <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>STREAM NAME</label>
-          <input value={name} onChange={e => setName(e.target.value)} className="cyber-input w-full" placeholder="e.g. Freelance" />
+    <div style={{ ...cardStyle, marginBottom: 16 }}>
+      <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: '#ffffff', marginBottom: 12 }}>New Income Stream</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: 10, alignItems: 'end' }}>
+        <div>
+          <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>STREAM NAME</label>
+          <input value={name} onChange={e => setName(e.target.value)} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Freelance" />
         </div>
         <div>
-          <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>ICON EMOJI</label>
-          <input value={emoji} onChange={e => setEmoji(e.target.value)} className="cyber-input w-full" placeholder="💰" maxLength={2} />
+          <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>EMOJI</label>
+          <input value={emoji} onChange={e => setEmoji(e.target.value)} style={{ ...inputStyle, width: '60px' }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="💰" maxLength={2} />
         </div>
         <div>
-          <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>COLOR</label>
-          <div className="flex gap-1.5 flex-wrap">
+          <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>COLOR</label>
+          <div style={{ display: 'flex', gap: 4 }}>
             {PRESET_COLORS.map(c => (
-              <button key={c} type="button" onClick={() => setColor(c)}
-                className="w-6 h-6 rounded-full border-2 transition-all"
-                style={{ background: c, borderColor: color === c ? '#fff' : 'transparent' }} />
+              <button key={c} type="button" onClick={() => setColor(c)} style={{ width: 20, height: 20, borderRadius: '50%', background: c, border: color === c ? '2px solid #ffffff' : '2px solid transparent', cursor: 'pointer' }} />
             ))}
           </div>
         </div>
-        <div className="flex items-end gap-2">
-          <button onClick={() => name.trim() && onSave({ name: name.trim(), color, emoji })} className="btn-cyber-primary flex-1 text-xs">Save</button>
-          <button onClick={onCancel} className="btn-cyber-ghost text-xs">Cancel</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => name.trim() && onSave({ name: name.trim(), color, emoji })} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
+          <button onClick={onCancel} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
         </div>
       </div>
     </div>
   )
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 function FinancePage() {
   const isMobile = useWindowWidth() < 768
   const params = useSearchParams()
@@ -144,89 +113,44 @@ function FinancePage() {
   const [activeTab, setActiveTab] = useState<string>('trading')
   const [showForm, setShowForm] = useState(false)
   const [showNewStream, setShowNewStream] = useState(false)
-
   const [income, setIncome] = useState<IncomeEntry[]>([])
   const [expenses, setExpenses] = useState<ExpenseEntry[]>([])
   const [loading, setLoading] = useState(true)
-
   const [shaiMsg, setShaiMsg] = useState<string | null>(null)
   const [monthlyGoal, setMonthlyGoal] = useState<number>(10000)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('10000')
-
   const [nwHistory, setNwHistory] = useState<NetWorthEntry[]>([])
   const [nwInput, setNwInput] = useState('')
   const [nwDate, setNwDate] = useState(new Date().toISOString().slice(0, 7))
   const [nwSaved, setNwSaved] = useState(false)
-
-  const [incomeForm, setIncomeForm] = useState({
-    date: today(), amount: '', notes: '', account: '', source: '',
-  })
-  const [expenseForm, setExpenseForm] = useState({
-    date: today(), category: 'Software', amount: '', notes: '',
-  })
-
+  const [incomeForm, setIncomeForm] = useState({ date: today(), amount: '', notes: '', account: '', source: '' })
+  const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', notes: '' })
   const defaultChatOpen = params.get('chat') === '1'
 
-  // ─── Load ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    fetch('/api/life/finance')
-      .then(r => r.json())
-      .then(d => {
-        setIncome(d.income || [])
-        setExpenses(d.expenses || [])
-        if (d.streams && d.streams.length > 0) setStreams(d.streams)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    fetch('/api/life/finance').then(r => r.json()).then(d => { setIncome(d.income || []); setExpenses(d.expenses || []); if (d.streams && d.streams.length > 0) setStreams(d.streams) }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
-    const g = localStorage.getItem(GOAL_STORAGE_KEY)
-    if (g) { setMonthlyGoal(Number(g)); setGoalInput(g) }
-    const nw = localStorage.getItem(NW_STORAGE_KEY)
-    if (nw) { try { setNwHistory(JSON.parse(nw)) } catch {} }
+    const g = localStorage.getItem(GOAL_STORAGE_KEY); if (g) { setMonthlyGoal(Number(g)); setGoalInput(g) }
+    const nw = localStorage.getItem(NW_STORAGE_KEY); if (nw) { try { setNwHistory(JSON.parse(nw)) } catch {} }
   }, [])
 
-  // ─── Stream management ────────────────────────────────────────────────────
   async function addStream(s: Omit<IncomeStream, 'id'>) {
-    const res = await fetch('/api/life/finance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'add_stream', stream: s }),
-    })
-    const data = await res.json()
-    if (data.streams) setStreams(data.streams)
-    setShowNewStream(false)
-    setActiveTab(data.streams?.[data.streams.length - 1]?.id || activeTab)
+    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add_stream', stream: s }) })
+    const data = await res.json(); if (data.streams) setStreams(data.streams); setShowNewStream(false); setActiveTab(data.streams?.[data.streams.length - 1]?.id || activeTab)
   }
 
   async function deleteStream(streamId: string) {
-    const res = await fetch('/api/life/finance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete_stream', streamId }),
-    })
-    const data = await res.json()
-    if (data.streams) setStreams(data.streams)
-    if (activeTab === streamId) setActiveTab(data.streams?.[0]?.id || 'expenses')
+    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete_stream', streamId }) })
+    const data = await res.json(); if (data.streams) setStreams(data.streams); if (activeTab === streamId) setActiveTab(data.streams?.[0]?.id || 'expenses')
   }
 
-  // ─── Save income ──────────────────────────────────────────────────────────
   async function saveIncome(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/finance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'income',
-        entry: { ...incomeForm, amount: parseFloat(incomeForm.amount), streamId: activeTab },
-      }),
-    })
-    const data = await res.json()
-    setIncome(data.income || [])
-    setShowForm(false)
-    setIncomeForm({ date: today(), amount: '', notes: '', account: '', source: '' })
+    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'income', entry: { ...incomeForm, amount: parseFloat(incomeForm.amount), streamId: activeTab } }) })
+    const data = await res.json(); setIncome(data.income || []); setShowForm(false); setIncomeForm({ date: today(), amount: '', notes: '', account: '', source: '' })
     const stream = streams.find(s => s.id === activeTab)
     setShaiMsg(stream ? stream.emoji + ' ' + fmt(parseFloat(incomeForm.amount)) + ' logged to ' + stream.name + '. Keep stacking.' : null)
     setTimeout(() => setShaiMsg(null), 10000)
@@ -234,191 +158,141 @@ function FinancePage() {
 
   async function saveExpense(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/finance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'expense', entry: { ...expenseForm, amount: parseFloat(expenseForm.amount) } }),
-    })
-    const data = await res.json()
-    setExpenses(data.expenses || [])
-    setShowForm(false)
-    setExpenseForm({ date: today(), category: 'Software', amount: '', notes: '' })
+    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'expense', entry: { ...expenseForm, amount: parseFloat(expenseForm.amount) } }) })
+    const data = await res.json(); setExpenses(data.expenses || []); setShowForm(false); setExpenseForm({ date: today(), category: 'Software', amount: '', notes: '' })
   }
 
   async function deleteEntry(id: string, type: 'income' | 'expense') {
-    const res = await fetch('/api/life/finance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', type, entry: { id } }),
-    })
-    const data = await res.json()
-    if (type === 'income') setIncome(data.income || [])
-    else setExpenses(data.expenses || [])
+    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type, entry: { id } }) })
+    const data = await res.json(); if (type === 'income') setIncome(data.income || []); else setExpenses(data.expenses || [])
   }
 
-  function saveGoal() {
-    const val = parseFloat(goalInput) || 10000
-    setMonthlyGoal(val)
-    localStorage.setItem(GOAL_STORAGE_KEY, String(val))
-    setEditingGoal(false)
-  }
+  function saveGoal() { const val = parseFloat(goalInput) || 10000; setMonthlyGoal(val); localStorage.setItem(GOAL_STORAGE_KEY, String(val)); setEditingGoal(false) }
 
   function saveNetWorth() {
     if (!nwInput) return
     const newEntry: NetWorthEntry = { date: nwDate, assets: parseFloat(nwInput) }
     const updated = [...nwHistory.filter(e => e.date !== nwDate), newEntry].sort((a, b) => a.date.localeCompare(b.date))
-    setNwHistory(updated)
-    localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated))
-    setNwInput('')
-    setNwSaved(true)
-    setTimeout(() => setNwSaved(false), 3000)
+    setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)); setNwInput(''); setNwSaved(true); setTimeout(() => setNwSaved(false), 3000)
   }
 
-  // ─── Derived stats ────────────────────────────────────────────────────────
   const totalIn = income.reduce((s, e) => s + e.amount, 0)
   const totalOut = expenses.reduce((s, e) => s + e.amount, 0)
   const netProfit = totalIn - totalOut
-
-  const streamTotals = streams.map(s => ({
-    ...s,
-    total: income.filter(e => e.streamId === s.id).reduce((sum, e) => sum + e.amount, 0),
-    count: income.filter(e => e.streamId === s.id).length,
-  }))
-
+  const streamTotals = streams.map(s => ({ ...s, total: income.filter(e => e.streamId === s.id).reduce((sum, e) => sum + e.amount, 0), count: income.filter(e => e.streamId === s.id).length }))
   const currentMonth = new Date().toISOString().slice(0, 7)
-
   const monthlyMap: Record<string, number> = {}
-  for (const e of income) {
-    const m = e.date.slice(0, 7)
-    monthlyMap[m] = (monthlyMap[m] || 0) + e.amount
-  }
+  for (const e of income) { const m = e.date.slice(0, 7); monthlyMap[m] = (monthlyMap[m] || 0) + e.amount }
   const bestMonth = Object.entries(monthlyMap).sort((a, b) => b[1] - a[1])[0]
-
   const catMap: Record<string, number> = {}
   for (const e of expenses) catMap[e.category] = (catMap[e.category] || 0) + e.amount
   const biggestCat = Object.entries(catMap).sort((a, b) => b[1] - a[1])[0]
-
-  const allMonths = Array.from(new Set([
-    ...Object.keys(monthlyMap),
-    ...expenses.map(e => e.date.slice(0, 7)),
-  ])).sort().slice(-6)
-
+  const allMonths = Array.from(new Set([...Object.keys(monthlyMap), ...expenses.map(e => e.date.slice(0, 7))])).sort().slice(-6)
   const chartData = allMonths.map(m => {
     const monthIncome: any = { month: m.slice(5) }
-    for (const s of streams) {
-      monthIncome[s.name] = income.filter(e => e.streamId === s.id && e.date.slice(0, 7) === m).reduce((sum, e) => sum + e.amount, 0)
-    }
+    for (const s of streams) { monthIncome[s.name] = income.filter(e => e.streamId === s.id && e.date.slice(0, 7) === m).reduce((sum, e) => sum + e.amount, 0) }
     monthIncome.expenses = expenses.filter(e => e.date.slice(0, 7) === m).reduce((sum, e) => sum + e.amount, 0)
     return monthIncome
   })
-
   const tradingStream = streams.find(s => s.id === 'trading')
   const thisMonthTrading = income.filter(e => e.streamId === 'trading' && e.date.slice(0, 7) === currentMonth).reduce((s, e) => s + e.amount, 0)
   const goalPct = monthlyGoal > 0 ? Math.min(100, Math.round((thisMonthTrading / monthlyGoal) * 100)) : 0
-
   const nwChartData = nwHistory.map(e => ({ month: e.date.slice(5), assets: e.assets }))
   const nwVerdict = getNetWorthVerdict(nwHistory)
-
   const activeStream = streams.find(s => s.id === activeTab)
   const activeIncome = income.filter(e => e.streamId === activeTab)
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  const tooltipStyle = { background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#ffffff' }
+  const axisTickStyle = { fill: 'rgba(255,255,255,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
+
   return (
-    <div className="cyber-bg-grid min-h-screen">
+    <div style={{ background: '#0a0a0f', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
-            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
-            <span className="section-header">FINANCE</span>
-            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Finance Dashboard</h1>
+            <Link href="/life" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: '#ffffff', margin: 0 }}>Finance</h1>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Track income streams and expenses</p>
           </div>
-          <Wallet size={32} style={{ color: '#00ff88', opacity: 0.4 }} />
+          <Wallet size={32} style={{ color: '#00c48c', opacity: 0.4 }} />
         </div>
 
-        {/* Coach Shai banner */}
+        {/* Coach Shai Banner */}
         {shaiMsg && (
-          <div className="flex items-start gap-3 mb-5 rounded-xl px-5 py-4 relative"
-            style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,242,255,0.06))', border: '1px solid rgba(0,255,136,0.35)' }}>
-            <div className="flex-1">
-              <span className="block text-[9px] font-mono tracking-widest mb-1.5 font-bold" style={{ color: '#00ff88' }}>COACH SHAI</span>
-              <p className="text-sm font-mono" style={{ color: '#00f2ff' }}>{shaiMsg}</p>
+          <div style={{ ...cardStyle, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, borderColor: 'rgba(0,196,140,0.2)' }}>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: '#00c48c', display: 'block', marginBottom: 4 }}>COACH SHAI</span>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{shaiMsg}</p>
             </div>
-            <button onClick={() => setShaiMsg(null)} className="opacity-30 hover:opacity-70 text-sm" style={{ color: 'var(--text-muted)' }}>✕</button>
+            <button onClick={() => setShaiMsg(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 14 }}>✕</button>
           </div>
         )}
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="stat-card">
-            <p className="metric-label">TOTAL IN (YTD)</p>
-            <p className="metric-value text-xl font-mono" style={{ color: '#00ff88' }}>{fmt(totalIn)}</p>
+        {/* Stats Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
+          <div style={statCardStyle}>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TOTAL IN (YTD)</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#00c48c', margin: 0 }}>{fmt(totalIn)}</p>
           </div>
-          <div className="stat-card">
-            <p className="metric-label">TOTAL OUT (YTD)</p>
-            <p className="metric-value text-xl font-mono" style={{ color: '#ff2d78' }}>{fmt(totalOut)}</p>
+          <div style={statCardStyle}>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TOTAL OUT (YTD)</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#ff4d6a', margin: 0 }}>{fmt(totalOut)}</p>
           </div>
-          <div className="stat-card">
-            <p className="metric-label">NET PROFIT (YTD)</p>
-            <p className="metric-value text-xl font-mono" style={{ color: netProfit >= 0 ? '#00ff88' : '#ff2d78' }}>
-              {netProfit >= 0 ? '+' : ''}{fmt(netProfit)}
-            </p>
+          <div style={statCardStyle}>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>NET PROFIT (YTD)</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: netProfit >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{netProfit >= 0 ? '+' : ''}{fmt(netProfit)}</p>
           </div>
-          <div className="stat-card">
-            <p className="metric-label">TAX RESERVE (25%)</p>
-            <p className="metric-value text-xl font-mono" style={{ color: '#ffb400' }}>{fmt(Math.max(0, 0.25 * netProfit))}</p>
+          <div style={statCardStyle}>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TAX RESERVE (25%)</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{fmt(Math.max(0, 0.25 * netProfit))}</p>
           </div>
         </div>
 
         {/* Per-stream breakdown */}
         {streamTotals.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
             {streamTotals.map(s => (
-              <div key={s.id} className="premium-card p-4 flex items-center gap-3" style={{ borderLeft: '3px solid ' + s.color }}>
-                <span className="text-2xl">{s.emoji}</span>
+              <div key={s.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, borderLeft: `3px solid ${s.color}` }}>
+                <span style={{ fontSize: 24 }}>{s.emoji}</span>
                 <div>
-                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{s.name.toUpperCase()}</p>
-                  <p className="font-mono font-semibold" style={{ color: s.color }}>{fmt(s.total)}</p>
-                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{s.count} entries</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', marginBottom: 2 }}>{s.name}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 600, color: s.color, margin: 0 }}>{fmt(s.total)}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{s.count} entries</p>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Monthly trading goal */}
+        {/* Monthly Trading Goal */}
         {tradingStream && (
-          <div className="premium-card p-4 mb-4">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex-1 min-w-[200px]">
-                <div className="flex items-center gap-2 mb-2">
-                  <p className="text-xs font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>TRADING GOAL — {currentMonth}</p>
-                  <button onClick={() => setEditingGoal(!editingGoal)} className="text-[10px] font-mono px-2 py-0.5 rounded"
-                    style={{ color: '#00f2ff', background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.2)' }}>
-                    {editingGoal ? 'cancel' : 'edit goal'}
-                  </button>
+          <div style={{ ...cardStyle, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', margin: 0 }}>TRADING GOAL — {currentMonth}</p>
+                  <button onClick={() => setEditingGoal(!editingGoal)} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', cursor: 'pointer' }}>{editingGoal ? 'cancel' : 'edit'}</button>
                 </div>
                 {editingGoal ? (
-                  <div className="flex gap-2 items-center">
-                    <input type="number" value={goalInput} onChange={e => setGoalInput(e.target.value)} className="cyber-input text-sm w-32" />
-                    <button onClick={saveGoal} className="btn-cyber-primary text-xs px-3 py-1.5">Save</button>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input type="number" value={goalInput} onChange={e => setGoalInput(e.target.value)} style={{ ...inputStyle, width: 120 }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} />
+                    <button onClick={saveGoal} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <p className="font-mono text-lg font-bold" style={{ color: '#00ff88' }}>
-                      {fmt(thisMonthTrading)} <span className="text-xs ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>/ {fmt(monthlyGoal)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#00c48c', margin: 0 }}>
+                      {fmt(thisMonthTrading)} <span style={{ fontSize: 12, fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>/ {fmt(monthlyGoal)}</span>
                     </p>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded"
-                      style={{ color: goalPct >= 100 ? '#00ff88' : '#ffb400', background: 'rgba(255,180,0,0.08)', border: '1px solid rgba(255,180,0,0.2)' }}>
-                      {goalPct}%
-                    </span>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: goalPct >= 100 ? '#00c48c' : '#f59e0b' }}>{goalPct}%</span>
                   </div>
                 )}
               </div>
-              <div className="flex-1 min-w-[160px]">
-                <div className="w-full rounded-full h-2" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                  <div className="h-2 rounded-full transition-all duration-700"
-                    style={{ width: goalPct + '%', background: goalPct >= 100 ? 'linear-gradient(90deg,#00ff88,#00f2ff)' : 'linear-gradient(90deg,#ffb400,#00f2ff)' }} />
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: goalPct + '%', background: goalPct >= 100 ? '#00c48c' : '#2563eb', borderRadius: 4, transition: 'width 0.7s ease' }} />
                 </div>
               </div>
             </div>
@@ -427,22 +301,22 @@ function FinancePage() {
 
         {/* Best month / biggest expense */}
         {(bestMonth || biggestCat) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 24 }}>
             {bestMonth && (
-              <div className="premium-card p-4 flex items-center gap-3">
-                <TrendingUp size={20} style={{ color: '#00ff88', flexShrink: 0 }} />
+              <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <TrendingUp size={20} style={{ color: '#00c48c', flexShrink: 0 }} />
                 <div>
-                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>BEST INCOME MONTH</p>
-                  <p className="font-mono font-semibold" style={{ color: '#00ff88' }}>{bestMonth[0]} — {fmt(bestMonth[1])}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', margin: 0 }}>BEST INCOME MONTH</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#00c48c', margin: '2px 0 0 0' }}>{bestMonth[0]} — {fmt(bestMonth[1])}</p>
                 </div>
               </div>
             )}
             {biggestCat && (
-              <div className="premium-card p-4 flex items-center gap-3">
-                <TrendingDown size={20} style={{ color: '#ff2d78', flexShrink: 0 }} />
+              <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <TrendingDown size={20} style={{ color: '#ff4d6a', flexShrink: 0 }} />
                 <div>
-                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>BIGGEST EXPENSE CATEGORY</p>
-                  <p className="font-mono font-semibold" style={{ color: '#ff2d78' }}>{biggestCat[0]} — {fmt(biggestCat[1])}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', margin: 0 }}>BIGGEST EXPENSE CATEGORY</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#ff4d6a', margin: '2px 0 0 0' }}>{biggestCat[0]} — {fmt(biggestCat[1])}</p>
                 </div>
               </div>
             )}
@@ -451,202 +325,159 @@ function FinancePage() {
 
         {/* Chart */}
         {chartData.length > 0 && (
-          <div className="chart-container mb-6">
-            <h3 className="section-header mb-4">MONTHLY INCOME vs EXPENSES</h3>
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 16 }}>MONTHLY INCOME vs EXPENSES</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData}>
-                <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
-                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
-                <Tooltip contentStyle={{ background: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: 8, fontFamily: 'JetBrains Mono', fontSize: 11 }} />
-                <Legend wrapperStyle={{ fontFamily: 'JetBrains Mono', fontSize: 11 }} />
+                <XAxis dataKey="month" tick={axisTickStyle} />
+                <YAxis tick={axisTickStyle} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }} />
                 {streams.map(s => <Bar key={s.id} dataKey={s.name} fill={s.color} radius={[4,4,0,0]} />)}
-                <Bar dataKey="expenses" fill="#ff2d78" radius={[4,4,0,0]} />
+                <Bar dataKey="expenses" fill="#ff4d6a" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         )}
 
-        {/* Tabs: each stream + expenses + new stream button */}
-        <div className="flex gap-1 mb-4 flex-wrap items-center">
+        {/* Stream Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           {streams.map(s => (
-            <div key={s.id} className="relative group">
+            <div key={s.id} style={{ position: 'relative' }}>
               <button onClick={() => { setActiveTab(s.id); setShowForm(false) }}
-                className="px-4 py-2 text-xs font-mono font-semibold rounded transition-all flex items-center gap-1.5"
-                style={activeTab === s.id
-                  ? { background: s.color + '1a', borderBottom: '2px solid ' + s.color, color: s.color }
-                  : { background: 'rgba(255,255,255,0.03)', color: 'var(--text-muted)' }}>
-                <span>{s.emoji}</span> {s.name.toUpperCase()}
+                style={{ padding: '8px 16px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s', background: activeTab === s.id ? s.color + '1a' : 'rgba(255,255,255,0.03)', borderBottom: activeTab === s.id ? `2px solid ${s.color}` : '2px solid transparent', border: activeTab === s.id ? `1px solid ${s.color}30` : '1px solid rgba(255,255,255,0.06)', color: activeTab === s.id ? s.color : 'rgba(255,255,255,0.5)' }}>
+                {s.emoji} {s.name.toUpperCase()}
               </button>
               {!['trading','content'].includes(s.id) && (
-                <button onClick={() => deleteStream(s.id)}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: '#ff2d78', color: '#fff', fontSize: '9px' }}>×</button>
+                <button onClick={() => deleteStream(s.id)} style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#ff4d6a', color: '#ffffff', border: 'none', fontSize: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0 }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>×</button>
               )}
             </div>
           ))}
           <button onClick={() => { setActiveTab('expenses'); setShowForm(false) }}
-            className="px-4 py-2 text-xs font-mono font-semibold rounded transition-all"
-            style={activeTab === 'expenses'
-              ? { background: 'rgba(255,45,120,0.12)', borderBottom: '2px solid #ff2d78', color: '#ff2d78' }
-              : { background: 'rgba(255,255,255,0.03)', color: 'var(--text-muted)' }}>
+            style={{ padding: '8px 16px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: activeTab === 'expenses' ? 'rgba(255,77,106,0.12)' : 'rgba(255,255,255,0.03)', border: activeTab === 'expenses' ? '1px solid rgba(255,77,106,0.3)' : '1px solid rgba(255,255,255,0.06)', borderBottom: activeTab === 'expenses' ? '2px solid #ff4d6a' : '2px solid transparent', color: activeTab === 'expenses' ? '#ff4d6a' : 'rgba(255,255,255,0.5)' }}>
             EXPENSES
           </button>
           <button onClick={() => setShowNewStream(!showNewStream)}
-            className="px-3 py-2 text-xs font-mono font-semibold rounded transition-all flex items-center gap-1"
-            style={{ background: 'rgba(0,242,255,0.06)', color: '#00f2ff', border: '1px dashed rgba(0,242,255,0.3)' }}>
+            style={{ padding: '8px 14px', fontFamily: 'Inter, sans-serif', fontSize: 12, borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px dashed rgba(37,99,235,0.3)', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Plus size={10} /> New Stream
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="ml-auto btn-cyber-primary flex items-center gap-1.5 text-xs" style={{ minHeight: '44px' }}>
+          <button onClick={() => setShowForm(!showForm)}
+            style={{ marginLeft: 'auto', background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, minHeight: 44 }}>
             <Plus size={12} /> Add Entry
           </button>
         </div>
 
-        {/* New stream form */}
         {showNewStream && <NewStreamForm onSave={addStream} onCancel={() => setShowNewStream(false)} />}
 
-        {/* Add income form */}
+        {/* Income Form */}
         {showForm && activeTab !== 'expenses' && activeStream && (
-          <div className="premium-card p-4 mb-4">
-            <h3 className="text-xs font-mono font-semibold mb-3" style={{ color: activeStream.color }}>
-              // NEW {activeStream.name.toUpperCase()} INCOME {activeStream.emoji}
-            </h3>
-            <form onSubmit={saveIncome} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label>
-                <input type="date" value={incomeForm.date} onChange={e => setIncomeForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required />
-              </div>
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>AMOUNT ($)</label>
-                <input type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm(f => ({ ...f, amount: e.target.value }))} className="cyber-input w-full" placeholder="1500.00" required />
-              </div>
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>ACCOUNT / SOURCE</label>
-                <input value={incomeForm.account} onChange={e => setIncomeForm(f => ({ ...f, account: e.target.value }))} className="cyber-input w-full" placeholder="e.g. TopStep, Brand Deal" />
-              </div>
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>NOTES</label>
-                <input value={incomeForm.notes} onChange={e => setIncomeForm(f => ({ ...f, notes: e.target.value }))} className="cyber-input w-full" placeholder="Optional" />
-              </div>
-              <div className="flex items-end gap-2">
-                <button type="submit" className="btn-cyber-primary flex-1">Save</button>
-                <button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button>
+          <div style={{ ...cardStyle, marginBottom: 16 }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: activeStream.color, marginBottom: 12 }}>New {activeStream.name} Income {activeStream.emoji}</h3>
+            <form onSubmit={saveIncome} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>DATE</label><input type="date" value={incomeForm.date} onChange={e => setIncomeForm(f => ({ ...f, date: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} required /></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>AMOUNT ($)</label><input type="number" step="0.01" value={incomeForm.amount} onChange={e => setIncomeForm(f => ({ ...f, amount: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="1500.00" required /></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>ACCOUNT / SOURCE</label><input value={incomeForm.account} onChange={e => setIncomeForm(f => ({ ...f, account: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. TopStep, Brand Deal" /></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>NOTES</label><input value={incomeForm.notes} onChange={e => setIncomeForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Add expense form */}
+        {/* Expense Form */}
         {showForm && activeTab === 'expenses' && (
-          <div className="premium-card p-4 mb-4">
-            <h3 className="text-xs font-mono font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>// NEW EXPENSE</h3>
-            <form onSubmit={saveExpense} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DATE</label>
-                <input type="date" value={expenseForm.date} onChange={e => setExpenseForm(f => ({ ...f, date: e.target.value }))} className="cyber-input w-full" required />
-              </div>
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>CATEGORY</label>
-                <select value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value }))} className="cyber-input w-full">
-                  {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>AMOUNT ($)</label>
-                <input type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm(f => ({ ...f, amount: e.target.value }))} className="cyber-input w-full" placeholder="99.00" required />
-              </div>
-              <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>NOTES</label>
-                <input value={expenseForm.notes} onChange={e => setExpenseForm(f => ({ ...f, notes: e.target.value }))} className="cyber-input w-full" placeholder="Optional" />
-              </div>
-              <div className="flex items-end gap-2">
-                <button type="submit" className="btn-cyber-primary flex-1">Save</button>
-                <button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button>
+          <div style={{ ...cardStyle, marginBottom: 16 }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: '#ffffff', marginBottom: 12 }}>New Expense</h3>
+            <form onSubmit={saveExpense} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>DATE</label><input type="date" value={expenseForm.date} onChange={e => setExpenseForm(f => ({ ...f, date: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} required /></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>CATEGORY</label><select value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>{EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>AMOUNT ($)</label><input type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm(f => ({ ...f, amount: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="99.00" required /></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', display: 'block', marginBottom: 4 }}>NOTES</label><input value={expenseForm.notes} onChange={e => setExpenseForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Data table */}
+        {/* Data Table */}
         {loading ? (
-          <div className="premium-card p-5 space-y-3">
-            <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
-            <Skeleton height="60px" />
-            <Skeleton height="60px" />
-            <Skeleton height="60px" />
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <Skeleton height="60px" /><div style={{ height: 8 }} /><Skeleton height="60px" /><div style={{ height: 8 }} /><Skeleton height="60px" />
           </div>
         ) : (
-          <div className="premium-card overflow-hidden mb-6">
-            {/* Income stream table */}
+          <div style={{ ...cardStyle, marginBottom: 24, padding: 0, overflow: 'hidden' }}>
             {activeTab !== 'expenses' && activeStream && (
               <>
-                <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-header" style={{ color: activeStream.color }}>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: activeStream.color, margin: 0 }}>
                     {activeStream.emoji} {activeStream.name.toUpperCase()} INCOME · {activeIncome.length} ENTRIES · {fmt(activeIncome.reduce((s,e)=>s+e.amount,0))}
                   </h3>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {['DATE','ACCOUNT / SOURCE','AMOUNT','NOTES',''].map(h => (
-                          <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {[...activeIncome].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                        <tr key={e.id} className="border-b hover:bg-white/[0.02]" style={{ borderColor: 'var(--border-subtle)' }}>
-                          <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{e.date}</td>
-                          <td className="px-4 py-3" style={{ color: 'var(--text-primary)' }}>{e.account || e.source || '—'}</td>
-                          <td className="px-4 py-3 font-mono font-semibold" style={{ color: activeStream.color }}>{fmt(e.amount)}</td>
-                          <td className="px-4 py-3 max-w-[150px] truncate" style={{ color: 'var(--text-muted)' }}>{e.notes || '—'}</td>
-                          <td className="px-4 py-3">
-                            <button onClick={() => deleteEntry(e.id, 'income')} className="opacity-30 hover:opacity-70">
-                              <Trash2 size={12} style={{ color: '#ff00e5' }} />
+                        <tr key={e.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.5)' }}>{e.date}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: '#ffffff' }}>{e.account || e.source || '—'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#00c48c' }}>{fmt(e.amount)}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: 'rgba(255,255,255,0.5)', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <button onClick={() => deleteEntry(e.id, 'income')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
+                              <Trash2 size={12} style={{ color: '#ff4d6a' }} />
                             </button>
                           </td>
                         </tr>
                       ))}
-                      {activeIncome.length === 0 && (
-                <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first income or expense to start tracking your finances." /></td></tr>
-              )}
+                      {activeIncome.length === 0 && <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first income to start tracking." /></td></tr>}
                     </tbody>
                   </table>
                 </div>
               </>
             )}
-            {/* Expenses table */}
             {activeTab === 'expenses' && (
               <>
-                <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}>
-                  <h3 className="section-header">EXPENSES · {expenses.length} ENTRIES · {fmt(expenses.reduce((s,e)=>s+e.amount,0))}</h3>
+                <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
+                    EXPENSES · {expenses.length} ENTRIES · {fmt(expenses.reduce((s,e)=>s+e.amount,0))}
+                  </h3>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {['DATE','CATEGORY','AMOUNT','NOTES',''].map(h => (
-                          <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {[...expenses].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                        <tr key={e.id} className="border-b hover:bg-white/[0.02]" style={{ borderColor: 'var(--border-subtle)' }}>
-                          <td className="px-4 py-3 font-mono" style={{ color: 'var(--text-secondary)' }}>{e.date}</td>
-                          <td className="px-4 py-3"><span className="text-xs font-mono px-2 py-0.5 rounded border" style={{ color: '#ff2d78', borderColor: 'rgba(255,45,120,0.3)' }}>{e.category}</span></td>
-                          <td className="px-4 py-3 font-mono font-semibold" style={{ color: '#ff2d78' }}>{fmt(e.amount)}</td>
-                          <td className="px-4 py-3 max-w-[200px] truncate" style={{ color: 'var(--text-muted)' }}>{e.notes || '—'}</td>
-                          <td className="px-4 py-3">
-                            <button onClick={() => deleteEntry(e.id, 'expense')} className="opacity-30 hover:opacity-70">
-                              <Trash2 size={12} style={{ color: '#ff00e5' }} />
+                        <tr key={e.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.5)' }}>{e.date}</td>
+                          <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>{e.category}</span></td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#ff4d6a' }}>{fmt(e.amount)}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: 'rgba(255,255,255,0.5)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <button onClick={() => deleteEntry(e.id, 'expense')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
+                              <Trash2 size={12} style={{ color: '#ff4d6a' }} />
                             </button>
                           </td>
                         </tr>
                       ))}
-                      {expenses.length === 0 && (
-                <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first income or expense to start tracking your finances." /></td></tr>
-              )}
+                      {expenses.length === 0 && <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first expense to start tracking." /></td></tr>}
                     </tbody>
                   </table>
                 </div>
@@ -656,75 +487,59 @@ function FinancePage() {
         )}
 
         {/* Net Worth Tracker */}
-        <div className="chart-container mb-6">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div style={{ ...cardStyle, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
             <div>
-              <h3 className="section-header">NET WORTH TRACKER</h3>
+              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', margin: 0 }}>NET WORTH TRACKER</h3>
               {nwVerdict && (
-                <div className="mt-2 flex items-start gap-2">
-                  <span className="text-[9px] font-mono tracking-widest font-bold flex-shrink-0 mt-0.5" style={{ color: '#00ff88' }}>COACH SHAI</span>
-                  <p className="text-xs font-mono" style={{ color: '#00f2ff' }}>{nwVerdict}</p>
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: '#00c48c', flexShrink: 0, marginTop: 2 }}>COACH SHAI</span>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{nwVerdict}</p>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <input type="month" value={nwDate} onChange={e => setNwDate(e.target.value)} className="cyber-input text-xs" style={{ width: '140px' }} />
-              <input type="number" value={nwInput} onChange={e => setNwInput(e.target.value)} className="cyber-input text-xs" placeholder="Current total assets ($)" style={{ width: isMobile ? '100%' : '200px' }}
-                onKeyDown={ev => { if (ev.key === 'Enter') saveNetWorth() }} />
-              <button onClick={saveNetWorth} disabled={!nwInput} className="btn-cyber-primary text-xs px-4 py-2 disabled:opacity-40">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <input type="month" value={nwDate} onChange={e => setNwDate(e.target.value)} style={{ ...inputStyle, width: 140, colorScheme: 'dark' }} />
+              <input type="number" value={nwInput} onChange={e => setNwInput(e.target.value)} style={{ ...inputStyle, width: isMobile ? '100%' : 180 }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Current total assets ($)" onKeyDown={ev => { if (ev.key === 'Enter') saveNetWorth() }} />
+              <button onClick={saveNetWorth} disabled={!nwInput} style={{ background: nwInput ? '#2563eb' : '#111118', border: nwInput ? 'none' : '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: nwInput ? '#ffffff' : 'rgba(255,255,255,0.25)', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 16px', cursor: nwInput ? 'pointer' : 'not-allowed' }}>
                 {nwSaved ? '✓ Saved' : 'Update'}
               </button>
             </div>
           </div>
           {nwChartData.length === 0 ? (
-            <div className="text-center py-10 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-              No net worth data yet — enter your current total assets above to start tracking
-            </div>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)', textAlign: 'center', padding: '32px 0' }}>No net worth data yet — enter your current total assets above to start tracking</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={nwChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} />
-                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11, fontFamily: 'JetBrains Mono' }} tickFormatter={(v: number) => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v)} />
-                <Tooltip contentStyle={{ background: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: 8, fontFamily: 'JetBrains Mono', fontSize: 11 }} formatter={(value: number) => [fmt(value), 'Net Worth']} />
-                <Line type="monotone" dataKey="assets" stroke="#00f2ff" strokeWidth={2.5} dot={{ fill: '#00f2ff', r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: '#00ff88' }} />
+                <XAxis dataKey="month" tick={axisTickStyle} />
+                <YAxis tick={axisTickStyle} tickFormatter={(v: number) => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [fmt(value), 'Net Worth']} />
+                <Line type="monotone" dataKey="assets" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: '#2563eb', r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: '#00c48c' }} />
               </LineChart>
             </ResponsiveContainer>
           )}
           {nwHistory.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {[...nwHistory].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                <div key={e.date} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono"
-                  style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.15)' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{e.date}</span>
-                  <span className="font-semibold" style={{ color: '#00f2ff' }}>{fmt(e.assets)}</span>
-                  <button onClick={() => { const updated = nwHistory.filter(x => x.date !== e.date); setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)) }}
-                    className="opacity-30 hover:opacity-70 ml-1" style={{ color: '#ff00e5' }}>×</button>
+                <div key={e.date} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.15)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.5)' }}>{e.date}</span>
+                  <span style={{ color: '#2563eb', fontWeight: 600 }}>{fmt(e.assets)}</span>
+                  <button onClick={() => { const updated = nwHistory.filter(x => x.date !== e.date); setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d6a', opacity: 0.5, fontSize: 12 }}>×</button>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
-
-      <LifeHubChat
-        section="finance"
-        apiRoute="/api/life/finance/chat"
-        contextData={{ income, expenses, streams }}
-        systemPrompt="You are Coach Shai, a finance AI. Analyze income across all streams, expenses, and net profit. Be direct and insightful."
-        defaultOpen={defaultChatOpen}
-      />
+      <LifeHubChat section="finance" apiRoute="/api/life/finance/chat" contextData={{ income, expenses, streams }} systemPrompt="You are Coach Shai, a finance AI. Analyze income across all streams, expenses, and net profit. Be direct and insightful." defaultOpen={defaultChatOpen} />
     </div>
   )
 }
 
 export default function Finance() {
   return (
-    <Suspense fallback={
-      <div className="cyber-bg-grid min-h-screen flex items-center justify-center">
-        <div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
-      </div>
-    }>
+    <Suspense fallback={<div style={{ background: '#0a0a0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading...</div></div>}>
       <FinancePage />
     </Suspense>
   )
