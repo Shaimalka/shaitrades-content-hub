@@ -309,7 +309,7 @@ function GoalsInner() {
 
 export default function GoalsPage() {
   return (
-    <Suspense fallback={<div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>Loading...</div></div>}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(128,128,128,0.5)' }}>Loading...</div></div>}>
       <GoalsInner />
     </Suspense>
   )
