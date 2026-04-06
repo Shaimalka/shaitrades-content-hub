@@ -111,10 +111,10 @@ function HabitsInner() {
   const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const inputStyle = {
-    background: isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f1f4f9',
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#1a1a24' : '#f1f4f9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` ,
     borderRadius: '8px',
-    color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc'),
+    color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif',
     fontSize: '14px',
     padding: '8px 12px',
@@ -124,8 +124,8 @@ function HabitsInner() {
   } as React.CSSProperties
   const selectStyle = { ...inputStyle, cursor: 'pointer' } as React.CSSProperties
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` ,
     borderRadius: '12px',
     padding: '20px',
   } as React.CSSProperties
@@ -419,12 +419,12 @@ function HabitsInner() {
                   </button>
 
                   {isExpanded && (
-                    <div style={{ padding: '0 20px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ padding: '0 20px 20px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {items.map(habit => {
                         const streak = getStreak(habit.id, completions)
                         const todayDone = completions[today]?.[habit.id] || false
                         return (
-                          <div key={habit.id} style={{ background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
+                          <div key={habit.id} style={{ background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
                               <button onClick={() => toggleHabit(habit.id, today)} style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}>
                                 {todayDone && <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontSize: 11, fontWeight: 700 }}>✓</span>}
