@@ -50,9 +50,9 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
   const { isDark } = useTheme()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: isDark ? (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)') : 'rgba(0,0,0,0.15)', marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: isDark ? (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)') : 'rgba(0,0,0,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+      <Icon size={48} style={{ color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
     </div>
   )
 }
@@ -68,9 +68,9 @@ const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { w
 
 function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boolean }) {
   const [progress, setProgress] = useState(100)
-  const surface = isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f')
-  const border = isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc')
+  const surface = isDark ? '#111118' : '#ffffff'
+  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
 
   useEffect(() => {
     if (!insight.visible) return
@@ -105,7 +105,7 @@ function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boo
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textPrimary, lineHeight: 1.7, marginBottom: 12 }}>
         {insight.text}
       </p>
-      <div style={{ height: 2, background: isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.06)', borderRadius: 1 }}>
+      <div style={{ height: 2, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 1 }}>
         <div style={{ height: '100%', width: `${progress}%`, background: '#2563eb', borderRadius: 1, transition: 'width 0.1s linear' }} />
       </div>
     </div>
@@ -117,8 +117,8 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   const [status, setStatus] = useState<{ connected: boolean; lastSync: string | null } | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
-  const border = isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'
-  const textMuted = isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)'
+  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
 
   useEffect(() => {
     fetch('/api/tradovate/status')
@@ -197,10 +197,10 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const todayStr = today.toISOString().split('T')[0]
-  const surface = isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f')
-  const border = isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc')
-  const textMuted = isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)'
+  const surface = isDark ? '#111118' : '#ffffff'
+  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
+  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
 
   const dayMap = useMemo(() => {
     const map: Record<string, { pnl: number; trades: Trade[] }> = {}
@@ -288,8 +288,8 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
           const pnl = dayData?.pnl ?? 0
           const isGreen = hasTrades && pnl > 0
           const isRed = hasTrades && pnl < 0
-          let bg = isDark ? (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') : 'rgba(0,0,0,0.02)'
-          let cellBorder = `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)') : 'rgba(0,0,0,0.06)'}`
+          let bg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
+          let cellBorder = `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'}`
           let pnlColor = 'transparent'
           if (isGreen) { bg = 'rgba(0,196,140,0.1)'; cellBorder = '1px solid #00c48c'; pnlColor = '#00c48c' }
           if (isRed) { bg = 'rgba(255,77,106,0.1)'; cellBorder = '1px solid #ff4d6a'; pnlColor = '#ff4d6a' }
@@ -355,13 +355,13 @@ function TradingJournalInner() {
   const lastInsightTime = useRef<number>(0)
   const COOLDOWN_MS = 5 * 60 * 1000
 
-  const bg = isDark ? (isDark ? '#0a0a0f' : '#f8f9fc') : '#f8f9fc'
-  const surface = isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f')
-  const border = isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc')
-  const textSecondary = isDark ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : 'rgba(0,0,0,0.5)'
-  const textMuted = isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)'
-  const inputBg = isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f8f9fc'
+  const bg = isDark ? '#0a0a0f' : '#f8f9fc'
+  const surface = isDark ? '#111118' : '#ffffff'
+  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
+  const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
+  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const inputBg = isDark ? '#1a1a24' : '#f8f9fc'
 
   const emptyForm = {
     date: new Date().toISOString().split('T')[0],
@@ -570,7 +570,7 @@ function TradingJournalInner() {
                     <button key={dir} type='button' onClick={() => setForm(f => ({ ...f, direction: dir }))} style={{
                       flex: 1, padding: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none',
                       background: form.direction === dir ? '#2563eb' : inputBg,
-                      color: form.direction === dir ? (isDark ? '#ffffff' : '#0a0a0f') : textMuted,
+                      color: form.direction === dir ? '#ffffff' : textMuted,
                       transition: 'all 0.15s',
                     }}>{dir}</button>
                   ))}
@@ -678,7 +678,7 @@ function TradingJournalInner() {
                 <tbody>
                   {[...trades].reverse().map(trade => (
                     <tr key={trade.id} className='trade-row' style={{ borderBottom: `1px solid ${border}` }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = isDark ? (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') : 'rgba(0,0,0,0.02)'}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'}
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                     >
                       <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.date}</td>
@@ -729,7 +729,7 @@ function TradingJournalInner() {
 
 export default function TradingJournalPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>Loading...</div></div>}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>Loading...</div></div>}>
       <TradingJournalInner />
     </Suspense>
   )
