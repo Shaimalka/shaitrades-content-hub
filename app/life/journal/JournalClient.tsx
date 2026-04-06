@@ -81,6 +81,18 @@ function getPrimaryMood(entry: JournalEntry): MoodTag | null {
   return entry.moodTags && entry.moodTags.length > 0 ? entry.moodTags[0] : null
 }
 
+
+const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
+  <div style={{
+    width,
+    height,
+    borderRadius,
+    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  }} />
+)
+
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
@@ -313,9 +325,16 @@ function JournalInner() {
 
   if (!authChecked || loading) {
     return (
-      <div className="cyber-bg-grid min-h-screen flex items-center justify-center" style={{ background: '#060608' }}>
-        <div className="text-xs font-mono" style={{ color: '#00f2ff', opacity: 0.6 }}>
-          Loading...
+      <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
+        <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+        <div className="max-w-[900px] mx-auto p-6">
+          <div className="mb-8"><Skeleton height="40px" width="200px" /></div>
+          <div className="premium-card p-5 mb-5 space-y-4">
+            <Skeleton height="120px" />
+          </div>
+          <div className="premium-card p-5 mb-8 space-y-4">
+            <Skeleton height="120px" />
+          </div>
         </div>
       </div>
     )
