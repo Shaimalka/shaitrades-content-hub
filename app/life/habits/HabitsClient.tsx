@@ -7,7 +7,6 @@ import { useSearchParams } from 'next/navigation'
 
 type Stack = 'Morning' | 'Trading' | 'Evening'
 type Frequency = 'Daily' | 'Weekdays' | 'Custom'
-
 type Habit = {
   id: string
   name: string
@@ -19,19 +18,39 @@ type Habit = {
   customDays: number[]
   createdAt: string
 }
-
 type Completions = Record<string, Record<string, boolean>>
 type MissLog = Record<string, Record<string, string>>
 
 const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
-  { key: 'Morning', label: 'MORNING STACK', icon: '🌅', color: '#ffb400' },
-  { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#00f2ff' },
+  { key: 'Morning', label: 'MORNING STACK', icon: '🌅', color: '#f59e0b' },
+  { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#2563eb' },
   { key: 'Evening', label: 'EVENING STACK', icon: '🌙', color: '#a78bfa' },
 ]
-
 const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MISS_KEY = 'life:habits:misslog'
+
+const inputStyle = {
+  background: '#1a1a24',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '8px',
+  color: '#ffffff',
+  fontFamily: 'Inter, sans-serif',
+  fontSize: '14px',
+  padding: '8px 12px',
+  outline: 'none',
+  width: '100%',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+} as React.CSSProperties
+
+const selectStyle = { ...inputStyle, cursor: 'pointer' } as React.CSSProperties
+
+const cardStyle = {
+  background: '#111118',
+  border: '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '12px',
+  padding: '20px',
+} as React.CSSProperties
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -42,8 +61,6 @@ function useWindowWidth() {
   }, [])
   return width
 }
-
-
 
 function getLast30Days(): string[] {
   const days: string[] = []
@@ -62,11 +79,7 @@ function getStreak(habitId: string, completions: Completions): number {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
     const dateStr = d.toISOString().split('T')[0]
-    if (completions[dateStr]?.[habitId]) {
-      streak++
-    } else {
-      break
-    }
+    if (completions[dateStr]?.[habitId]) { streak++ } else { break }
   }
   return streak
 }
@@ -91,8 +104,7 @@ function getWeakestDay(habitId: string, completions: Completions): string {
     dayCounts[dow].total++
     if (completions[d.toISOString().split('T')[0]]?.[habitId]) dayCounts[dow].done++
   }
-  let weakest = 0
-  let lowestRate = 2
+  let weakest = 0, lowestRate = 2
   for (let day = 0; day < 7; day++) {
     if (dayCounts[day].total === 0) continue
     const rate = dayCounts[day].done / dayCounts[day].total
@@ -101,24 +113,16 @@ function getWeakestDay(habitId: string, completions: Completions): string {
   return DAY_NAMES[weakest]
 }
 
-
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{
-    width,
-    height,
-    borderRadius,
-    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'shimmer 1.5s infinite',
-  }} />
+  <div style={{ width, height, borderRadius, background: 'rgba(255,255,255,0.06)', animation: 'shimmer 1.5s infinite', backgroundSize: '200% 100%' }} />
 )
 
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+      <Icon size={48} style={{ color: 'rgba(255,255,255,0.2)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.25)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
     </div>
   )
 }
@@ -136,17 +140,10 @@ function HabitsInner() {
   const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [expandedStack, setExpandedStack] = useState<Stack | null>(null)
   const [showWeeklyReview, setShowWeeklyReview] = useState(false)
-
   const [form, setForm] = useState({
-    name: '',
-    stack: 'Morning' as Stack,
-    intention: '',
-    twoMinute: '',
-    whyMatters: '',
-    frequency: 'Daily' as Frequency,
-    customDays: [] as number[],
+    name: '', stack: 'Morning' as Stack, intention: '', twoMinute: '', whyMatters: '',
+    frequency: 'Daily' as Frequency, customDays: [] as number[],
   })
-
   const today = new Date().toISOString().split('T')[0]
   const last30 = getLast30Days()
   const currentHour = new Date().getHours()
@@ -154,32 +151,17 @@ function HabitsInner() {
   useEffect(() => {
     fetch('/api/life/habits')
       .then(r => r.json())
-      .then(d => {
-        setHabits(d.habits || [])
-        setCompletions(d.completions || {})
-        setLoading(false)
-      })
+      .then(d => { setHabits(d.habits || []); setCompletions(d.completions || {}); setLoading(false) })
       .catch(() => setLoading(false))
-
-    try {
-      const stored = localStorage.getItem(MISS_KEY)
-      if (stored) setMissLog(JSON.parse(stored))
-    } catch {}
+    try { const stored = localStorage.getItem(MISS_KEY); if (stored) setMissLog(JSON.parse(stored)) } catch {}
   }, [])
 
   async function toggleHabit(habitId: string, date: string) {
     const wasDone = completions[date]?.[habitId]
-    const res = await fetch('/api/life/habits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'toggle', date, habitId }),
-    })
+    const res = await fetch('/api/life/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'toggle', date, habitId }) })
     const data = await res.json()
     setCompletions(data.completions || {})
-
-    if (wasDone && date === today && currentHour >= 21) {
-      setMissPrompt({ habitId, date })
-    }
+    if (wasDone && date === today && currentHour >= 21) setMissPrompt({ habitId, date })
   }
 
   function saveMissReason() {
@@ -189,18 +171,12 @@ function HabitsInner() {
     updated[missPrompt.date][missPrompt.habitId] = missReason
     setMissLog(updated)
     try { localStorage.setItem(MISS_KEY, JSON.stringify(updated)) } catch {}
-    setMissPrompt(null)
-    setMissReason('')
+    setMissPrompt(null); setMissReason('')
   }
 
   async function addHabit(e: React.FormEvent) {
     e.preventDefault()
-    const entry = { ...form }
-    const res = await fetch('/api/life/habits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entry }),
-    })
+    const res = await fetch('/api/life/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry: { ...form } }) })
     const data = await res.json()
     setHabits(data.habits || [])
     setShowForm(false)
@@ -208,91 +184,53 @@ function HabitsInner() {
   }
 
   async function deleteHabit(id: string) {
-    const res = await fetch('/api/life/habits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', entry: { id } }),
-    })
+    const res = await fetch('/api/life/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', entry: { id } }) })
     const data = await res.json()
     setHabits(data.habits || [])
   }
 
-  const todayHabits = habits
-  const todayCompleted = todayHabits.filter(h => completions[today]?.[h.id]).length
-
-  // Daily Habit Score — derived from existing state, no new fetch needed
-  const dailyScore = habits.length === 0
-    ? null
-    : Math.round((todayCompleted / habits.length) * 100)
-
-  const scoreColor = dailyScore === null
-    ? '#888888'
-    : dailyScore >= 80
-      ? '#00ff88'
-      : dailyScore >= 50
-        ? '#00f2ff'
-        : '#ff00e5'
-
+  const todayCompleted = habits.filter(h => completions[today]?.[h.id]).length
+  const dailyScore = habits.length === 0 ? null : Math.round((todayCompleted / habits.length) * 100)
+  const scoreColor = dailyScore === null ? 'rgba(255,255,255,0.25)' : dailyScore >= 80 ? '#00c48c' : dailyScore >= 50 ? '#2563eb' : '#f59e0b'
   const stackHabits = (stack: Stack) => habits.filter(h => (h.stack || 'Morning') === stack)
 
   return (
-    <div className="cyber-bg-grid min-h-screen">
+    <div style={{ background: '#0a0a0f', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
         {/* Daily Habit Score */}
-        <div
-          className="mb-6 flex flex-col items-center justify-center"
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(0,242,255,0.2)',
-            borderRadius: '16px',
-            padding: '32px',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', 'Fira Mono', monospace",
-              fontSize: isMobile ? '56px' : '72px',
-              fontWeight: 700,
-              color: scoreColor,
-              lineHeight: 1,
-              letterSpacing: '-2px',
-            }}
-          >
+        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 24, padding: '32px' }}>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? '56px' : '72px', fontWeight: 700, color: scoreColor, lineHeight: 1, letterSpacing: '-2px' }}>
             {dailyScore === null ? '--' : `${dailyScore}%`}
           </span>
-          <span
-            style={{
-              marginTop: '12px',
-              fontSize: '11px',
-              fontVariant: 'small-caps',
-              letterSpacing: '0.2em',
-              color: 'var(--text-muted)',
-              fontFamily: "'JetBrains Mono', 'Fira Mono', monospace",
-              textTransform: 'uppercase',
-            }}
-          >
-            Today&apos;s Habit Score
+          <span style={{ marginTop: 12, fontSize: 11, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.25)', fontFamily: 'Inter, sans-serif', textTransform: 'uppercase' }}>
+            TODAY'S HABIT SCORE
           </span>
+          {dailyScore !== null && (
+            <div style={{ marginTop: 16, width: isMobile ? '160px' : '200px', height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: dailyScore + '%', background: scoreColor, borderRadius: 4, transition: 'width 0.7s ease' }} />
+            </div>
+          )}
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between" style={{ marginBottom: 24 }}>
           <div>
-            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{'<-'} LIFE HUB</Link>
-            <span className="section-header">HABITS</span>
-            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Habit Tracker</h1>
+            <Link href="/life" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: '#ffffff', margin: 0 }}>Habits</h1>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Track your daily habit stacks</p>
           </div>
           <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
             {habits.length > 0 && (
-              <div className="text-xs font-mono px-3 py-1.5 rounded-lg" style={{ background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.2)', color: '#00f2ff' }}>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.3)', color: '#2563eb' }}>
                 {todayCompleted}/{habits.length} today
               </div>
             )}
-            <button onClick={() => setShowWeeklyReview(!showWeeklyReview)} className="btn-cyber-ghost text-xs flex items-center gap-1">
+            <button onClick={() => setShowWeeklyReview(!showWeeklyReview)} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 14px', cursor: 'pointer' }}>
               Weekly Review
             </button>
-            <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2">
+            <button onClick={() => setShowForm(!showForm)} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Plus size={14} /> New Habit
             </button>
           </div>
@@ -300,41 +238,27 @@ function HabitsInner() {
 
         {/* Today's Stack — Daily View */}
         {habits.length > 0 && (
-          <div className="premium-card p-5 mb-6">
-            <h3 className="section-header mb-4">TODAY'S STACK</h3>
-            <div className="space-y-2">
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 16, margin: '0 0 16px 0' }}>TODAY'S STACK</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {STACKS.map(({ key, label, icon, color }) => {
                 const stackItems = stackHabits(key)
                 if (stackItems.length === 0) return null
                 return (
                   <div key={key}>
-                    <p className="text-[10px] font-mono mb-1.5 flex items-center gap-1" style={{ color }}>
-                      {icon} {label}
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color, marginBottom: 6, textTransform: 'uppercase' }}>{icon} {label}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8, marginBottom: 12 }}>
                       {stackItems.map(h => {
                         const done = completions[today]?.[h.id] || false
                         return (
-                          <button
-                            key={h.id}
-                            onClick={() => toggleHabit(h.id, today)}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all text-left"
-                            style={{
-                              background: done ? color + '12' : 'rgba(255,255,255,0.03)',
-                              borderColor: done ? color + '60' : 'rgba(255,255,255,0.08)',
-                            }}
-                          >
-                            <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border-2 transition-all" style={{
-                              borderColor: done ? color : 'rgba(255,255,255,0.2)',
-                              background: done ? color + '30' : 'transparent',
-                            }}>
-                              {done && <span style={{ color, fontSize: 10 }}>✓</span>}
+                          <button key={h.id} onClick={() => toggleHabit(h.id, today)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : 'rgba(255,255,255,0.06)'}`, background: done ? color + '12' : 'rgba(255,255,255,0.02)', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+                            <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${done ? '#2563eb' : 'rgba(255,255,255,0.2)'}`, background: done ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                              {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>✓</span>}
                             </div>
-                            <span className="text-xs flex-1" style={{ color: done ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: done ? 'line-through' : 'none' }}>
-                              {h.name}
-                            </span>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: done ? 'rgba(255,255,255,0.5)' : '#ffffff', textDecoration: done ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
                             {getStreak(h.id, completions) > 0 && (
-                              <span className="text-[10px] font-mono flex items-center gap-0.5" style={{ color: '#ff6b35' }}>
+                              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
                                 <Flame size={10} />{getStreak(h.id, completions)}
                               </span>
                             )}
@@ -351,30 +275,30 @@ function HabitsInner() {
 
         {/* Weekly Review */}
         {showWeeklyReview && habits.length > 0 && (
-          <div className="premium-card p-5 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="section-header">WEEKLY REVIEW</h3>
-              <button onClick={() => setShowWeeklyReview(false)} className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Close</button>
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', margin: 0 }}>WEEKLY REVIEW</h3>
+              <button onClick={() => setShowWeeklyReview(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 12, cursor: 'pointer' }}>Close</button>
             </div>
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {habits.map(h => {
                 const rate7 = getCompletionRate(h.id, completions, 7)
                 const weakDay = getWeakestDay(h.id, completions)
                 const streak = getStreak(h.id, completions)
                 return (
-                  <div key={h.id} className="flex items-center gap-4 p-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{h.name}</p>
-                      <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>Weakest day: {weakDay}</p>
+                  <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: '#ffffff', margin: 0 }}>{h.name}</p>
+                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', margin: '2px 0 0 0' }}>Weakest day: {weakDay}</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold font-mono" style={{ color: rate7 >= 80 ? '#00ff88' : rate7 >= 50 ? '#ffb400' : '#ff4444' }}>{rate7}%</p>
-                      <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>7-day rate</p>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: rate7 >= 80 ? '#00c48c' : rate7 >= 50 ? '#f59e0b' : '#ff4d6a', margin: 0 }}>{rate7}%</p>
+                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', margin: 0 }}>7-day rate</p>
                     </div>
                     {streak > 0 && (
-                      <div className="text-center">
-                        <p className="text-lg font-bold font-mono flex items-center gap-1" style={{ color: '#ff6b35' }}><Flame size={14} />{streak}</p>
-                        <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>streak</p>
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f59e0b', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}><Flame size={14} />{streak}</p>
+                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', margin: 0 }}>streak</p>
                       </div>
                     )}
                   </div>
@@ -386,28 +310,28 @@ function HabitsInner() {
 
         {/* Add Habit Form */}
         {showForm && (
-          <div className="premium-card p-5 mb-6">
-            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW HABIT</h3>
-            <form onSubmit={addHabit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: '#ffffff', marginBottom: 16 }}>New Habit</h3>
+            <form onSubmit={addHabit} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>HABIT NAME</label>
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Morning meditation" required />
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>HABIT NAME</label>
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.06)'; e.target.style.boxShadow = 'none' }} placeholder="e.g. Morning meditation" required />
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>STACK</label>
-                <select value={form.stack} onChange={e => setForm(f => ({ ...f, stack: e.target.value as Stack }))} className="cyber-input w-full">
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>STACK</label>
+                <select value={form.stack} onChange={e => setForm(f => ({ ...f, stack: e.target.value as Stack }))} style={selectStyle}>
                   <option value="Morning">Morning Stack</option>
                   <option value="Trading">Trading Stack</option>
                   <option value="Evening">Evening Stack</option>
                 </select>
               </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>IMPLEMENTATION INTENTION</label>
-                <input value={form.intention} onChange={e => setForm(f => ({ ...f, intention: e.target.value }))} className="cyber-input w-full" placeholder='I will [habit] at [time] in/at [location]' />
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>IMPLEMENTATION INTENTION</label>
+                <input value={form.intention} onChange={e => setForm(f => ({ ...f, intention: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.06)'; e.target.style.boxShadow = 'none' }} placeholder="I will [habit] at [time] in/at [location]" />
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>FREQUENCY</label>
-                <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value as Frequency }))} className="cyber-input w-full">
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>FREQUENCY</label>
+                <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value as Frequency }))} style={selectStyle}>
                   <option value="Daily">Daily</option>
                   <option value="Weekdays">Weekdays</option>
                   <option value="Custom">Custom Days</option>
@@ -415,32 +339,26 @@ function HabitsInner() {
               </div>
               {form.frequency === 'Custom' && (
                 <div>
-                  <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>CUSTOM DAYS</label>
-                  <div className="flex gap-1">
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>CUSTOM DAYS</label>
+                  <div style={{ display: 'flex', gap: 4 }}>
                     {DAY_NAMES.map((d, i) => (
-                      <button key={i} type="button" onClick={() => setForm(f => ({
-                        ...f,
-                        customDays: f.customDays.includes(i) ? f.customDays.filter(x => x !== i) : [...f.customDays, i]
-                      }))} className="flex-1 text-[10px] font-mono py-1.5 rounded transition-all" style={{
-                        background: form.customDays.includes(i) ? 'rgba(0,242,255,0.2)' : 'rgba(255,255,255,0.05)',
-                        border: '1px solid ' + (form.customDays.includes(i) ? 'rgba(0,242,255,0.5)' : 'rgba(255,255,255,0.1)'),
-                        color: form.customDays.includes(i) ? '#00f2ff' : 'var(--text-muted)',
-                      }}>{d}</button>
+                      <button key={i} type="button" onClick={() => setForm(f => ({ ...f, customDays: f.customDays.includes(i) ? f.customDays.filter(x => x !== i) : [...f.customDays, i] }))}
+                        style={{ flex: 1, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '6px 0', borderRadius: 6, background: form.customDays.includes(i) ? 'rgba(37,99,235,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${form.customDays.includes(i) ? 'rgba(37,99,235,0.5)' : 'rgba(255,255,255,0.08)'}`, color: form.customDays.includes(i) ? '#2563eb' : 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>{d}</button>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="md:col-span-2">
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>2-MINUTE VERSION</label>
-                <input value={form.twoMinute} onChange={e => setForm(f => ({ ...f, twoMinute: e.target.value }))} className="cyber-input w-full" placeholder="The 2-minute version of this habit is..." />
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>2-MINUTE VERSION</label>
+                <input value={form.twoMinute} onChange={e => setForm(f => ({ ...f, twoMinute: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.06)'; e.target.style.boxShadow = 'none' }} placeholder="The 2-minute version of this habit is..." />
               </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>WHY IT MATTERS</label>
-                <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))} className="cyber-input w-full" placeholder="One line — why does this habit matter?" />
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>WHY IT MATTERS</label>
+                <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.06)'; e.target.style.boxShadow = 'none' }} placeholder="One line — why does this habit matter?" />
               </div>
-              <div className="md:col-span-2 flex gap-3">
-                <button type="submit" className="btn-cyber-primary">Add Habit</button>
-                <button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button>
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
+                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 20px', cursor: 'pointer' }}>Add Habit</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
@@ -448,22 +366,18 @@ function HabitsInner() {
 
         {/* Miss Reason Prompt */}
         {missPrompt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.8)' }}>
-            <div className="premium-card p-6 max-w-sm w-full mx-4">
-              <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Why did you skip today?</h3>
-              <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>{habits.find(h => h.id === missPrompt.habitId)?.name}</p>
-              <div className="grid grid-cols-2 gap-2 mb-4">
+          <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
+            <div style={{ ...cardStyle, maxWidth: 360, width: '100%', margin: '0 16px', padding: 24 }}>
+              <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: '#ffffff', marginBottom: 4 }}>Why did you skip today?</h3>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>{habits.find(h => h.id === missPrompt.habitId)?.name}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                 {MISS_REASONS.map(reason => (
-                  <button key={reason} onClick={() => setMissReason(reason)} className="text-xs py-2 rounded-lg border transition-all" style={{
-                    background: missReason === reason ? 'rgba(0,242,255,0.15)' : 'rgba(255,255,255,0.04)',
-                    borderColor: missReason === reason ? 'rgba(0,242,255,0.5)' : 'rgba(255,255,255,0.08)',
-                    color: missReason === reason ? '#00f2ff' : 'var(--text-secondary)',
-                  }}>{reason}</button>
+                  <button key={reason} onClick={() => setMissReason(reason)} style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 12px', borderRadius: 8, background: missReason === reason ? 'rgba(37,99,235,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${missReason === reason ? 'rgba(37,99,235,0.5)' : 'rgba(255,255,255,0.08)'}`, color: missReason === reason ? '#2563eb' : 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>{reason}</button>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <button onClick={saveMissReason} disabled={!missReason} className="btn-cyber-primary flex-1 disabled:opacity-40">Log It</button>
-                <button onClick={() => setMissPrompt(null)} className="btn-cyber-ghost flex-1">Skip</button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={saveMissReason} disabled={!missReason} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 0', cursor: missReason ? 'pointer' : 'not-allowed', flex: 1, opacity: missReason ? 1 : 0.4 }}>Log It</button>
+                <button onClick={() => setMissPrompt(null)} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 0', cursor: 'pointer', flex: 1 }}>Skip</button>
               </div>
             </div>
           </div>
@@ -471,135 +385,84 @@ function HabitsInner() {
 
         {/* Habit Stacks */}
         {loading ? (
-          <div className="space-y-3 p-4">
-            <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
-            <Skeleton height="50px" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
             <Skeleton height="50px" />
             <Skeleton height="50px" />
             <Skeleton height="50px" />
             <Skeleton height="50px" />
           </div>
         ) : habits.length === 0 ? (
-          <div><EmptyState icon={CheckCircle2} heading="NO HABITS YET" subtext="Add your first habit below to start building your streak." /></div>
+          <EmptyState icon={CheckCircle2} heading="NO HABITS YET" subtext="Add your first habit below to start building your streak." />
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {STACKS.map(({ key, label, icon, color }) => {
               const items = stackHabits(key)
               if (items.length === 0) return null
-              const isExpanded = expandedStack !== key
+              const isExpanded = expandedStack === key
+              const doneCount = items.filter(h => completions[today]?.[h.id]).length
               return (
-                <div key={key} className="premium-card overflow-hidden">
-                  <button
-                    onClick={() => setExpandedStack(expandedStack === key ? null : key)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-white/[0.02] transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{icon}</span>
+                <div key={key} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+                  <button onClick={() => setExpandedStack(isExpanded ? null : key)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: 20 }}>{icon}</span>
                       <div>
-                        <h3 className="text-xs font-mono font-bold tracking-widest" style={{ color }}>{label}</h3>
-                        <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                          {items.filter(h => completions[today]?.[h.id]).length}/{items.length} done today
-                        </p>
+                        <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', color, margin: 0 }}>{label}</h3>
+                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', margin: '2px 0 0 0' }}>{doneCount}/{items.length} done today</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                        <div className="h-full rounded-full transition-all" style={{
-                          width: items.length > 0 ? (items.filter(h => completions[today]?.[h.id]).length / items.length * 100) + '%' : '0%',
-                          background: color,
-                        }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 80, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: (items.length > 0 ? (doneCount / items.length * 100) : 0) + '%', background: color, borderRadius: 4, transition: 'width 0.5s ease' }} />
                       </div>
-                      <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
-                        {expandedStack === key ? '▲' : '▼'}
-                      </span>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>{isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </button>
 
-                  {expandedStack === key && (
-                    <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                  {isExpanded && (
+                    <div style={{ padding: '0 20px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {items.map(habit => {
                         const streak = getStreak(habit.id, completions)
                         const todayDone = completions[today]?.[habit.id] || false
-
                         return (
-                          <div key={habit.id} className="rounded-xl p-4 mt-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div className="flex items-start gap-3 mb-3">
-                              <button
-                                onClick={() => toggleHabit(habit.id, today)}
-                                className="w-7 h-7 flex items-center justify-center rounded-full border-2 flex-shrink-0 transition-all duration-200 mt-0.5"
-                                style={{
-                                  borderColor: todayDone ? color : 'rgba(255,255,255,0.2)',
-                                  background: todayDone ? color + '25' : 'transparent',
-                                }}
-                              >
-                                {todayDone && <span style={{ color, fontSize: 12 }}>✓</span>}
+                          <div key={habit.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                              <button onClick={() => toggleHabit(habit.id, today)} style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : 'rgba(255,255,255,0.2)'}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}>
+                                {todayDone && <span style={{ color: '#ffffff', fontSize: 11, fontWeight: 700 }}>✓</span>}
                               </button>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-sm font-semibold" style={{ color: todayDone ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: todayDone ? 'line-through' : 'none' }}>
-                                    {habit.name}
-                                  </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: todayDone ? 'rgba(255,255,255,0.5)' : '#ffffff', textDecoration: todayDone ? 'line-through' : 'none' }}>{habit.name}</span>
                                   {streak > 0 && (
-                                    <span className="text-xs font-mono flex items-center gap-0.5" style={{ color: '#ff6b35' }}>
-                                      <Flame size={11} />{streak}
-                                    </span>
+                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />🔥 {streak} day streak</span>
                                   )}
-                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' }}>
-                                    {habit.frequency || 'Daily'}
-                                  </span>
+                                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.25)' }}>{habit.frequency || 'Daily'}</span>
                                 </div>
-                                {habit.intention && (
-                                  <p className="text-[10px] mt-1" style={{ color: '#00f2ff', opacity: 0.7 }}>
-                                    {habit.intention}
-                                  </p>
-                                )}
-                                {habit.whyMatters && (
-                                  <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                                    {habit.whyMatters}
-                                  </p>
-                                )}
-                                {habit.twoMinute && (
-                                  <p className="text-[10px] mt-0.5 italic" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
-                                    2-min: {habit.twoMinute}
-                                  </p>
-                                )}
+                                {habit.intention && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{habit.intention}</p>}
+                                {habit.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{habit.whyMatters}</p>}
+                                {habit.twoMinute && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2, fontStyle: 'italic' }}>2-min: {habit.twoMinute}</p>}
                               </div>
-                              <button onClick={() => deleteHabit(habit.id)} className="opacity-30 hover:opacity-70 flex-shrink-0">
-                                <Trash2 size={11} style={{ color: '#ff00e5' }} />
+                              <button onClick={() => deleteHabit(habit.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, flexShrink: 0 }}>
+                                <Trash2 size={11} style={{ color: '#ff4d6a' }} />
                               </button>
                             </div>
-
-                            {/* 30-day heatmap */}
                             <div>
-                              <p className="text-[10px] font-mono mb-1.5" style={{ color: 'var(--text-muted)' }}>LAST 30 DAYS</p>
-                              <div className="flex gap-0.5 flex-wrap">
+                              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 6 }}>LAST 30 DAYS</p>
+                              <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 {last30.map(date => {
                                   const done = completions[date]?.[habit.id]
                                   const isToday = date === today
                                   const hasMissReason = missLog[date]?.[habit.id]
                                   return (
-                                    <button
-                                      key={date}
-                                      onClick={() => toggleHabit(habit.id, date)}
-                                      title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
-                                      className="w-5 h-5 rounded-sm transition-all hover:scale-110 relative"
-                                      style={{
-                                        background: done ? color : hasMissReason ? 'rgba(255,68,68,0.3)' : 'rgba(255,255,255,0.05)',
-                                        border: isToday ? '1px solid ' + color : '1px solid rgba(255,255,255,0.06)',
-                                        opacity: done ? 1 : 0.7,
-                                      }}
-                                    />
+                                    <button key={date} onClick={() => toggleHabit(habit.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
+                                      style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : 'rgba(255,255,255,0.05)', border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }} />
                                   )
                                 })}
                               </div>
                             </div>
-
-                            {/* Miss reason if exists for today */}
                             {missLog[today]?.[habit.id] && (
-                              <div className="mt-2 flex items-center gap-2">
-                                <span className="text-[10px] font-mono px-2 py-1 rounded" style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.2)', color: '#ff6b6b' }}>
-                                  Missed: {missLog[today][habit.id]}
-                                </span>
+                              <div style={{ marginTop: 8 }}>
+                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>Missed: {missLog[today][habit.id]}</span>
                               </div>
                             )}
                           </div>
@@ -613,26 +476,16 @@ function HabitsInner() {
           </div>
         )}
       </div>
-
       <LifeHubChat
         section="habits"
         apiRoute="/api/life/habits/chat"
         contextData={{
           habits: habits.map(h => ({
-            name: h.name,
-            stack: h.stack,
-            intention: h.intention,
-            whyMatters: h.whyMatters,
-            frequency: h.frequency,
-            streak: getStreak(h.id, completions),
-            completionRate7d: getCompletionRate(h.id, completions, 7),
-            completionRate30d: getCompletionRate(h.id, completions, 30),
-            weakestDay: getWeakestDay(h.id, completions),
-            todayDone: !!completions[today]?.[h.id],
+            name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters, frequency: h.frequency,
+            streak: getStreak(h.id, completions), completionRate7d: getCompletionRate(h.id, completions, 7),
+            completionRate30d: getCompletionRate(h.id, completions, 30), weakestDay: getWeakestDay(h.id, completions), todayDone: !!completions[today]?.[h.id],
           })),
-          totalHabits: habits.length,
-          todayCompleted,
-          missLog,
+          totalHabits: habits.length, todayCompleted, missLog,
         }}
         systemPrompt="You are Coach Shai, a behavioral science-based habit AI. You have access to the user's habit stacks (Morning, Trading, Evening), each habit's implementation intention, why it matters, current streak, 7-day and 30-day completion rates, weakest day of week, today's status, and miss reason logs. Analyze patterns, celebrate streaks, identify skip patterns, and give sharp, science-backed advice to improve consistency. Reference specific habits and data when coaching."
         defaultOpen={chatOpen}
@@ -643,7 +496,7 @@ function HabitsInner() {
 
 export default function HabitsPage() {
   return (
-    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+    <Suspense fallback={<div style={{ background: '#0a0a0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading...</div></div>}>
       <HabitsInner />
     </Suspense>
   )
