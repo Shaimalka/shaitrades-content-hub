@@ -33,6 +33,18 @@ const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MISS_KEY = 'life:habits:misslog'
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
+
+
 function getLast30Days(): string[] {
   const days: string[] = []
   for (let i = 29; i >= 0; i--) {
@@ -112,6 +124,7 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
 }
 
 function HabitsInner() {
+  const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const [habits, setHabits] = useState<Habit[]>([])
   const [completions, setCompletions] = useState<Completions>({})
@@ -224,7 +237,7 @@ function HabitsInner() {
 
   return (
     <div className="cyber-bg-grid min-h-screen">
-      <div className="max-w-[1100px] mx-auto p-6">
+      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
         {/* Daily Habit Score */}
         <div
@@ -239,7 +252,7 @@ function HabitsInner() {
           <span
             style={{
               fontFamily: "'JetBrains Mono', 'Fira Mono', monospace",
-              fontSize: '72px',
+              fontSize: isMobile ? '56px' : '72px',
               fontWeight: 700,
               color: scoreColor,
               lineHeight: 1,
@@ -270,7 +283,7 @@ function HabitsInner() {
             <span className="section-header">HABITS</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Habit Tracker</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
             {habits.length > 0 && (
               <div className="text-xs font-mono px-3 py-1.5 rounded-lg" style={{ background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.2)', color: '#00f2ff' }}>
                 {todayCompleted}/{habits.length} today
