@@ -136,7 +136,20 @@ type DailyBrief = {
   date: string
 }
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 export default function LifeHubPage() {
+  const width = useWindowWidth()
+  const isMobile = width < 768
+
   const [stats, setStats] = useState<SectionStats>({
     trading: 'No trades logged',
     goals: 'No goals set',
@@ -199,9 +212,7 @@ export default function LifeHubPage() {
           fetch('/api/life/finance').then(r => r.json()),
           fetch('/api/life/review').then(r => r.json()),
         ])
-
         const [tradingRes, goalsRes, habitsRes, healthRes, journalRes, financeRes, reviewRes] = results
-
         const trading = tradingRes.status === 'fulfilled' ? tradingRes.value : {}
         const goals = goalsRes.status === 'fulfilled' ? goalsRes.value : {}
         const habits = habitsRes.status === 'fulfilled' ? habitsRes.value : {}
@@ -209,24 +220,19 @@ export default function LifeHubPage() {
         const journal = journalRes.status === 'fulfilled' ? journalRes.value : {}
         const finance = financeRes.status === 'fulfilled' ? financeRes.value : {}
         const review = reviewRes.status === 'fulfilled' ? reviewRes.value : {}
-
         const tradingLogs = trading.logs || []
         const today = new Date().toISOString().split('T')[0]
         const todayTrades = tradingLogs.filter((t: any) => t.date === today).length
-
         const goalsList = goals.goals || []
         const activeGoals = goalsList.length
-
         const habitsList = habits.habits || []
         const completions = habits.completions || {}
         const todayCompletions = habitsList.filter((h: any) => completions[today]?.[h.id]).length
-
         const healthLogs = health.logs || []
         const lastHealth = healthLogs[healthLogs.length - 1]
         const healthStatus = lastHealth
           ? 'Last: ' + new Date(lastHealth.date).toLocaleDateString()
           : 'No entries yet'
-
         const journalEntries: any[] = Array.isArray(journal.data)
           ? journal.data
           : Array.isArray(journal.entries)
@@ -240,20 +246,17 @@ export default function LifeHubPage() {
           : journalEntries.length > 0
           ? 'Last: ' + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
           : 'No entries yet'
-
         const incomeEntries = finance.income || []
         const currentMonth = new Date().toISOString().slice(0, 7)
         const monthlyIncome = incomeEntries
           .filter((e: any) => e.date?.startsWith(currentMonth))
           .reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
-
         const weekStart = new Date()
         weekStart.setDate(weekStart.getDate() - weekStart.getDay())
         const weekStartStr = weekStart.toISOString().split('T')[0]
         const weekPnl = tradingLogs
           .filter((t: any) => t.date >= weekStartStr)
           .reduce((sum: number, t: any) => sum + (t.pnl || 0), 0)
-
         let maxStreak = 0
         if (habitsList.length > 0) {
           let streak = 0
@@ -270,11 +273,9 @@ export default function LifeHubPage() {
             d.setDate(d.getDate() - 1)
           }
         }
-
         const reviews = review.reviews || []
         const latestReview = reviews[reviews.length - 1]
         const weekScore = latestReview?.score ?? null
-
         setStats({
           trading:
             todayTrades > 0
@@ -292,7 +293,8 @@ export default function LifeHubPage() {
           finance: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() + ' income this month' : 'No entries yet',
         })
         setMetrics({
-          pnlWeek: weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + '$' + Math.abs(weekPnl).toLocaleString() : '$0',
+          pnlWeek:
+            weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + '$' + Math.abs(weekPnl).toLocaleString() : '$0',
           habitStreak: maxStreak > 0 ? maxStreak + 'd' : '0d',
           weekScore: weekScore !== null ? weekScore + '/10' : 'N/A',
           incomeMonth: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() : '$0',
@@ -314,16 +316,21 @@ export default function LifeHubPage() {
   const formatGeneratedAt = (iso: string) => {
     try {
       const d = new Date(iso)
-      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+      return (
+        d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
         ' · ' +
         d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      )
     } catch {
       return iso
     }
   }
 
   return (
-    <div className="cyber-bg-grid min-h-screen" style={{ padding: '40px 48px' }}>
+    <div
+      className="cyber-bg-grid min-h-screen"
+      style={{ padding: isMobile ? '24px 16px' : '40px 48px' }}
+    >
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: '40px' }}>
@@ -331,7 +338,7 @@ export default function LifeHubPage() {
           <h1
             style={{
               fontFamily: 'Georgia, serif',
-              fontSize: '32px',
+              fontSize: isMobile ? '24px' : '32px',
               fontWeight: 700,
               color: '#ffffff',
               letterSpacing: '-0.02em',
@@ -361,29 +368,26 @@ export default function LifeHubPage() {
             border: '1px solid rgba(0,242,255,0.15)',
             borderLeft: '3px solid #00f2ff',
             borderRadius: '12px',
-            padding: '24px 28px',
+            padding: isMobile ? '16px' : '24px 28px',
             marginBottom: '32px',
             backdropFilter: 'blur(10px)',
             position: 'relative',
             overflow: 'hidden',
           }}
         >
-          {/* Subtle glow background */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, #00f2ff, transparent)', opacity: 0.5 }} />
+          {/* Header row */}
           <div
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '1px',
-              background: 'linear-gradient(90deg, #00f2ff, transparent)',
-              opacity: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              gap: '8px',
             }}
-          />
-
-          {/* Header row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontFamily: 'JetBrains Mono, monospace',
@@ -415,7 +419,8 @@ export default function LifeHubPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '5px 12px',
+                padding: '6px 12px',
+                minHeight: '44px',
                 borderRadius: '6px',
                 background: 'rgba(0,242,255,0.06)',
                 border: '1px solid rgba(0,242,255,0.2)',
@@ -431,65 +436,24 @@ export default function LifeHubPage() {
               REFRESH
             </button>
           </div>
-
           {/* Brief content */}
           {briefLoading ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: '#00f2ff',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '11px',
-                  color: 'rgba(0,242,255,0.5)',
-                  letterSpacing: '1px',
-                }}
-              >
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00f2ff', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'rgba(0,242,255,0.5)', letterSpacing: '1px' }}>
                 Coach Shai is reading your data...
               </span>
             </div>
           ) : briefNoData ? (
-            <p
-              style={{
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '12px',
-                color: 'rgba(255,255,255,0.35)',
-                margin: 0,
-                lineHeight: 1.7,
-                letterSpacing: '0.5px',
-              }}
-            >
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.7, letterSpacing: '0.5px' }}>
               Start logging your data and Coach Shai will brief you every morning.
             </p>
           ) : briefError ? (
-            <p
-              style={{
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '11px',
-                color: 'rgba(255,100,100,0.6)',
-                margin: 0,
-              }}
-            >
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'rgba(255,100,100,0.6)', margin: 0 }}>
               Failed to load brief. Click Refresh to try again.
             </p>
           ) : brief ? (
-            <p
-              style={{
-                fontFamily: 'Georgia, serif',
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.85)',
-                margin: 0,
-                lineHeight: 1.8,
-                letterSpacing: '0.2px',
-              }}
-            >
+            <p style={{ fontFamily: 'Georgia, serif', fontSize: isMobile ? '13px' : '14px', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.8, letterSpacing: '0.2px' }}>
               {brief.text}
             </p>
           ) : null}
@@ -499,17 +463,13 @@ export default function LifeHubPage() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
             gap: '12px',
             marginBottom: '32px',
           }}
         >
           {liveMetrics.map((m) => (
-            <div
-              key={m.label}
-              className="stat-card-premium accent-cyan"
-              style={{ borderTop: '2px solid ' + m.borderColor }}
-            >
+            <div key={m.label} className="stat-card-premium accent-cyan" style={{ borderTop: '2px solid ' + m.borderColor }}>
               <div className="stat-label">{m.label}</div>
               <div className="stat-value" style={{ color: m.color }}>
                 {m.value}
@@ -524,8 +484,15 @@ export default function LifeHubPage() {
           MODULES
         </div>
 
-        {/* 3x2 Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        {/* Grid: 1 col mobile, 2 col tablet, 3 col desktop */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+            gap: '16px',
+          }}
+          className="sm:grid-cols-2 lg:grid-cols-3"
+        >
           {sections.map((section) => {
             const Icon = section.icon
             const statusText = stats[section.statusKey as keyof SectionStats]
@@ -537,32 +504,10 @@ export default function LifeHubPage() {
 
             return (
               <div key={section.key} className="premium-card" style={{ minHeight: '210px' }}>
-                {/* Colored top line */}
-                <div
-                  style={{
-                    height: '1px',
-                    background: section.topGradient,
-                    position: 'relative',
-                    zIndex: 1,
-                  }}
-                />
-                <div
-                  style={{
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '14px',
-                    height: 'calc(100% - 1px)',
-                  }}
-                >
+                <div style={{ height: '1px', background: section.topGradient, position: 'relative', zIndex: 1 }} />
+                <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', height: 'calc(100% - 1px)' }}>
                   {/* Top row */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                    }}
-                  >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div
                         style={{
@@ -580,23 +525,10 @@ export default function LifeHubPage() {
                         <Icon size={16} color={section.accentColor} />
                       </div>
                       <div>
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            fontSize: '13px',
-                            color: '#ffffff',
-                            marginBottom: '2px',
-                          }}
-                        >
+                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#ffffff', marginBottom: '2px' }}>
                           {section.name}
                         </div>
-                        <div
-                          style={{
-                            fontFamily: 'JetBrains Mono, monospace',
-                            fontSize: '10px',
-                            color: 'rgba(255,255,255,0.3)',
-                          }}
-                        >
+                        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
                           {section.descriptor}
                         </div>
                       </div>
@@ -620,15 +552,7 @@ export default function LifeHubPage() {
                     </span>
                   </div>
                   {/* Status text */}
-                  <p
-                    style={{
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '11px',
-                      color: 'rgba(255,255,255,0.25)',
-                      margin: 0,
-                      flex: 1,
-                    }}
-                  >
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'rgba(255,255,255,0.25)', margin: 0, flex: 1 }}>
                     {statusText}
                   </p>
                   {/* Divider */}
@@ -642,7 +566,8 @@ export default function LifeHubPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '7px 12px',
+                        padding: '10px 12px',
+                        minHeight: '44px',
                         borderRadius: '6px',
                         background: section.btnBg,
                         border: '1px solid ' + section.btnBorder,
@@ -661,8 +586,8 @@ export default function LifeHubPage() {
                       href={section.href + '?chat=1'}
                       title="Open AI Chat"
                       style={{
-                        width: '32px',
-                        height: '32px',
+                        width: '44px',
+                        height: '44px',
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
@@ -700,7 +625,6 @@ export default function LifeHubPage() {
           {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
         </p>
       </div>
-
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
@@ -709,6 +633,16 @@ export default function LifeHubPage() {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
+        }
+        @media (min-width: 1024px) {
+          .lg\\:grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
+        }
+        @media (min-width: 640px) {
+          .sm\\:grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
         }
       `}</style>
     </div>
