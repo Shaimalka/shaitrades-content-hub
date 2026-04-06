@@ -19,12 +19,12 @@ const MINDSET_OPTIONS: TradingMindset[] = ['Confident', 'Cautious', 'Uncertain',
 const MOOD_TAGS: MoodTag[] = ['Focused', 'Anxious', 'Motivated', 'Tired', 'Grateful', 'Neutral', 'Proud', 'Disappointed']
 
 const MOOD_COLORS: Record<MoodTag, string> = {
-  Focused: '#2563eb', Anxious: '#ff4d6a', Motivated: '#00c48c', Tired: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'),
-  Grateful: '#f59e0b', Neutral: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), Proud: '#a78bfa', Disappointed: '#f97316',
+  Focused: '#2563eb', Anxious: '#ff4d6a', Motivated: '#00c48c', Tired: 'rgba(128,128,128,0.5)',
+  Grateful: '#f59e0b', Neutral: 'rgba(128,128,128,0.5)', Proud: '#a78bfa', Disappointed: '#f97316',
 }
 
 const MINDSET_COLORS: Record<TradingMindset, string> = {
-  Confident: '#00c48c', Cautious: '#f59e0b', Uncertain: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), Sharp: '#2563eb', Emotional: '#ff4d6a',
+  Confident: '#00c48c', Cautious: '#f59e0b', Uncertain: 'rgba(128,128,128,0.5)', Sharp: '#2563eb', Emotional: '#ff4d6a',
 }
 
 const RATING_OPTIONS = [
@@ -420,7 +420,7 @@ function JournalInner() {
 
 export default function JournalPage() {
   return (
-    <Suspense fallback={<div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>Loading...</div></div>}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(128,128,128,0.5)' }}>Loading...</div></div>}>
       <JournalInner />
     </Suspense>
   )
