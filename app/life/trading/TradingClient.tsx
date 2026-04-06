@@ -41,6 +41,18 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
   )
 }
 
+
+const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
+  <div style={{
+    width,
+    height,
+    borderRadius,
+    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  }} />
+)
+
 function CoachShaiCard({ insight }: { insight: CoachInsight }) {
   const [progress, setProgress] = useState(100)
 
@@ -467,7 +479,8 @@ function TradingJournalInner() {
 
   return (
     <div className="cyber-bg-grid cyber-bg-grid min-h-screen">
-      <div className="max-w-[1200px] mx-auto p-6">
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+            <div className="max-w-[1200px] mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
@@ -569,7 +582,21 @@ function TradingJournalInner() {
 
         <div className="premium-card overflow-hidden">
           <div className="p-4 border-b" style={{ borderColor: 'var(--border-panel)' }}><h3 className="section-header">TRADE LOG · {trades.length} ENTRIES</h3></div>
-          {loading ? <div className="p-8 text-center text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div> : trades.length === 0 ? <div><EmptyState icon={BarChart2} heading="NO TRADES LOGGED YET" subtext="Log your first trade above to start tracking your performance." /></div> : (
+          {loading ? (
+              <div className="p-5 space-y-3">
+                <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+                <Skeleton height="80px" />
+                <Skeleton height="80px" />
+                <Skeleton height="80px" />
+                <div className="mt-4 space-y-2">
+                  <Skeleton height="60px" />
+                  <Skeleton height="60px" />
+                  <Skeleton height="60px" />
+                  <Skeleton height="60px" />
+                  <Skeleton height="60px" />
+                </div>
+              </div>
+            ) : trades.length === 0 ? <div><EmptyState icon={BarChart2} heading="NO TRADES LOGGED YET" subtext="Log your first trade above to start tracking your performance." /></div> : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead><tr className="border-b" style={{ borderColor: 'var(--border-panel)' }}>{['DATE', 'TIME', 'DIR', 'ENTRY', 'EXIT', 'QTY', 'P&L', '😊', 'ACCOUNT', 'NOTES', ''].map(h => <th key={h} className="px-4 py-3 text-left font-mono tracking-widest" style={{ color: 'var(--text-muted)' }}>{h}</th>)}</tr></thead>
