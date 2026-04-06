@@ -29,6 +29,18 @@ type CoachInsight = {
 }
 
 const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
+
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
@@ -173,7 +185,7 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
 }
 
 // ---- Trading Calendar Component ----
-function TradingCalendar({ trades }: { trades: Trade[] }) {
+function TradingCalendar({ trades, isMobile }: { trades: Trade[]; isMobile: boolean }) {
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
@@ -250,7 +262,7 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((day, idx) => {
-          if (day === null) return <div key={`empty-${idx}`} className="rounded-lg" style={{ minHeight: 60 }} />
+          if (day === null) return <div key={`empty-${idx}`} className="rounded-lg" style={{ minHeight: isMobile ? 44 : 60 }} />
           const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
           const dayData = dayMap[dateStr]
           const isToday = dateStr === todayStr
@@ -268,7 +280,7 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
           const boxShadow = isToday ? '0 0 0 2px #00f2ff' : undefined
           const transform = isSelected ? 'scale(1.05)' : undefined
           return (
-            <div key={dateStr} onClick={() => handleDayClick(dateStr)} style={{ minHeight: 60, borderRadius: 8, background: bg, border, boxShadow, transform, cursor: hasTrades ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 2px', transition: 'transform 0.15s ease, box-shadow 0.15s ease', position: 'relative', }}>
+            <div key={dateStr} onClick={() => handleDayClick(dateStr)} style={{ minHeight: isMobile ? 44 : 60, borderRadius: 8, background: bg, border, boxShadow, transform, cursor: hasTrades ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 2px', transition: 'transform 0.15s ease, box-shadow 0.15s ease', position: 'relative', }}>
               <span className="text-xs font-mono font-semibold" style={{ color: isToday ? '#00f2ff' : hasTrades ? 'var(--text-primary)' : 'var(--text-muted)' }}>{day}</span>
               {hasTrades && (<span className="text-[9px] font-mono mt-0.5" style={{ color: pnlColor, lineHeight: 1 }}>{pnl > 0 ? '+' : ''}{pnl.toFixed(0)}</span>)}
             </div>
@@ -299,6 +311,7 @@ function TradingCalendar({ trades }: { trades: Trade[] }) {
 }
 
 function TradingJournalInner() {
+  const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const [trades, setTrades] = useState<Trade[]>([])
   const [playbooks, setPlaybooks] = useState<Playbook[]>([])
@@ -480,18 +493,18 @@ function TradingJournalInner() {
   return (
     <div className="cyber-bg-grid cyber-bg-grid min-h-screen">
       <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
-            <div className="max-w-[1200px] mx-auto p-6">
+            <div className="max-w-[1200px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>← LIFE HUB</Link>
             <span className="section-header">TRADING JOURNAL</span>
             <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Trade Log</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
             {streak > 0 && <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88' }}><Flame size={12} /> {streak} day streak</div>}
             <Link href="/life/trading/playbook" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold" style={{ background: 'rgba(0,242,255,0.08)', border: '1px solid rgba(0,242,255,0.4)', color: '#00f2ff' }}>PLAYBOOK</Link>
             <Link href="/life/trading/settings" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono" style={{ background: 'rgba(0,242,255,0.06)', border: '1px solid rgba(0,242,255,0.2)', color: 'var(--text-muted)' }}><Settings size={12} /> Settings</Link>
-            <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(!showForm) }} className="btn-cyber-primary flex items-center gap-2"><Plus size={14} /> Log Trade</button>
+            <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(!showForm) }} className="btn-cyber-primary flex items-center gap-2" style={{ minHeight: '44px' }}><Plus size={14} /> Log Trade</button>
           </div>
         </div>
 
@@ -516,7 +529,7 @@ function TradingJournalInner() {
         </div>
 
         {/* Trading Calendar */}
-        <TradingCalendar trades={trades} />
+        <TradingCalendar trades={trades} isMobile={isMobile} />
 
         {showForm && (
           <div className="premium-card p-5 mb-6" style={editingId ? { boxShadow: '0 0 0 2px #00f2ff' } : {}}>
