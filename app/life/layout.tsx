@@ -37,8 +37,8 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
                     boxSizing: 'border-box',
         }}>
                           {children}
-                        </main>main>
-                </div>div>
+                        </main>
+                </div>
         
               <style>{`
                       @media (max-width: 767px) {
@@ -46,11 +46,11 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
                                             margin-left: 0 !important;
                                                       }
                                                               }
-                                                                    `}</style>style>
-        </div>div>
+                                                                    `}</style>
+        </div>
       )
 }
 
 export default function LifeLayout({ children }: { children: React.ReactNode }) {
-    return <LifeLayoutInner>{children}</LifeLayoutInner>LifeLayoutInner>
+    return <LifeLayoutInner>{children}</LifeLayoutInner>
       }</div>
