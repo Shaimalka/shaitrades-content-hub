@@ -2,6 +2,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Trash2, BookOpen, AlertTriangle } from 'lucide-react'
+import { useTheme } from '@/app/contexts/ThemeContext'
+import Button from '@/app/components/ui/Button'
 
 type Playbook = {
   id: string
@@ -18,28 +20,24 @@ type Trade = {
   [key: string]: unknown
 }
 
-
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
   <div style={{
-    width,
-    height,
-    borderRadius,
-    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
+    width, height, borderRadius,
+    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
     backgroundSize: '200% 100%',
     animation: 'shimmer 1.5s infinite',
   }} />
 )
 
-function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
+function EmptyState({ icon: Icon, heading, subtext, textMuted }: { icon: React.ElementType; heading: string; subtext: string; textMuted: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+      <Icon size={48} style={{ color: textMuted, marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: textMuted, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: textMuted, fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
     </div>
   )
 }
-
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -52,6 +50,7 @@ function useWindowWidth() {
 }
 
 export default function PlaybookPage() {
+  const { isDark } = useTheme()
   const isMobile = useWindowWidth() < 768
   const [playbooks, setPlaybooks] = useState<Playbook[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
@@ -62,30 +61,27 @@ export default function PlaybookPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const bg = isDark ? '#0a0a0f' : '#f8f9fc'
+  const surface = isDark ? '#111118' : '#ffffff'
+  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
+  const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
+  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const inputBg = isDark ? '#1a1a24' : '#f8f9fc'
+
   function fetchPlaybooks() {
     fetch('/api/life/trading/playbook')
       .then(r => r.json())
-      .then((d: { playbooks: Playbook[] }) => {
-        setPlaybooks(d.playbooks || [])
-        setLoadingPb(false)
-      })
+      .then((d: { playbooks: Playbook[] }) => { setPlaybooks(d.playbooks || []); setLoadingPb(false) })
       .catch(() => setLoadingPb(false))
   }
-
   function fetchTrades() {
     fetch('/api/life/trading')
       .then(r => r.json())
-      .then((d: { logs: Trade[] }) => {
-        setTrades(d.logs || [])
-        setLoadingTrades(false)
-      })
+      .then((d: { logs: Trade[] }) => { setTrades(d.logs || []); setLoadingTrades(false) })
       .catch(() => setLoadingTrades(false))
   }
-
-  useEffect(() => {
-    fetchPlaybooks()
-    fetchTrades()
-  }, [])
+  useEffect(() => { fetchPlaybooks(); fetchTrades() }, [])
 
   const statsByPlaybook = useMemo(() => {
     const map: Record<string, { totalTrades: number; wins: number; totalPnl: number; bestPnl: number; worstPnl: number }> = {}
@@ -105,70 +101,63 @@ export default function PlaybookPage() {
   async function handleAddPlaybook(e: React.FormEvent) {
     e.preventDefault()
     if (!newName.trim()) return
-    setSaving(true)
-    setError('')
+    setSaving(true); setError('')
     try {
       const res = await fetch('/api/life/trading/playbook', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName, description: newDesc }),
       })
-      if (!res.ok) {
-        const d = await res.json()
-        setError(d.error || 'Failed to save')
-      } else {
-        setNewName('')
-        setNewDesc('')
-        fetchPlaybooks()
-      }
-    } catch {
-      setError('Network error')
-    } finally {
-      setSaving(false)
-    }
+      if (!res.ok) { const d = await res.json(); setError(d.error || 'Failed to save') }
+      else { setNewName(''); setNewDesc(''); fetchPlaybooks() }
+    } catch { setError('Network error') }
+    finally { setSaving(false) }
   }
 
   async function handleDelete(id: string, name: string) {
     if (!window.confirm(`Delete playbook "${name}"? This will not delete tagged trades.`)) return
     try {
       await fetch('/api/life/trading/playbook', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       })
       fetchPlaybooks()
     } catch {}
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%', background: inputBg, border: `1px solid ${border}`,
+    borderRadius: 8, padding: '8px 12px',
+    fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, outline: 'none',
+  }
+
   return (
-    <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
-      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+    <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '32px 24px' }}>
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
-        <div className="mb-10">
-          <Link href="/life/trading" className="text-xs font-mono mb-2 block" style={{ color: '#00f2ff', fontFamily: 'JetBrains Mono' }}>
+        <div style={{ marginBottom: 40 }}>
+          <Link href='/life/trading' style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#2563eb', textDecoration: 'none', display: 'block', marginBottom: 8 }}>
             ← Trading Journal
           </Link>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary, #fff)', letterSpacing: '0.05em', marginBottom: 4 }}>
-            TRADING PLAYBOOK
+          <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 24 : 28, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em', margin: '0 0 8px' }}>
+            Trading Playbook
           </h1>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--text-muted, #888)', letterSpacing: '0.05em' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textSecondary, margin: 0 }}>
             Define your setups. Know what works.
           </p>
         </div>
 
-        {/* Playbook Stats Grid */}
-        <section className="mb-12">
+        {/* Playbook Cards */}
+        <section style={{ marginBottom: 48 }}>
           {loadingPb || loadingTrades ? (
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '20px' }}>
-              <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
-              <Skeleton height="140px" />
-              <Skeleton height="140px" />
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 20 }}>
+              <Skeleton height='140px' /><Skeleton height='140px' />
             </div>
           ) : playbooks.length === 0 ? (
-            <div><EmptyState icon={BookOpen} heading="NO PLAYBOOKS YET" subtext="Create your first playbook below to start tracking your setups." /></div>
+            <EmptyState icon={BookOpen} heading='NO PLAYBOOKS YET' subtext='Create your first playbook below to start tracking your setups.' textMuted={textMuted} />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 20 }}>
               {playbooks.map(pb => {
                 const s = statsByPlaybook[pb.id]
                 const totalTrades = s?.totalTrades ?? 0
@@ -178,100 +167,93 @@ export default function PlaybookPage() {
                 const bestPnl = s?.bestPnl === -Infinity ? null : s?.bestPnl
                 const worstPnl = s?.worstPnl === Infinity ? null : s?.worstPnl
                 const hasEnoughData = totalTrades >= 10
+                const winRateColor = winRate > 50 ? '#00c48c' : winRate < 50 && totalTrades > 0 ? '#ff4d6a' : textMuted
+
                 return (
-                  <div
-                    key={pb.id}
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(0,242,255,0.2)',
-                      borderRadius: 16,
-                      padding: '22px 22px 18px 22px',
-                      backdropFilter: 'blur(12px)',
-                      position: 'relative',
-                    }}
-                  >
-                    {/* Delete button */}
+                  <div key={pb.id} style={{
+                    background: surface, border: `1px solid ${border}`, borderRadius: 10,
+                    padding: 24, position: 'relative',
+                  }}>
                     <button
                       onClick={() => handleDelete(pb.id, pb.name)}
-                      className="absolute top-4 right-4 opacity-25 hover:opacity-70 transition-opacity"
-                      title="Delete playbook"
+                      title='Delete playbook'
+                      style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, padding: 4 }}
+                      onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.opacity = '0.8'}
+                      onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.opacity = '0.3'}
                     >
-                      <Trash2 size={13} style={{ color: '#ff00e5' }} />
+                      <Trash2 size={14} style={{ color: '#ff4d6a' }} />
                     </button>
 
-                    {/* Playbook name */}
-                    <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-primary, #fff)', marginBottom: 4, paddingRight: 24 }}>
+                    <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 600, color: textPrimary, margin: '0 0 6px', paddingRight: 28 }}>
                       {pb.name}
                     </h2>
-
                     {pb.description && (
-                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--text-muted, #888)', marginBottom: 16, lineHeight: 1.5 }}>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, marginBottom: 16, lineHeight: 1.5 }}>
                         {pb.description}
                       </p>
                     )}
 
                     {totalTrades === 0 ? (
-                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--text-muted, #888)', marginTop: pb.description ? 0 : 12 }}>
+                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted, marginTop: pb.description ? 0 : 12 }}>
                         No trades tagged yet
                       </p>
                     ) : !hasEnoughData ? (
                       <div style={{ marginTop: pb.description ? 0 : 12 }}>
-                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
+                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary, marginBottom: 12 }}>
                           {totalTrades} {totalTrades === 1 ? 'trade' : 'trades'}
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                          <AlertTriangle size={16} style={{ color: '#ff00e5', flexShrink: 0 }} />
-                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#ff00e5', letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', margin: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <AlertTriangle size={15} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
                             Insufficient Data
                           </p>
                         </div>
-                        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, maxWidth: 260, lineHeight: 1.5, margin: 0 }}>
+                        <p style={{ fontFamily: 'Inter, sans-serif', color: textSecondary, fontSize: 12, maxWidth: 260, lineHeight: 1.5, margin: 0 }}>
                           Tag at least 10 trades to this playbook to see reliable stats.
                         </p>
                       </div>
                     ) : (
                       <div style={{ marginTop: pb.description ? 0 : 12 }}>
-                        {/* Stats grid */}
-                        <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                           <div>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>TOTAL TRADES</p>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 18, fontWeight: 700, color: '#00f2ff' }}>{totalTrades}</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>TOTAL TRADES</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: textPrimary, margin: 0 }}>{totalTrades}</p>
                           </div>
                           <div>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>WIN RATE</p>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 18, fontWeight: 700, color: '#00f2ff' }}>{winRate.toFixed(1)}%</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>WIN RATE</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: winRateColor, margin: 0 }}>{winRate.toFixed(1)}%</p>
                           </div>
                           <div>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>AVG P&L</p>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 18, fontWeight: 700, color: avgPnl >= 0 ? '#00ff88' : '#ff00e5' }}>{avgPnl >= 0 ? '+' : ''}${avgPnl.toFixed(2)}</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>AVG P&L</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: avgPnl >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{avgPnl >= 0 ? '+' : ''}${avgPnl.toFixed(2)}</p>
                           </div>
                           <div>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>TOTAL P&L</p>
-                            <p style={{ fontFamily: 'JetBrains Mono', fontSize: 18, fontWeight: 700, color: (s?.totalPnl ?? 0) >= 0 ? '#00ff88' : '#ff00e5' }}>{(s?.totalPnl ?? 0) >= 0 ? '+' : ''}${(s?.totalPnl ?? 0).toFixed(2)}</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>TOTAL P&L</p>
+                            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: (s?.totalPnl ?? 0) >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{(s?.totalPnl ?? 0) >= 0 ? '+' : ''}${(s?.totalPnl ?? 0).toFixed(2)}</p>
                           </div>
                         </div>
-                        {/* Best/Worst */}
-                        <div className="flex gap-3 mb-4">
-                          {bestPnl !== null && (
-                            <div className="flex-1 px-2 py-1.5 rounded-lg" style={{ background: 'rgba(0,255,136,0.08)', border: '1px solid rgba(0,255,136,0.2)' }}>
-                              <p style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>BEST TRADE</p>
-                              <p style={{ fontFamily: 'JetBrains Mono', fontSize: 13, fontWeight: 700, color: '#00ff88' }}>+${bestPnl.toFixed(2)}</p>
-                            </div>
-                          )}
-                          {worstPnl !== null && (
-                            <div className="flex-1 px-2 py-1.5 rounded-lg" style={{ background: 'rgba(255,0,229,0.08)', border: '1px solid rgba(255,0,229,0.2)' }}>
-                              <p style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>WORST TRADE</p>
-                              <p style={{ fontFamily: 'JetBrains Mono', fontSize: 13, fontWeight: 700, color: '#ff00e5' }}>${worstPnl.toFixed(2)}</p>
-                            </div>
-                          )}
+                        {(bestPnl !== null || worstPnl !== null) && (
+                          <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                            {bestPnl !== null && (
+                              <div style={{ flex: 1, padding: '8px 12px', borderRadius: 6, background: 'rgba(0,196,140,0.06)', border: '1px solid rgba(0,196,140,0.2)' }}>
+                                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', marginBottom: 4 }}>BEST TRADE</p>
+                                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#00c48c', margin: 0 }}>+${bestPnl.toFixed(2)}</p>
+                              </div>
+                            )}
+                            {worstPnl !== null && (
+                              <div style={{ flex: 1, padding: '8px 12px', borderRadius: 6, background: 'rgba(255,77,106,0.06)', border: '1px solid rgba(255,77,106,0.2)' }}>
+                                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', marginBottom: 4 }}>WORST TRADE</p>
+                                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#ff4d6a', margin: 0 }}>${worstPnl.toFixed(2)}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,77,106,0.2)', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${winRate}%`, background: '#00c48c', borderRadius: 3, transition: 'width 0.4s ease' }} />
                         </div>
-                        {/* Win/loss bar */}
-                        <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,0,229,0.3)', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${winRate}%`, background: '#00ff88', borderRadius: 3, transition: 'width 0.4s ease' }} />
-                        </div>
-                        <div className="flex justify-between mt-1">
-                          <span style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: '#00ff88' }}>{wins}W</span>
-                          <span style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: '#ff00e5' }}>{totalTrades - wins}L</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#00c48c' }}>{wins}W</span>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#ff4d6a' }}>{totalTrades - wins}L</span>
                         </div>
                       </div>
                     )}
@@ -284,107 +266,45 @@ export default function PlaybookPage() {
 
         {/* Create New Playbook */}
         <section>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary, #fff)', marginBottom: 16, letterSpacing: '0.04em' }}>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 600, color: textPrimary, margin: '0 0 20px', letterSpacing: '-0.01em' }}>
             Create New Playbook
           </h2>
-          <form
-            onSubmit={handleAddPlaybook}
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(0,242,255,0.2)',
-              borderRadius: 16,
-              padding: '22px',
-              backdropFilter: 'blur(12px)',
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', marginBottom: '12px' }}>
-              <div className="flex-1">
-                <label className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono', letterSpacing: '0.08em' }}>NAME</label>
+          <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24 }}>
+            <form onSubmit={handleAddPlaybook} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 12, alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>NAME</label>
                 <input
-                  type="text"
+                  type='text'
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
-                  placeholder="e.g. NQ Opening Drive"
+                  placeholder='e.g. NQ Opening Drive'
                   required
-                  style={{
-                    width: '100%',
-                    background: '#0a0a0f',
-                    border: '1px solid rgba(0,242,255,0.25)',
-                    borderRadius: 8,
-                    padding: '8px 12px',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: 13,
-                    color: 'var(--text-primary, #fff)',
-                    outline: 'none',
-                  }}
-                  onFocus={e => { e.target.style.borderColor = '#00f2ff' }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,242,255,0.25)' }}
+                  style={inputStyle}
+                  onFocus={e => { (e.target as HTMLInputElement).style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.boxShadow = 'none' }}
                 />
               </div>
-              <div className="flex-1">
-                <label className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono', letterSpacing: '0.08em' }}>DESCRIPTION (OPTIONAL)</label>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>DESCRIPTION (OPTIONAL)</label>
                 <input
-                  type="text"
+                  type='text'
                   value={newDesc}
                   onChange={e => setNewDesc(e.target.value)}
-                  placeholder="Short description of this setup"
-                  style={{
-                    width: '100%',
-                    background: '#0a0a0f',
-                    border: '1px solid rgba(0,242,255,0.25)',
-                    borderRadius: 8,
-                    padding: '8px 12px',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: 13,
-                    color: 'var(--text-primary, #fff)',
-                    outline: 'none',
-                  }}
-                  onFocus={e => { e.target.style.borderColor = '#00f2ff' }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,242,255,0.25)' }}
+                  placeholder='Short description of this setup'
+                  style={inputStyle}
+                  onFocus={e => { (e.target as HTMLInputElement).style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.boxShadow = 'none' }}
                 />
               </div>
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  disabled={saving || !newName.trim()}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #00f2ff',
-                    borderRadius: 8,
-                    padding: '8px 20px',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: '#00f2ff',
-                    letterSpacing: '0.1em',
-                    cursor: saving || !newName.trim() ? 'not-allowed' : 'pointer',
-                    opacity: saving || !newName.trim() ? 0.5 : 1,
-                    whiteSpace: 'nowrap',
-                    transition: 'background 0.15s, color 0.15s',
-                  }}
-                  onMouseEnter={e => {
-                    if (!saving && newName.trim()) {
-                      const el = e.currentTarget as HTMLButtonElement
-                      el.style.background = '#00f2ff'
-                      el.style.color = '#060608'
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLButtonElement
-                    el.style.background = 'transparent'
-                    el.style.color = '#00f2ff'
-                  }}
-                >
-                  {saving ? 'SAVING...' : '+ ADD PLAYBOOK'}
-                </button>
+              <div>
+                <Button type='submit' disabled={saving || !newName.trim()}>
+                  {saving ? 'Saving...' : '+ Add Playbook'}
+                </Button>
               </div>
-            </div>
-            {error && (
-              <p style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#ff00e5', marginTop: 4 }}>{error}</p>
-            )}
-          </form>
+            </form>
+            {error && (<p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#ff4d6a', marginTop: 8 }}>{error}</p>)}
+          </div>
         </section>
-
       </div>
     </div>
   )
