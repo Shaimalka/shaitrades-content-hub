@@ -67,6 +67,18 @@ function getNetWorthVerdict(history: NetWorthEntry[]): string {
   return 'Net worth held flat this month — stability is underrated.'
 }
 
+
+const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
+  <div style={{
+    width,
+    height,
+    borderRadius,
+    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  }} />
+)
+
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
@@ -544,7 +556,12 @@ function FinancePage() {
 
         {/* Data table */}
         {loading ? (
-          <div className="text-center py-12 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div>
+          <div className="premium-card p-5 space-y-3">
+            <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+            <Skeleton height="60px" />
+            <Skeleton height="60px" />
+            <Skeleton height="60px" />
+          </div>
         ) : (
           <div className="premium-card overflow-hidden mb-6">
             {/* Income stream table */}
