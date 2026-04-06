@@ -19,19 +19,6 @@ function getWeekStart(offsetWeeks = 0) {
   return d
 }
 
-const inputStyle = {
-  background: (isDark ? '#1a1a24' : '#f1f4f9'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px',
-  color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
-} as React.CSSProperties
-
-const cardStyle = {
-  background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '20px',
-} as React.CSSProperties
-
-const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-const blurStyle = { borderColor: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), boxShadow: 'none' }
-const tooltipStyle = { background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? '#ffffff' : '#0a0a0f') }
-const axisTickStyle = { fill: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
   <div style={{ width, height, borderRadius, background: 'rgba(128,128,128,0.12)', animation: 'shimmer 1.5s infinite' }} />
@@ -56,8 +43,8 @@ function useWindowWidth() {
 function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
   const { isDark } = useTheme()
   const cardStyle = {
-    background: isDark ? '#111118' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
+    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '20px',
   } as React.CSSProperties
   const [insights, setInsights] = useState<CorrelationInsight[]>([])
