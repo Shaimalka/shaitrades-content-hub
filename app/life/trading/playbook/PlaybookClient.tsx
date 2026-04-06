@@ -18,6 +18,18 @@ type Trade = {
   [key: string]: unknown
 }
 
+
+const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
+  <div style={{
+    width,
+    height,
+    borderRadius,
+    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  }} />
+)
+
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
@@ -136,7 +148,11 @@ export default function PlaybookPage() {
         {/* Playbook Stats Grid */}
         <section className="mb-12">
           {loadingPb || loadingTrades ? (
-            <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+              <Skeleton height="140px" />
+              <Skeleton height="140px" />
+            </div>
           ) : playbooks.length === 0 ? (
             <div><EmptyState icon={BookOpen} heading="NO PLAYBOOKS YET" subtext="Create your first playbook below to start tracking your setups." /></div>
           ) : (
