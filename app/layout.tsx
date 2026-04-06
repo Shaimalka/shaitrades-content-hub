@@ -27,12 +27,12 @@ export default function RootLayout({
                                     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
                                     rel="stylesheet"
                                   />
-                </head>head>
+                </head>
                 <body className="bg-[var(--bg-obsidian)] text-[var(--text-primary)] min-h-screen">
                         <ThemeProvider>
                           {children}
-                        </ThemeProvider>ThemeProvider>
-                </body>body>
-          </html>html>
+                        </ThemeProvider>
+                </body>
+          </html>
         )
 }</html>
