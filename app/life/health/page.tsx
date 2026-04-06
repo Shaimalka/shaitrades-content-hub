@@ -28,6 +28,18 @@ function getWeekStart(offsetWeeks = 0) {
   return d
 }
 
+
+const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
+  <div style={{
+    width,
+    height,
+    borderRadius,
+    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.5s infinite',
+  }} />
+)
+
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
@@ -230,7 +242,17 @@ function HealthInner() {
           </form>
         </div>
 
-        {loading?(<div className="text-center py-12 text-xs font-mono" style={{color:'var(--text-muted)'}}>Loading data...</div>):(<>
+        {loading ? (
+        <div className="space-y-3 p-4">
+          <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Skeleton height="70px" />
+            <Skeleton height="70px" />
+            <Skeleton height="70px" />
+            <Skeleton height="70px" />
+          </div>
+        </div>
+      ) :(<>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="stat-card"><p className="metric-label">SLEEP THIS WEEK</p><p className="metric-value text-xl font-mono" style={{color:'#ff00e5'}}>{sleepAvgThis?sleepAvgThis+'h avg':'—'}</p>{sleepAvgLast&&<p className="text-xs font-mono mt-1" style={{color:'var(--text-muted)'}}>Last week: {sleepAvgLast}h <span style={{color:parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'#00ff88':'#ff2d78'}}>{parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'↑':'↓'}</span></p>}</div>
             <div className="stat-card"><p className="metric-label">GYM THIS WEEK</p><p className="metric-value text-xl font-mono" style={{color:'#00ff88'}}>{gymThisWeek}/7</p><div className="flex gap-0.5 mt-2">{Array.from({length:7},(_,i)=>{const d=new Date(thisWeekStart);d.setDate(d.getDate()+i);const ds=d.toISOString().split('T')[0];const hit=logs.find(l=>l.date===ds)?.gym;return <div key={i} className="flex-1 h-1.5 rounded-full" style={{background:hit?'#00ff88':'rgba(255,255,255,0.08)'}}/>})}</div></div>
