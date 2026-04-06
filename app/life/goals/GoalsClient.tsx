@@ -57,10 +57,10 @@ function GoalsInner() {
   const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const inputStyle = {
-    background: isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f1f4f9',
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#1a1a24' : '#f1f4f9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '8px',
-    color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc'),
+    color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif',
     fontSize: '14px',
     padding: '8px 12px',
@@ -69,8 +69,8 @@ function GoalsInner() {
     transition: 'border-color 0.2s, box-shadow 0.2s',
   } as React.CSSProperties
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px',
     padding: '20px',
   } as React.CSSProperties
@@ -121,7 +121,7 @@ function GoalsInner() {
 
   const filteredGoals = goals.filter(g => (g.tier || 'yearly') === activeTier)
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
+  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
 
   return (
     <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
@@ -283,7 +283,7 @@ function GoalsInner() {
                   </div>
 
                   {checkins.length > 0 && (
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>RECENT CHECK-INS</p>
                       {[...checkins].reverse().slice(0, 2).map(c => (
                         <div key={c.id} style={{ display: 'flex', gap: 10 }}>
