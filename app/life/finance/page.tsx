@@ -89,6 +89,17 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
   )
 }
 
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 // ─── New Stream Form ──────────────────────────────────────────────────────────
 function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id'>) => void; onCancel: () => void }) {
   const [name, setName] = useState('')
@@ -127,6 +138,7 @@ function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 function FinancePage() {
+  const isMobile = useWindowWidth() < 768
   const params = useSearchParams()
   const [streams, setStreams] = useState<IncomeStream[]>(DEFAULT_STREAMS)
   const [activeTab, setActiveTab] = useState<string>('trading')
@@ -313,7 +325,7 @@ function FinancePage() {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="cyber-bg-grid min-h-screen">
-      <div className="max-w-[1100px] mx-auto p-6">
+      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -484,7 +496,7 @@ function FinancePage() {
             style={{ background: 'rgba(0,242,255,0.06)', color: '#00f2ff', border: '1px dashed rgba(0,242,255,0.3)' }}>
             <Plus size={10} /> New Stream
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="ml-auto btn-cyber-primary flex items-center gap-1.5 text-xs">
+          <button onClick={() => setShowForm(!showForm)} className="ml-auto btn-cyber-primary flex items-center gap-1.5 text-xs" style={{ minHeight: '44px' }}>
             <Plus size={12} /> Add Entry
           </button>
         </div>
@@ -657,7 +669,7 @@ function FinancePage() {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <input type="month" value={nwDate} onChange={e => setNwDate(e.target.value)} className="cyber-input text-xs" style={{ width: '140px' }} />
-              <input type="number" value={nwInput} onChange={e => setNwInput(e.target.value)} className="cyber-input text-xs" placeholder="Current total assets ($)" style={{ width: '200px' }}
+              <input type="number" value={nwInput} onChange={e => setNwInput(e.target.value)} className="cyber-input text-xs" placeholder="Current total assets ($)" style={{ width: isMobile ? '100%' : '200px' }}
                 onKeyDown={ev => { if (ev.key === 'Enter') saveNetWorth() }} />
               <button onClick={saveNetWorth} disabled={!nwInput} className="btn-cyber-primary text-xs px-4 py-2 disabled:opacity-40">
                 {nwSaved ? '✓ Saved' : 'Update'}
