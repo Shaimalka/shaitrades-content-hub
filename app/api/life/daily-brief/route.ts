@@ -13,7 +13,7 @@ const redis = new Redis({
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
-const SYSTEM_PROMPT = `You are Coach Shai. Every morning you greet the user with a personalized 5-sentence daily brief. You are raw, real, direct and empathetic. Use their actual data. Structure: 1. Personal greeting with observation about yesterday 2. Sleep/health note if logged 3. Trading or habits streak status 4. One specific focus for today based on their patterns 5. End with something motivating — never generic. Sign off with "You have 1 life." Keep it under 100 words total. No bullet points — flowing prose like a coach talking to you.`
+const BASE_SYSTEM_PROMPT = `You are Coach Shai. Every morning you greet the user with a personalized 5-sentence daily brief. You are raw, real, direct and empathetic. Use their actual data. Structure: 1. Personal greeting with observation about yesterday 2. Sleep/health note if logged 3. Trading or habits streak status 4. One specific focus for today based on their patterns 5. End with something motivating — never generic. Sign off with "You have 1 life." Keep it under 100 words total. No bullet points — flowing prose like a coach talking to you.`
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
       if (cached) {
         return NextResponse.json({ brief: cached, cached: true })
       }
+    }
+
+    // Fetch trader profile for personalization
+    const userId = session.user?.email || 'default'
+    const profile: any = await redis.get(`profile:${userId}`).catch(() => null)
+
+    let systemPrompt = BASE_SYSTEM_PROMPT
+    if (profile) {
+      systemPrompt += `\n\nThis trader's name is ${profile.name || 'unknown'}, age ${profile.age || 'unknown'}, based in ${profile.location || 'unknown'}. They trade ${(profile.instruments || []).join(', ')} and have been trading for ${profile.experience || 'unknown'}. Their current level: ${profile.currentLevel || 'unknown'}. Their biggest challenge: ${profile.biggestChallenge || 'unknown'}. Their motivation: ${profile.motivation || 'unknown'}. They started trading because: ${profile.whyTrading || 'unknown'}. How they handle losses: ${profile.lossResponse || 'unknown'}. Discipline rating: ${profile.disciplineRating || 'unknown'}/5. Use this context to make your insights personal and specific. Address them by name occasionally.`
     }
 
     const [tradingLogs, habits, habitCompletions, health, journal, goals, financeIncome] = await Promise.all([
@@ -62,8 +71,8 @@ export async function POST(req: NextRequest) {
 
     const yesterdayTrades = tradingArr.filter((t: any) => t.date === yesterdayStr)
     const recentTrades = tradingArr.slice(-5)
-
     const yesterdayCompletions = habitsArr.filter((h: any) => completions[yesterdayStr]?.[h.id])
+
     let streak = 0
     const checkDate = new Date()
     for (let i = 0; i < 60; i++) {
@@ -88,19 +97,15 @@ export async function POST(req: NextRequest) {
     const weekPnl = tradingArr.filter((t: any) => t.date >= weekStartStr).reduce((sum: number, t: any) => sum + (t.pnl || 0), 0)
 
     const context = {
-      today,
-      yesterday: yesterdayStr,
+      today, yesterday: yesterdayStr,
       trading: {
         yesterdayTrades: yesterdayTrades.map((t: any) => ({ pnl: t.pnl, instrument: t.instrument })),
-        weekPnl,
-        totalTrades: tradingArr.length,
+        weekPnl, totalTrades: tradingArr.length,
         recentTrades: recentTrades.map((t: any) => ({ date: t.date, pnl: t.pnl, instrument: t.instrument })),
       },
       habits: {
-        total: habitsArr.length,
-        names: habitsArr.map((h: any) => h.name),
-        yesterdayDone: yesterdayCompletions.length,
-        currentStreak: streak,
+        total: habitsArr.length, names: habitsArr.map((h: any) => h.name),
+        yesterdayDone: yesterdayCompletions.length, currentStreak: streak,
       },
       health: {
         yesterdayLog: yesterdayHealth ? { sleep: yesterdayHealth.sleep, energy: yesterdayHealth.energy, gym: yesterdayHealth.gym } : null,
@@ -117,15 +122,13 @@ export async function POST(req: NextRequest) {
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: 'user', content: 'Here is my life data for today (' + today + '). Give me my daily brief:\n\n' + JSON.stringify(context, null, 2) }],
     })
 
     const briefText = (message.content[0] as any).text
     const briefData = { text: briefText, generatedAt: new Date().toISOString(), date: today }
-
     await redis.set(cacheKey, briefData, { ex: 86400 })
-
     return NextResponse.json({ brief: briefData, cached: false })
   } catch (e) {
     console.error('Daily brief error:', e)
