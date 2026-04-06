@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
   try {
     const { weekStart, weekEnd } = await req.json()
 
+    // Fetch trader profile for personalization
+    const userId = session.user?.email || 'default'
+    const profile: any = await redis.get(`profile:${userId}`).catch(() => null)
+
     const [
       tradingLogs, habits, habitCompletions, healthLogs,
       journalEntries, goals, financeIncome, financeExpenses,
@@ -76,11 +80,15 @@ export async function POST(req: NextRequest) {
       dominantMood,
     }
 
-    // ── SYSTEM PROMPT: prose, not bullet points ────────────────────────
-    const promptText = 'You are Coach Shai — a direct, motivating life coach writing a personal letter to your client. Analyze this week (' + weekStart + ' to ' + weekEnd + ') and return ONLY valid JSON.\n\n';
-    const promptText2 = 'DATA: ' + JSON.stringify(summaryData) + '\n\n';
-    const promptText3 = 'Return EXACTLY this JSON structure. The letter field must be 3-4 sentences of flowing prose (not bullet points) starting with \"This week, Shai...\". Do not use bullet points anywhere.\n';
-    const promptText4 = '{"overallScore":<1-10>,"verdict":"<one sentence verdict>","letter":"<3-4 sentences prose starting with This week, Shai...>","trading":{"pnl":<number>,"winRate":"<string>","patterns":"<key pattern>","summary":"<2 sentences prose>"},"habits":{"completionRate":"<percentage>","bestHabit":"<name>","missedHabit":"<name>","streakStatus":"<1-2 sentences>"},"health":{"sleepAvg":"<string>","gymSessions":<number>,"energyTrend":"<1-2 sentences>"},"mindset":{"themes":"<recurring themes>","dominantMood":"<mood>","journalInsight":"<key insight>"},"goals":{"onTrack":[],"atRisk":[],"crushing":[]},"finance":{"incomeLogged":<number>,"expenses":<number>,"net":<number>},"focusNext":"<one specific action for next week — be direct and personal>"}';
+    let profileContext = ''
+    if (profile) {
+      profileContext = `\n\nTrader profile: Name: ${profile.name || 'unknown'}, Age: ${profile.age || 'unknown'}, Location: ${profile.location || 'unknown'}. Trades: ${(profile.instruments || []).join(', ')}. Experience: ${profile.experience || 'unknown'}. Level: ${profile.currentLevel || 'unknown'}. Biggest challenge: ${profile.biggestChallenge || 'unknown'}. Motivation: ${profile.motivation || 'unknown'}. Loss response: ${profile.lossResponse || 'unknown'}. Discipline: ${profile.disciplineRating || 'unknown'}/5. Use this to make the review deeply personal. Address them by name.`
+    }
+
+    const promptText = 'You are Coach Shai — a direct, motivating life coach writing a personal letter to your client. Analyze this week (' + weekStart + ' to ' + weekEnd + ') and return ONLY valid JSON.' + profileContext + '\n\n'
+    const promptText2 = 'DATA: ' + JSON.stringify(summaryData) + '\n\n'
+    const promptText3 = 'Return EXACTLY this JSON structure. The letter field must be 3-4 sentences of flowing prose (not bullet points) starting with \"This week, Shai...\". Do not use bullet points anywhere.\n'
+    const promptText4 = '{"overallScore":<1-10>,"verdict":"<one sentence verdict>","letter":"<3-4 sentences prose starting with This week, Shai...>","trading":{"pnl":<number>,"winRate":"<string>","patterns":"<key pattern>","summary":"<2 sentences prose>"},"habits":{"completionRate":"<percentage>","bestHabit":"<name>","missedHabit":"<name>","streakStatus":"<1-2 sentences>"},"health":{"sleepAvg":"<string>","gymSessions":<number>,"energyTrend":"<1-2 sentences>"},"mindset":{"themes":"<recurring themes>","dominantMood":"<mood>","journalInsight":"<key insight>"},"goals":{"onTrack":[],"atRisk":[],"crushing":[]},"finance":{"incomeLogged":<number>,"expenses":<number>,"net":<number>},"focusNext":"<one specific action for next week — be direct and personal>"}'
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -93,7 +101,6 @@ export async function POST(req: NextRequest) {
     if (!jsonMatch) throw new Error('No JSON in response')
     const reportData = JSON.parse(jsonMatch[0])
 
-    // Ensure letter field exists (fallback to verdict)
     if (!reportData.letter) {
       reportData.letter = 'This week, Shai showed up and did the work. ' + (reportData.verdict||'Keep building.') + ' The path is long but the direction is right. Next week, let us go deeper.'
     }
@@ -108,7 +115,6 @@ export async function POST(req: NextRequest) {
     const existingReviews:any[] = ((await redis.get('life:reviews')) as any[])||[]
     const filtered = existingReviews.filter((r:any)=>r.weekStart!==weekStart)
     await redis.set('life:reviews',[report,...filtered].slice(0,52))
-
     return NextResponse.json({ report })
   } catch(e) {
     console.error('Weekly review error:',e)
