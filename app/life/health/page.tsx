@@ -34,7 +34,7 @@ const tooltipStyle = { background: (isDark ? '#111118' : '#ffffff'), border: '1p
 const axisTickStyle = { fill: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{ width, height, borderRadius, background: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), animation: 'shimmer 1.5s infinite' }} />
+  <div style={{ width, height, borderRadius, background: 'rgba(128,128,128,0.12)', animation: 'shimmer 1.5s infinite' }} />
 )
 
 function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: React.ElementType; heading: string; subtext: string; isDark?: boolean }) {
