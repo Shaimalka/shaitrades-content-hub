@@ -40,7 +40,19 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
   )
 }
 
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 export default function PlaybookPage() {
+  const isMobile = useWindowWidth() < 768
   const [playbooks, setPlaybooks] = useState<Playbook[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
   const [loadingPb, setLoadingPb] = useState(true)
@@ -130,7 +142,7 @@ export default function PlaybookPage() {
 
   return (
     <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
-      <div className="max-w-[1100px] mx-auto p-6">
+      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
         {/* Header */}
         <div className="mb-10">
@@ -148,7 +160,7 @@ export default function PlaybookPage() {
         {/* Playbook Stats Grid */}
         <section className="mb-12">
           {loadingPb || loadingTrades ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '20px' }}>
               <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
               <Skeleton height="140px" />
               <Skeleton height="140px" />
@@ -285,7 +297,7 @@ export default function PlaybookPage() {
               backdropFilter: 'blur(12px)',
             }}
           >
-            <div className="flex flex-col md:flex-row gap-3 mb-3">
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', marginBottom: '12px' }}>
               <div className="flex-1">
                 <label className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono', letterSpacing: '0.08em' }}>NAME</label>
                 <input
