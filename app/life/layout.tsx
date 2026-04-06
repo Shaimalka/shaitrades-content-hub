@@ -12,12 +12,12 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
       minHeight: '100vh',
       background: isDark ? '#0a0a0f' : '#f8f9fc',
     }}>
-      <style>
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
           .life-sidebar { display: none; }
           .life-content { margin-left: 0 !important; }
         }
-      }</style>
+      ` }} />
       <div className="life-sidebar">
         <Sidebar />
       </div>
@@ -33,8 +33,6 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
           flex: 1,
           padding: '32px',
           width: '100%',
-          maxWidth: '1200px',
-          margin: '0 auto',
         }}>
           {children}
         </main>
