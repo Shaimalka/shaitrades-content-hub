@@ -1,16 +1,34 @@
+'use client'
+import { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
+import { ADMIN_EMAIL } from '@/lib/isAdmin'
 
 export default function InstagramLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode
 }) {
+    const { data: session, status } = useSession()
+    const router = useRouter()
+
+  useEffect(() => {
+        if (status === 'loading') return
+        if (session && session.user?.email !== ADMIN_EMAIL) {
+                router.replace('/life')
+        }
+  }, [session, status])
+
+  if (status === 'loading') return null
+    if (session && session.user?.email !== ADMIN_EMAIL) return null
+
   return (
-    <div className="flex h-screen overflow-hidden cyber-bg-grid relative">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto relative z-10">
-        {children}
-      </main>
-    </div>
-  )
+        <div className="flex h-screen overflow-hidden cyber-bg-grid relative">
+              <Sidebar />
+              <main className="flex-1 overflow-y-auto relative z-10">
+                {children}
+              </main>
+        </div>
+      )
 }
