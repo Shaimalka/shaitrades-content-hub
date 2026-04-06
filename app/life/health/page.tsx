@@ -43,8 +43,8 @@ function useWindowWidth() {
 function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
   const { isDark } = useTheme()
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '20px',
   } as React.CSSProperties
   const [insights, setInsights] = useState<CorrelationInsight[]>([])
@@ -124,25 +124,25 @@ function HealthInner() {
   const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const inputStyle = {
-    background: isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f1f4f9',
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: '8px', color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc'),
+    background: isDark ? '#1a1a24' : '#f1f4f9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
   } as React.CSSProperties
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '20px',
   } as React.CSSProperties
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
+  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const tooltipStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11,
-    color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc')
+    color: isDark ? '#ffffff' : '#0a0a0f'
   }
-  const axisTickStyle = { fill: isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
+  const axisTickStyle = { fill: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
   const [logs, setLogs] = useState<HealthLog[]>([])
   const [loading, setLoading] = useState(true)
   const [chatOpen] = useState(searchParams.get('chat')==='1')
@@ -313,7 +313,7 @@ function HealthInner() {
               <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16 }}>30-DAY WEIGHT TREND</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={weightData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'} />
                   <XAxis dataKey="date" tick={axisTickStyle}/>
                   <YAxis domain={['auto','auto']} tick={axisTickStyle}/>
                   <Tooltip contentStyle={tooltipStyle}/>
@@ -327,7 +327,7 @@ function HealthInner() {
               <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16 }}>ENERGY TREND (30 DAYS)</h3>
               <ResponsiveContainer width="100%" height={140}>
                 <LineChart data={energyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'} />
                   <XAxis dataKey="date" tick={axisTickStyle}/>
                   <YAxis domain={[0,10]} tick={axisTickStyle}/>
                   <Tooltip contentStyle={tooltipStyle}/>
@@ -371,12 +371,12 @@ function HealthInner() {
           {logs.length===0 && !loading && <EmptyState icon={Heart} heading="NO HEALTH DATA YET" isDark={isDark} subtext="Start logging your sleep, nutrition and energy to see correlations." />}
           {logs.length>0 && (
             <div style={{ ...cardStyle, marginBottom: 24, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                 <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>HEALTH LOG · {logs.length} ENTRIES</h3>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-                  <thead><tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>{['DATE','WEIGHT','SLEEP','QUALITY','GYM','ENERGY','NOTES'].map(h=>(<th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>))}</tr></thead>
+                  <thead><tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>{['DATE','WEIGHT','SLEEP','QUALITY','GYM','ENERGY','NOTES'].map(h=>(<th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>))}</tr></thead>
                   <tbody>{[...logs].reverse().map(log=>(<tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{log.date}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#2563eb' }}>{log.weight||'—'}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#a78bfa' }}>{log.sleep?log.sleep+'h':'—'}</td><td style={{ padding: '10px 16px' }}>{log.sleepQuality?SLEEP_QUALITY_EMOJI[log.sleepQuality]:'—'}</td><td style={{ padding: '10px 16px' }}>{log.gym?<span style={{color:'#00c48c'}}>✓</span>:<span style={{color:(isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')}}>✗</span>}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#f59e0b' }}>{log.energy||'—'}/10</td><td style={{ padding: '10px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.notes||'—'}</td></tr>))}</tbody>
                 </table>
               </div>
