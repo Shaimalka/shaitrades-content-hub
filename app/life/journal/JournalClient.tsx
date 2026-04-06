@@ -1,8 +1,7 @@
 'use client'
-
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { NotebookPen, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
+import { NotebookPen, ChevronDown, ChevronUp, BookOpen, X } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -60,6 +59,15 @@ const MOOD_BORDER: Record<MoodTag, string> = {
   Disappointed: '#f97316',
 }
 
+const RATING_OPTIONS = [
+  { value: '', label: 'ALL RATINGS' },
+  { value: '5', label: '5 — Excellent' },
+  { value: '4', label: '4 — Good' },
+  { value: '3', label: '3 — Neutral' },
+  { value: '2', label: '2 — Poor' },
+  { value: '1', label: '1 — Terrible' },
+]
+
 function formatDate(dateStr: string) {
   try {
     const d = new Date(dateStr + 'T12:00:00')
@@ -82,7 +90,6 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
     </div>
   )
 }
-
 function JournalInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -92,9 +99,13 @@ function JournalInner() {
   const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
+  // Search & Filter state
+  const [searchText, setSearchText] = useState('')
+  const [filterRating, setFilterRating] = useState('')
+  const [filterMood, setFilterMood] = useState('')
+
   const today = new Date().toLocaleDateString('en-CA')
   const [selectedDate, setSelectedDate] = useState(today)
-
   const selectedEntry = entries.find((e) => e.date === selectedDate)
 
   const [morning, setMorning] = useState({
@@ -174,14 +185,7 @@ function JournalInner() {
       })
     } else {
       setMorning({ morningFocus: '', tradingMindset: 'Sharp', grateful: '', intention: '' })
-      setEvening({
-        hitFocus: null,
-        hitFocusNotes: '',
-        bestMoment: '',
-        doDifferently: '',
-        eveningMindsetRating: 7,
-        moodTags: [],
-      })
+      setEvening({ hitFocus: null, hitFocusNotes: '', bestMoment: '', doDifferently: '', eveningMindsetRating: 7, moodTags: [] })
     }
   }, [selectedEntry, selectedDate])
 
@@ -252,14 +256,64 @@ function JournalInner() {
     }))
   }
 
-  const pastEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30)
+  // All past entries sorted
+  const allPastEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30)
+
+  // Dynamically build mood tag options from all entries
+  const availableMoodTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    entries.forEach((e) => {
+      e.moodTags?.forEach((t) => tagSet.add(t))
+    })
+    return Array.from(tagSet).sort()
+  }, [entries])
+
+  // Filtered entries using search + filter (AND logic)
+  const filteredEntries = useMemo(() => {
+    return allPastEntries.filter((entry) => {
+      // Text search
+      if (searchText.trim()) {
+        const q = searchText.toLowerCase()
+        const fields = [
+          entry.morningFocus,
+          entry.tradingMindset,
+          entry.grateful,
+          entry.intention,
+          entry.bestMoment,
+          entry.doDifferently,
+          entry.hitFocusNotes,
+        ]
+        const matched = fields.some((f) => f && f.toLowerCase().includes(q))
+        if (!matched) return false
+      }
+      // Rating filter
+      if (filterRating) {
+        const rating = parseInt(filterRating)
+        if (entry.eveningMindsetRating !== rating) return false
+      }
+      // Mood filter
+      if (filterMood) {
+        if (!entry.moodTags || !entry.moodTags.includes(filterMood as MoodTag)) return false
+      }
+      return true
+    })
+  }, [allPastEntries, searchText, filterRating, filterMood])
+
+  const inputStyle: React.CSSProperties = {
+    background: '#0a0a0f',
+    border: '1px solid rgba(0,242,255,0.2)',
+    borderRadius: '6px',
+    color: '#ffffff',
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '12px',
+    padding: '8px 12px',
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  }
 
   if (!authChecked || loading) {
     return (
-      <div
-        className="cyber-bg-grid min-h-screen flex items-center justify-center"
-        style={{ background: '#060608' }}
-      >
+      <div className="cyber-bg-grid min-h-screen flex items-center justify-center" style={{ background: '#060608' }}>
         <div className="text-xs font-mono" style={{ color: '#00f2ff', opacity: 0.6 }}>
           Loading...
         </div>
@@ -270,7 +324,6 @@ function JournalInner() {
   return (
     <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
       <div className="max-w-[900px] mx-auto p-6">
-
         {/* PAGE HEADER */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -293,10 +346,7 @@ function JournalInner() {
             >
               // JOURNAL
             </span>
-            <h1
-              className="text-2xl font-bold mt-1"
-              style={{ color: '#ffffff', fontFamily: 'Georgia, serif' }}
-            >
+            <h1 className="text-2xl font-bold mt-1" style={{ color: '#ffffff', fontFamily: 'Georgia, serif' }}>
               Daily Journal
             </h1>
           </div>
@@ -349,7 +399,6 @@ function JournalInner() {
             }}
           />
         </div>
-
         {/* MORNING ENTRY FORM */}
         <div
           className="premium-card p-5 mb-5"
@@ -363,33 +412,22 @@ function JournalInner() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span style={{ fontSize: '1.1rem' }}>&#127774;</span>
-              <h2
-                className="text-sm font-semibold"
-                style={{ color: '#ffb400', fontFamily: 'JetBrains Mono, monospace' }}
-              >
+              <h2 className="text-sm font-semibold" style={{ color: '#ffb400', fontFamily: 'JetBrains Mono, monospace' }}>
                 MORNING ENTRY
               </h2>
-              <span
-                className="text-xs font-mono"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
+              <span className="text-xs font-mono" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                 {selectedDate}
               </span>
             </div>
             {saved === 'morning' && (
               <span
                 className="text-xs font-mono px-2 py-1 rounded"
-                style={{
-                  color: '#00ff88',
-                  background: 'rgba(0,255,136,0.1)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
+                style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)', fontFamily: 'JetBrains Mono, monospace' }}
               >
                 &#10003; SAVED
               </span>
             )}
           </div>
-
           <form onSubmit={saveMorning} className="space-y-4">
             <div>
               <label
@@ -406,7 +444,6 @@ function JournalInner() {
                 style={{ fontFamily: 'JetBrains Mono, monospace' }}
               />
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-2 block"
@@ -442,7 +479,6 @@ function JournalInner() {
                 ))}
               </div>
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-1.5 block"
@@ -458,7 +494,6 @@ function JournalInner() {
                 style={{ fontFamily: 'JetBrains Mono, monospace' }}
               />
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-1.5 block"
@@ -474,7 +509,6 @@ function JournalInner() {
                 style={{ fontFamily: 'JetBrains Mono, monospace' }}
               />
             </div>
-
             <button
               type="submit"
               disabled={saving === 'morning'}
@@ -498,7 +532,6 @@ function JournalInner() {
             </button>
           </form>
         </div>
-
         {/* EVENING ENTRY FORM */}
         <div
           className="premium-card p-5 mb-8"
@@ -512,33 +545,22 @@ function JournalInner() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span style={{ fontSize: '1.1rem' }}>&#127762;</span>
-              <h2
-                className="text-sm font-semibold"
-                style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}
-              >
+              <h2 className="text-sm font-semibold" style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}>
                 EVENING ENTRY
               </h2>
-              <span
-                className="text-xs"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
+              <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                 {selectedDate}
               </span>
             </div>
             {saved === 'evening' && (
               <span
                 className="text-xs px-2 py-1 rounded"
-                style={{
-                  color: '#00ff88',
-                  background: 'rgba(0,255,136,0.1)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
+                style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)', fontFamily: 'JetBrains Mono, monospace' }}
               >
                 &#10003; SAVED
               </span>
             )}
           </div>
-
           <form onSubmit={saveEvening} className="space-y-4">
             <div>
               <label
@@ -554,18 +576,8 @@ function JournalInner() {
                   className="px-4 py-2 rounded text-xs font-semibold border transition-all"
                   style={
                     evening.hitFocus === true
-                      ? {
-                          background: 'rgba(0,255,136,0.15)',
-                          borderColor: '#00ff88',
-                          color: '#00ff88',
-                          fontFamily: 'JetBrains Mono, monospace',
-                        }
-                      : {
-                          background: 'rgba(255,255,255,0.03)',
-                          borderColor: 'rgba(255,255,255,0.1)',
-                          color: 'rgba(255,255,255,0.4)',
-                          fontFamily: 'JetBrains Mono, monospace',
-                        }
+                      ? { background: 'rgba(0,255,136,0.15)', borderColor: '#00ff88', color: '#00ff88', fontFamily: 'JetBrains Mono, monospace' }
+                      : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }
                   }
                 >
                   &#10003; YES
@@ -576,18 +588,8 @@ function JournalInner() {
                   className="px-4 py-2 rounded text-xs font-semibold border transition-all"
                   style={
                     evening.hitFocus === false
-                      ? {
-                          background: 'rgba(255,45,120,0.1)',
-                          borderColor: '#ff2d78',
-                          color: '#ff2d78',
-                          fontFamily: 'JetBrains Mono, monospace',
-                        }
-                      : {
-                          background: 'rgba(255,255,255,0.03)',
-                          borderColor: 'rgba(255,255,255,0.1)',
-                          color: 'rgba(255,255,255,0.4)',
-                          fontFamily: 'JetBrains Mono, monospace',
-                        }
+                      ? { background: 'rgba(255,45,120,0.1)', borderColor: '#ff2d78', color: '#ff2d78', fontFamily: 'JetBrains Mono, monospace' }
+                      : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }
                   }
                 >
                   &#10005; NO
@@ -601,7 +603,6 @@ function JournalInner() {
                 style={{ fontFamily: 'JetBrains Mono, monospace' }}
               />
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-1.5 block"
@@ -617,7 +618,6 @@ function JournalInner() {
                 style={{ fontFamily: 'JetBrains Mono, monospace' }}
               />
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-1.5 block"
@@ -633,7 +633,6 @@ function JournalInner() {
                 style={{ fontFamily: 'JetBrains Mono, monospace' }}
               />
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-1.5 flex items-center justify-between"
@@ -647,25 +646,18 @@ function JournalInner() {
                 min="1"
                 max="10"
                 value={evening.eveningMindsetRating}
-                onChange={(e) =>
-                  setEvening((f) => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))
-                }
+                onChange={(e) => setEvening((f) => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))}
                 className="w-full"
                 style={{ accentColor: '#c084fc' }}
               />
               <div
                 className="flex justify-between text-xs mt-0.5"
-                style={{
-                  color: 'var(--text-muted)',
-                  opacity: 0.5,
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
+                style={{ color: 'var(--text-muted)', opacity: 0.5, fontFamily: 'JetBrains Mono, monospace' }}
               >
                 <span>Chaotic</span>
                 <span>Locked in</span>
               </div>
             </div>
-
             <div>
               <label
                 className="text-xs font-mono mb-2 block"
@@ -682,18 +674,8 @@ function JournalInner() {
                     className="px-3 py-1 rounded text-xs border transition-all"
                     style={
                       evening.moodTags.includes(tag)
-                        ? {
-                            background: MOOD_COLORS[tag] + '22',
-                            borderColor: MOOD_COLORS[tag],
-                            color: MOOD_COLORS[tag],
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }
-                        : {
-                            background: 'rgba(255,255,255,0.03)',
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            color: 'rgba(255,255,255,0.4)',
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }
+                        ? { background: MOOD_COLORS[tag] + '22', borderColor: MOOD_COLORS[tag], color: MOOD_COLORS[tag], fontFamily: 'JetBrains Mono, monospace' }
+                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }
                     }
                   >
                     {tag}
@@ -701,7 +683,6 @@ function JournalInner() {
                 ))}
               </div>
             </div>
-
             <button
               type="submit"
               disabled={saving === 'evening'}
@@ -725,7 +706,6 @@ function JournalInner() {
             </button>
           </form>
         </div>
-
         {/* PAST ENTRIES */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -739,15 +719,154 @@ function JournalInner() {
               }}
             >
               // PAST ENTRIES &middot;{' '}
-              <span style={{ color: '#00ff88' }}>{pastEntries.length} LOGGED</span>
+              <span style={{ color: '#00ff88' }}>{allPastEntries.length} LOGGED</span>
             </h2>
           </div>
 
-          {pastEntries.length === 0 ? (
-          <div><EmptyState icon={BookOpen} heading="NO JOURNAL ENTRIES YET" subtext="Your past entries will appear here after you save your first journal." /></div>
-        ) : (
+          {/* SEARCH & FILTER CONTROLS */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '10px',
+              marginBottom: '12px',
+              alignItems: 'center',
+              width: '100%',
+            }}
+          >
+            {/* Search input with X clear */}
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input
+                type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="SEARCH ENTRIES..."
+                style={{
+                  ...inputStyle,
+                  width: '100%',
+                  paddingRight: searchText ? '32px' : '12px',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#00f2ff'
+                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.12)'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(0,242,255,0.2)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              />
+              {searchText && (
+                <button
+                  onClick={() => setSearchText('')}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'rgba(255,255,255,0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: 0,
+                  }}
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            {/* Rating filter */}
+            <select
+              value={filterRating}
+              onChange={(e) => setFilterRating(e.target.value)}
+              style={{
+                ...inputStyle,
+                flexShrink: 0,
+                cursor: 'pointer',
+                colorScheme: 'dark',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = '#00f2ff'
+                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.12)'
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(0,242,255,0.2)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              {RATING_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {/* Mood tag filter */}
+            <select
+              value={filterMood}
+              onChange={(e) => setFilterMood(e.target.value)}
+              style={{
+                ...inputStyle,
+                flexShrink: 0,
+                cursor: 'pointer',
+                colorScheme: 'dark',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = '#00f2ff'
+                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.12)'
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(0,242,255,0.2)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              <option value="">ALL MOODS</option>
+              {availableMoodTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Results count */}
+          {(searchText || filterRating || filterMood) && (
+            <p
+              style={{
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.3)',
+                fontVariant: 'small-caps',
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                marginBottom: '10px',
+              }}
+            >
+              SHOWING {filteredEntries.length} OF {allPastEntries.length} ENTRIES
+            </p>
+          )}
+
+          {/* Entry list or empty states */}
+          {allPastEntries.length === 0 ? (
+            <div>
+              <EmptyState
+                icon={BookOpen}
+                heading="NO JOURNAL ENTRIES YET"
+                subtext="Your past entries will appear here after you save your first journal."
+              />
+            </div>
+          ) : filteredEntries.length === 0 ? (
+            <div>
+              <EmptyState
+                icon={BookOpen}
+                heading="NO ENTRIES MATCH YOUR SEARCH"
+                subtext="Try adjusting your search or filter to find what you&#39;re looking for."
+              />
+            </div>
+          ) : (
             <div className="space-y-2">
-              {pastEntries.map((entry) => {
+              {filteredEntries.map((entry) => {
                 const primaryMood = getPrimaryMood(entry)
                 const borderColor = primaryMood ? MOOD_BORDER[primaryMood] : 'rgba(0,242,255,0.15)'
                 const isExpanded = expandedId === entry.id
@@ -767,23 +886,17 @@ function JournalInner() {
                       onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                       className="w-full p-4 flex items-center gap-3 text-left transition-colors"
                       style={{ background: 'transparent' }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')
-                      }
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       <div style={{ minWidth: '150px' }}>
                         <span
                           className="text-xs font-semibold"
-                          style={{
-                            color: 'var(--text-secondary)',
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }}
+                          style={{ color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace' }}
                         >
                           {formatDate(entry.date)}
                         </span>
                       </div>
-
                       {entry.tradingMindset ? (
                         <span
                           className="text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0"
@@ -799,7 +912,6 @@ function JournalInner() {
                       ) : (
                         <span style={{ minWidth: '60px' }} />
                       )}
-
                       {primaryMood ? (
                         <span
                           className="text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0"
@@ -815,24 +927,16 @@ function JournalInner() {
                       ) : (
                         <span style={{ minWidth: '50px' }} />
                       )}
-
                       <span
                         className="text-xs flex-1 truncate"
-                        style={{
-                          color: 'var(--text-muted)',
-                          minWidth: 0,
-                          fontFamily: 'JetBrains Mono, monospace',
-                        }}
+                        style={{ color: 'var(--text-muted)', minWidth: 0, fontFamily: 'JetBrains Mono, monospace' }}
                       >
                         {entry.morningFocus
-                          ? entry.morningFocus.slice(0, 60) +
-                            (entry.morningFocus.length > 60 ? '...' : '')
+                          ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '...' : '')
                           : entry.intention
-                          ? entry.intention.slice(0, 60) +
-                            (entry.intention.length > 60 ? '...' : '')
+                          ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '...' : '')
                           : <span style={{ opacity: 0.4 }}>No focus logged</span>}
                       </span>
-
                       {entry.eveningMindsetRating != null && (
                         <span
                           className="text-xs flex-shrink-0"
@@ -841,51 +945,26 @@ function JournalInner() {
                           {entry.eveningMindsetRating}/10
                         </span>
                       )}
-
                       {isExpanded ? (
-                        <ChevronUp
-                          size={14}
-                          style={{ color: 'var(--text-muted)', flexShrink: 0 }}
-                        />
+                        <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                       ) : (
-                        <ChevronDown
-                          size={14}
-                          style={{ color: 'var(--text-muted)', flexShrink: 0 }}
-                        />
+                        <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                       )}
                     </button>
-
                     {isExpanded && (
-                      <div
-                        className="px-4 pb-5 border-t"
-                        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
-                      >
+                      <div className="px-4 pb-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                           {entry.morningFocus && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#127919; #1 FOCUS
                               </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {entry.morningFocus}
-                              </p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p>
                             </div>
                           )}
                           {entry.tradingMindset && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#129504; MORNING MINDSET
                               </p>
                               <span
@@ -903,116 +982,59 @@ function JournalInner() {
                           )}
                           {entry.grateful && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#128591; GRATEFUL FOR
                               </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {entry.grateful}
-                              </p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p>
                             </div>
                           )}
                           {entry.intention && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#10024; INTENTION
                               </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {entry.intention}
-                              </p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p>
                             </div>
                           )}
                           {entry.hitFocus !== undefined && entry.hitFocus !== null && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#9989; HIT FOCUS?
                               </p>
-                              <p
-                                className="text-sm"
-                                style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}
-                              >
-                                {entry.hitFocus ? 'YES' : 'NO'}
-                                {entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
+                              <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
+                                {entry.hitFocus ? 'YES' : 'NO'} {entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
                               </p>
                             </div>
                           )}
                           {entry.bestMoment && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#11088; BEST MOMENT
                               </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {entry.bestMoment}
-                              </p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p>
                             </div>
                           )}
                           {entry.doDifferently && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#128260; DO DIFFERENTLY
                               </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {entry.doDifferently}
-                              </p>
+                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p>
                             </div>
                           )}
                           {entry.eveningMindsetRating != null && (
                             <div>
-                              <p
-                                className="text-xs mb-1"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#129504; EVENING MINDSET RATING
                               </p>
-                              <p
-                                className="text-sm"
-                                style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}
-                              >
+                              <p className="text-sm" style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}>
                                 {entry.eveningMindsetRating}/10
                               </p>
                             </div>
                           )}
                           {entry.moodTags && entry.moodTags.length > 0 && (
                             <div>
-                              <p
-                                className="text-xs mb-2"
-                                style={{
-                                  color: 'var(--text-muted)',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
+                              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                                 &#127991; MOOD TAGS
                               </p>
                               <div className="flex flex-wrap gap-1.5">
@@ -1043,7 +1065,6 @@ function JournalInner() {
           )}
         </div>
       </div>
-
       <LifeHubChat
         section="journal"
         apiRoute="/api/life/journal/chat"
