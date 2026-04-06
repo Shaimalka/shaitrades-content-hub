@@ -2,6 +2,7 @@
 import { useTheme } from '@/app/contexts/ThemeContext'
 import Sidebar from '@/app/components/Sidebar'
 import TopBar from '@/app/components/TopBar'
+import { SessionProvider } from 'next-auth/react'
 
 function LifeLayoutInner({ children }: { children: React.ReactNode }) {
   const { isDark } = useTheme()
@@ -42,5 +43,9 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
 }
 
 export default function LifeLayout({ children }: { children: React.ReactNode }) {
-  return <LifeLayoutInner>{children}</LifeLayoutInner>
+  return (
+          <SessionProvider>
+                    <LifeLayoutInner>{children}</LifeLayoutInner>
+          </SessionProvider>
+  )
 }
