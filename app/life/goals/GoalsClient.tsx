@@ -7,76 +7,56 @@ import { useSearchParams } from 'next/navigation'
 
 type Tier = 'yearly' | 'monthly' | 'weekly'
 type Category = 'Trading' | 'Content' | 'Health' | 'Finance' | 'Personal'
-
 type Goal = {
-  id: string
-  title: string
-  category: Category
-  tier: Tier
-  targetValue: number
-  currentValue: number
-  unit: string
-  startDate: string
-  deadline: string
-  notes: string
-  checkins: { id: string; text: string; date: string }[]
-  createdAt: string
+  id: string; title: string; category: Category; tier: Tier; targetValue: number; currentValue: number
+  unit: string; startDate: string; deadline: string; notes: string
+  checkins: { id: string; text: string; date: string }[]; createdAt: string
 }
 
 const CATEGORIES: Category[] = ['Trading', 'Content', 'Health', 'Finance', 'Personal']
 const TIERS: { key: Tier; label: string }[] = [
-  { key: 'yearly', label: 'YEARLY' },
-  { key: 'monthly', label: 'MONTHLY' },
-  { key: 'weekly', label: 'WEEKLY' },
+  { key: 'yearly', label: 'YEARLY' }, { key: 'monthly', label: 'MONTHLY' }, { key: 'weekly', label: 'WEEKLY' },
 ]
-
 const CAT_COLORS: Record<Category, string> = {
-  Trading: '#00f2ff',
-  Content: '#ff00e5',
-  Health: '#00ff88',
-  Finance: '#ffb400',
-  Personal: '#a78bfa',
+  Trading: '#2563eb', Content: '#a78bfa', Health: '#00c48c', Finance: '#f59e0b', Personal: '#06b6d4',
 }
 
+const inputStyle = {
+  background: '#1a1a24', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px',
+  color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '8px 12px',
+  outline: 'none', width: '100%', transition: 'border-color 0.2s, box-shadow 0.2s',
+} as React.CSSProperties
+
+const cardStyle = {
+  background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '20px',
+} as React.CSSProperties
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
+  useEffect(() => { const h = () => setWidth(window.innerWidth); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h) }, [])
   return width
 }
 
 function getStatus(pct: number, daysLeft: number | null): { label: string; color: string } {
-  if (daysLeft !== null && daysLeft < 0) return { label: 'Overdue', color: '#ff4444' }
-  if (pct >= 100) return { label: 'Crushing It', color: '#00ff88' }
-  if (daysLeft === null) return { label: 'On Track', color: '#00f2ff' }
+  if (daysLeft !== null && daysLeft < 0) return { label: 'Overdue', color: '#ff4d6a' }
+  if (pct >= 100) return { label: 'Completed', color: '#00c48c' }
+  if (daysLeft === null) return { label: 'Active', color: '#2563eb' }
   const expectedPct = 50
-  if (pct >= expectedPct + 15) return { label: 'Crushing It', color: '#00ff88' }
-  if (pct >= expectedPct - 15) return { label: 'On Track', color: '#00f2ff' }
-  return { label: 'At Risk', color: '#ffb400' }
+  if (pct >= expectedPct + 15) return { label: 'Ahead', color: '#00c48c' }
+  if (pct >= expectedPct - 15) return { label: 'On Track', color: '#2563eb' }
+  return { label: 'At Risk', color: '#f59e0b' }
 }
 
-
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{
-    width,
-    height,
-    borderRadius,
-    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'shimmer 1.5s infinite',
-  }} />
+  <div style={{ width, height, borderRadius, background: 'rgba(255,255,255,0.06)', animation: 'shimmer 1.5s infinite', backgroundSize: '200% 100%' }} />
 )
 
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+      <Icon size={48} style={{ color: 'rgba(255,255,255,0.2)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.25)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
     </div>
   )
 }
@@ -91,73 +71,32 @@ function GoalsInner() {
   const [checkinGoalId, setCheckinGoalId] = useState<string | null>(null)
   const [checkinText, setCheckinText] = useState('')
   const [chatOpen] = useState(searchParams.get('chat') === '1')
-
   const [form, setForm] = useState({
-    title: '',
-    category: 'Trading' as Category,
-    tier: 'yearly' as Tier,
-    targetValue: '',
-    unit: '$',
-    startDate: new Date().toISOString().split('T')[0],
-    deadline: '',
-    notes: '',
+    title: '', category: 'Trading' as Category, tier: 'yearly' as Tier,
+    targetValue: '', unit: '$', startDate: new Date().toISOString().split('T')[0], deadline: '', notes: '',
   })
 
   useEffect(() => {
-    fetch('/api/life/goals')
-      .then(r => r.json())
-      .then(d => {
-        setGoals(d.goals || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    fetch('/api/life/goals').then(r => r.json()).then(d => { setGoals(d.goals || []); setLoading(false) }).catch(() => setLoading(false))
   }, [])
 
   async function submitGoal(e: React.FormEvent) {
     e.preventDefault()
-    const entry = {
-      title: form.title,
-      category: form.category,
-      tier: form.tier,
-      targetValue: parseFloat(form.targetValue),
-      currentValue: 0,
-      unit: form.unit,
-      startDate: form.startDate,
-      deadline: form.deadline,
-      notes: form.notes,
-      checkins: [],
-    }
-    const res = await fetch('/api/life/goals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entry }),
-    })
+    const entry = { title: form.title, category: form.category, tier: form.tier, targetValue: parseFloat(form.targetValue), currentValue: 0, unit: form.unit, startDate: form.startDate, deadline: form.deadline, notes: form.notes, checkins: [] }
+    const res = await fetch('/api/life/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry }) })
     const data = await res.json()
-    setGoals(data.goals || [])
-    setShowForm(false)
-    setActiveTier(form.tier)
+    setGoals(data.goals || []); setShowForm(false); setActiveTier(form.tier)
     setForm({ title: '', category: 'Trading', tier: 'yearly', targetValue: '', unit: '$', startDate: new Date().toISOString().split('T')[0], deadline: '', notes: '' })
   }
 
   async function updateCurrentValue(goal: Goal, value: number) {
-    const updated = { ...goal, currentValue: value }
-    const res = await fetch('/api/life/goals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'update', entry: updated }),
-    })
-    const data = await res.json()
-    setGoals(data.goals || [])
+    const res = await fetch('/api/life/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', entry: { ...goal, currentValue: value } }) })
+    const data = await res.json(); setGoals(data.goals || [])
   }
 
   async function deleteGoal(id: string) {
-    const res = await fetch('/api/life/goals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', entry: { id } }),
-    })
-    const data = await res.json()
-    setGoals(data.goals || [])
+    const res = await fetch('/api/life/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', entry: { id } }) })
+    const data = await res.json(); setGoals(data.goals || [])
   }
 
   async function submitCheckin(goalId: string) {
@@ -166,181 +105,150 @@ function GoalsInner() {
     if (!goal) return
     const newCheckin = { id: Date.now().toString(), text: checkinText.trim(), date: new Date().toISOString().split('T')[0] }
     const updated = { ...goal, checkins: [...(goal.checkins || []), newCheckin] }
-    const res = await fetch('/api/life/goals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'update', entry: updated }),
-    })
-    const data = await res.json()
-    setGoals(data.goals || [])
-    setCheckinGoalId(null)
-    setCheckinText('')
+    const res = await fetch('/api/life/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', entry: updated }) })
+    const data = await res.json(); setGoals(data.goals || []); setCheckinGoalId(null); setCheckinText('')
   }
 
   const filteredGoals = goals.filter(g => (g.tier || 'yearly') === activeTier)
+  const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
+  const blurStyle = { borderColor: 'rgba(255,255,255,0.06)', boxShadow: 'none' }
 
   return (
-    <div className="cyber-bg-grid min-h-screen">
+    <div style={{ background: '#0a0a0f', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
-        <div className="flex items-center justify-between mb-6">
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{'<-'} LIFE HUB</Link>
-            <span className="section-header">GOALS</span>
-            <h1 className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>Goal Tracker</h1>
+            <Link href="/life" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: '#ffffff', margin: 0 }}>Goals</h1>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Track your goals across all horizons</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} className="btn-cyber-primary flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={14} /> Add Goal
           </button>
         </div>
 
-        <div className="flex gap-1 mb-6 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        {/* Tier Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 24, padding: 4, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           {TIERS.map(({ key, label }) => {
             const count = goals.filter(g => (g.tier || 'yearly') === key).length
+            const isActive = activeTier === key
             return (
-              <button
-                key={key}
-                onClick={() => setActiveTier(key)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest transition-all duration-200"
-                style={activeTier === key ? {
-                  background: 'rgba(0,242,255,0.15)',
-                  border: '1px solid rgba(0,242,255,0.4)',
-                  color: '#00f2ff',
-                  boxShadow: '0 0 12px rgba(0,242,255,0.2)',
-                } : {
-                  background: 'transparent',
-                  border: '1px solid transparent',
-                  color: 'var(--text-muted)',
-                }}
-              >
+              <button key={key} onClick={() => setActiveTier(key)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', cursor: 'pointer', transition: 'all 0.15s', background: isActive ? 'rgba(37,99,235,0.15)' : 'transparent', border: `1px solid ${isActive ? 'rgba(37,99,235,0.4)' : 'transparent'}`, color: isActive ? '#2563eb' : 'rgba(255,255,255,0.5)' }}>
                 {label}
-                {count > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{
-                    background: activeTier === key ? 'rgba(0,242,255,0.2)' : 'rgba(255,255,255,0.08)',
-                    color: activeTier === key ? '#00f2ff' : 'var(--text-muted)',
-                  }}>{count}</span>
-                )}
+                {count > 0 && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '1px 6px', borderRadius: 20, background: isActive ? 'rgba(37,99,235,0.2)' : 'rgba(255,255,255,0.08)', color: isActive ? '#2563eb' : 'rgba(255,255,255,0.5)' }}>{count}</span>}
               </button>
             )
           })}
         </div>
 
+        {/* Add Goal Form */}
         {showForm && (
-          <div className="premium-card p-5 mb-6">
-            <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>// NEW GOAL</h3>
-            <form onSubmit={submitGoal} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div className="md:col-span-3">
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>GOAL TITLE</label>
-                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="cyber-input w-full" placeholder="e.g. Hit 10k monthly profit" required />
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: '#ffffff', marginBottom: 16 }}>New Goal</h3>
+            <form onSubmit={submitGoal} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 14 }}>
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>GOAL TITLE</label>
+                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Hit 10k monthly profit" required />
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>TIER</label>
-                <select value={form.tier} onChange={e => setForm(f => ({ ...f, tier: e.target.value as Tier }))} className="cyber-input w-full">
-                  <option value="yearly">Yearly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="weekly">Weekly</option>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>TIER</label>
+                <select value={form.tier} onChange={e => setForm(f => ({ ...f, tier: e.target.value as Tier }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                  <option value="yearly">Yearly</option><option value="monthly">Monthly</option><option value="weekly">Weekly</option>
                 </select>
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>CATEGORY</label>
-                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Category }))} className="cyber-input w-full">
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>CATEGORY</label>
+                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as Category }))} style={{ ...inputStyle, cursor: 'pointer' }}>
                   {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>UNIT</label>
-                <input value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} className="cyber-input w-full" placeholder="subscribers, trades..." />
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>UNIT</label>
+                <input value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="subscribers, trades..." />
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>TARGET VALUE</label>
-                <input type="number" step="any" value={form.targetValue} onChange={e => setForm(f => ({ ...f, targetValue: e.target.value }))} className="cyber-input w-full" placeholder="10000" required />
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>TARGET VALUE</label>
+                <input type="number" step="any" value={form.targetValue} onChange={e => setForm(f => ({ ...f, targetValue: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="10000" required />
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>START DATE</label>
-                <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} className="cyber-input w-full" />
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>START DATE</label>
+                <input type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} />
               </div>
               <div>
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>DEADLINE</label>
-                <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} className="cyber-input w-full" />
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>DEADLINE</label>
+                <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} />
               </div>
-              <div className="md:col-span-3">
-                <label className="text-xs font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>NOTES / WHY THIS MATTERS</label>
-                <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="cyber-input w-full" placeholder="Why this goal matters to you" />
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>NOTES / WHY THIS MATTERS</label>
+                <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Why this goal matters to you" />
               </div>
-              <div className="md:col-span-3 flex gap-3">
-                <button type="submit" className="btn-cyber-primary">Save Goal</button>
-                <button type="button" onClick={() => setShowForm(false)} className="btn-cyber-ghost">Cancel</button>
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
+                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 20px', cursor: 'pointer' }}>Save Goal</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
         )}
 
+        {/* Goals Grid */}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px' }}>
-            <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
-            <Skeleton height="80px" />
-            <Skeleton height="80px" />
-            <Skeleton height="80px" />
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+            <Skeleton height="80px" /><Skeleton height="80px" /><Skeleton height="80px" />
           </div>
         ) : filteredGoals.length === 0 ? (
-      <div><EmptyState icon={Target} heading="NO GOALS SET YET" subtext="Set your first goal below and start making it happen." /></div>
-    ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <EmptyState icon={Target} heading="NO GOALS SET YET" subtext="Set your first goal below and start making it happen." />
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             {filteredGoals.map(goal => {
               const pct = goal.targetValue > 0 ? Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100)) : 0
-              const color = CAT_COLORS[goal.category] || '#00f2ff'
+              const color = CAT_COLORS[goal.category] || '#2563eb'
               const daysLeft = goal.deadline ? Math.ceil((new Date(goal.deadline).getTime() - Date.now()) / 86400000) : null
               const status = getStatus(pct, daysLeft)
               const isCheckingIn = checkinGoalId === goal.id
               const checkins = goal.checkins || []
-
               return (
-                <div key={goal.id} className="premium-card p-5 flex flex-col gap-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="badge-pill text-[10px]" style={{ color, borderColor: color + '50', background: color + '15' }}>{goal.category}</span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full" style={{ background: status.color + '18', border: '1px solid ' + status.color + '40', color: status.color }}>
-                          {status.label === 'Crushing It' ? '🚀 ' : status.label === 'On Track' ? '✓ ' : status.label === 'At Risk' ? '⚠ ' : '⏰ '}
-                          {status.label}
+                <div key={goal.id} style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(37,99,235,0.1)', color: '#2563eb' }}>{goal.category}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 20, background: status.color + '18', border: `1px solid ${status.color}40`, color: status.color }}>
+                          {status.label === 'Completed' ? '✓ ' : status.label === 'At Risk' ? '⚠ ' : status.label === 'Overdue' ? '⏰ ' : ''}{status.label}
                         </span>
                       </div>
-                      <h3 className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{goal.title}</h3>
-                      {goal.notes && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{goal.notes}</p>}
+                      <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, color: '#ffffff', margin: 0, lineHeight: 1.3 }}>{goal.title}</h3>
+                      {goal.notes && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{goal.notes}</p>}
                     </div>
-                    <button onClick={() => deleteGoal(goal.id)} className="ml-2 opacity-30 hover:opacity-70 flex-shrink-0">
-                      <Trash2 size={12} style={{ color: '#ff00e5' }} />
+                    <button onClick={() => deleteGoal(goal.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, marginLeft: 8, flexShrink: 0 }}>
+                      <Trash2 size={12} style={{ color: '#ff4d6a' }} />
                     </button>
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-xs font-mono mb-1.5">
-                      <span style={{ color: 'var(--text-muted)' }}>{goal.unit}{(goal.currentValue || 0).toLocaleString()} / {goal.unit}{(goal.targetValue || 0).toLocaleString()}</span>
-                      <span style={{ color: '#00f2ff' }}>{pct}%</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, marginBottom: 6 }}>
+                      <span style={{ color: 'rgba(255,255,255,0.5)' }}>{goal.unit}{(goal.currentValue || 0).toLocaleString()} / {goal.unit}{(goal.targetValue || 0).toLocaleString()}</span>
+                      <span style={{ color: '#2563eb' }}>{pct}% complete</span>
                     </div>
-                    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                      <div className="h-full rounded-full transition-all duration-700" style={{ width: pct + '%', background: pct >= 100 ? '#00ff88' : 'linear-gradient(90deg, #00f2ff, #00ff88)' }} />
+                    <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: pct + '%', background: pct >= 100 ? '#00c48c' : '#2563eb', borderRadius: 4, transition: 'width 0.7s ease' }} />
                     </div>
                   </div>
 
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <label className="text-[10px] font-mono mb-1 block" style={{ color: 'var(--text-muted)' }}>CURRENT VALUE</label>
-                      <input
-                        type="number"
-                        step="any"
-                        defaultValue={goal.currentValue}
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>CURRENT VALUE</label>
+                      <input type="number" step="any" defaultValue={goal.currentValue}
                         onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v !== goal.currentValue) updateCurrentValue(goal, v) }}
-                        className="cyber-input w-full text-xs"
-                      />
+                        style={{ ...inputStyle, fontSize: '13px' }}
+                        onFocus={e => Object.assign(e.target.style, focusStyle)} />
                     </div>
                     {daysLeft !== null && (
-                      <div className="flex-shrink-0 text-center">
-                        <div className="text-[10px] font-mono mb-1" style={{ color: 'var(--text-muted)' }}>DEADLINE</div>
-                        <span className="text-xs font-mono px-2.5 py-1.5 rounded-lg flex items-center gap-1" style={{
-                          color: daysLeft < 0 ? '#ff4444' : daysLeft < 7 ? '#ff00e5' : daysLeft < 30 ? '#ffb400' : '#00f2ff',
-                          background: daysLeft < 0 ? 'rgba(255,68,68,0.1)' : daysLeft < 7 ? 'rgba(255,0,229,0.1)' : daysLeft < 30 ? 'rgba(255,180,0,0.1)' : 'rgba(0,242,255,0.1)',
-                          border: '1px solid currentColor',
-                        }}>
+                      <div style={{ flexShrink: 0, textAlign: 'center' }}>
+                        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4 }}>DEADLINE</div>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '6px 10px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 4, background: (daysLeft < 0 ? 'rgba(255,77,106,0.1)' : daysLeft < 7 ? 'rgba(245,158,11,0.1)' : 'rgba(37,99,235,0.1)'), border: `1px solid ${daysLeft < 0 ? 'rgba(255,77,106,0.3)' : daysLeft < 7 ? 'rgba(245,158,11,0.3)' : 'rgba(37,99,235,0.3)'}`, color: daysLeft < 0 ? '#ff4d6a' : daysLeft < 7 ? '#f59e0b' : '#2563eb' }}>
                           <Clock size={10} />
                           {daysLeft < 0 ? Math.abs(daysLeft) + 'd overdue' : daysLeft === 0 ? 'Due today' : daysLeft + 'd left'}
                         </span>
@@ -350,39 +258,27 @@ function GoalsInner() {
 
                   <div>
                     {isCheckingIn ? (
-                      <div className="flex gap-2">
-                        <input
-                          autoFocus
-                          value={checkinText}
-                          onChange={e => setCheckinText(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') submitCheckin(goal.id)
-                            if (e.key === 'Escape') { setCheckinGoalId(null); setCheckinText('') }
-                          }}
-                          className="cyber-input flex-1 text-xs"
-                          placeholder="What did you do this week toward this goal?"
-                        />
-                        <button onClick={() => submitCheckin(goal.id)} className="btn-cyber-primary text-xs px-3">Log</button>
-                        <button onClick={() => { setCheckinGoalId(null); setCheckinText('') }} className="btn-cyber-ghost text-xs px-3">Cancel</button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input autoFocus value={checkinText} onChange={e => setCheckinText(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') submitCheckin(goal.id); if (e.key === 'Escape') { setCheckinGoalId(null); setCheckinText('') } }}
+                          style={{ ...inputStyle, flex: 1, fontSize: '13px' }} onFocus={e => Object.assign(e.target.style, focusStyle)} placeholder="What did you do this week toward this goal?" />
+                        <button onClick={() => submitCheckin(goal.id)} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer', flexShrink: 0 }}>Log</button>
+                        <button onClick={() => { setCheckinGoalId(null); setCheckinText('') }} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer', flexShrink: 0 }}>Cancel</button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => setCheckinGoalId(goal.id)}
-                        className="w-full text-xs font-mono py-2 rounded-lg border transition-all hover:border-cyan-400/50 flex items-center justify-center gap-2"
-                        style={{ borderColor: 'rgba(0,242,255,0.2)', color: '#00f2ff', background: 'rgba(0,242,255,0.04)' }}
-                      >
+                      <button onClick={() => setCheckinGoalId(goal.id)} style={{ width: '100%', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px', borderRadius: 8, background: 'rgba(37,99,235,0.04)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                         <CheckCircle size={12} /> Weekly Check-in
                       </button>
                     )}
                   </div>
 
                   {checkins.length > 0 && (
-                    <div className="space-y-1.5 border-t pt-3" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                      <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>RECENT CHECK-INS</p>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase' }}>RECENT CHECK-INS</p>
                       {[...checkins].reverse().slice(0, 2).map(c => (
-                        <div key={c.id} className="flex gap-2 text-xs">
-                          <span className="font-mono flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{c.date}</span>
-                          <span style={{ color: 'var(--text-secondary)' }}>{c.text}</span>
+                        <div key={c.id} style={{ display: 'flex', gap: 10 }}>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>{c.date}</span>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>{c.text}</span>
                         </div>
                       ))}
                     </div>
@@ -393,26 +289,17 @@ function GoalsInner() {
           </div>
         )}
       </div>
-
-      <LifeHubChat
-        section="goals"
-        apiRoute="/api/life/goals/chat"
-        contextData={{
-          yearly: goals.filter(g => (g.tier || 'yearly') === 'yearly'),
-          monthly: goals.filter(g => g.tier === 'monthly'),
-          weekly: goals.filter(g => g.tier === 'weekly'),
-          totalGoals: goals.length,
-        }}
-        systemPrompt="You are Coach Shai, a world-class goals and performance AI. You have access to the user's goals across yearly, monthly, and weekly tiers. Each goal includes: title, category (Trading/Content/Health/Finance/Personal), progress percentage, current vs target values with units, days remaining until deadline, status (Crushing It / On Track / At Risk / Overdue), and weekly check-in notes. Analyze their progress, flag risks, celebrate wins, and give direct, actionable advice. Be sharp, motivating, and honest."
-        defaultOpen={chatOpen}
-      />
+      <LifeHubChat section="goals" apiRoute="/api/life/goals/chat"
+        contextData={{ yearly: goals.filter(g => (g.tier || 'yearly') === 'yearly'), monthly: goals.filter(g => g.tier === 'monthly'), weekly: goals.filter(g => g.tier === 'weekly'), totalGoals: goals.length }}
+        systemPrompt="You are Coach Shai, a world-class goals and performance AI. You have access to the user's goals across yearly, monthly, and weekly tiers. Each goal includes: title, category (Trading/Content/Health/Finance/Personal), progress percentage, current vs target values with units, days remaining until deadline, status (Completed / Ahead / On Track / At Risk / Overdue), and weekly check-in notes. Analyze their progress, flag risks, celebrate wins, and give direct, actionable advice. Be sharp, motivating, and honest."
+        defaultOpen={chatOpen} />
     </div>
   )
 }
 
 export default function GoalsPage() {
   return (
-    <Suspense fallback={<div className="cyber-bg-grid min-h-screen flex items-center justify-center"><div className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Loading...</div></div>}>
+    <Suspense fallback={<div style={{ background: '#0a0a0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading...</div></div>}>
       <GoalsInner />
     </Suspense>
   )
