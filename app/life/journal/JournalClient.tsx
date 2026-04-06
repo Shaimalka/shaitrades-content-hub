@@ -102,7 +102,19 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
     </div>
   )
 }
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 function JournalInner() {
+  const isMobile = useWindowWidth() < 768
   const router = useRouter()
   const searchParams = useSearchParams()
   const [entries, setEntries] = useState<JournalEntry[]>([])
@@ -327,7 +339,7 @@ function JournalInner() {
     return (
       <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
         <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
-        <div className="max-w-[900px] mx-auto p-6">
+        <div className="max-w-[900px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
           <div className="mb-8"><Skeleton height="40px" width="200px" /></div>
           <div className="premium-card p-5 mb-5 space-y-4">
             <Skeleton height="120px" />
@@ -344,7 +356,7 @@ function JournalInner() {
     <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
       <div className="max-w-[900px] mx-auto p-6">
         {/* PAGE HEADER */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8" style={{ flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '12px' }}>
           <div>
             <Link
               href="/life"
@@ -396,6 +408,7 @@ function JournalInner() {
             max={today}
             onChange={(e) => setSelectedDate(e.target.value)}
             style={{
+              width: isMobile ? '100%' : 'auto',
               background: 'rgba(0, 242, 255, 0.04)',
               border: '1px solid rgba(0,242,255,0.3)',
               borderRadius: '6px',
@@ -746,9 +759,10 @@ function JournalInner() {
           <div
             style={{
               display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
               gap: '10px',
               marginBottom: '12px',
-              alignItems: 'center',
+              alignItems: isMobile ? 'stretch' : 'center',
               width: '100%',
             }}
           >
