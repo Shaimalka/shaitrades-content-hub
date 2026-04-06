@@ -50,6 +50,17 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
   )
 }
 
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
   const [insights, setInsights] = useState<CorrelationInsight[]>([])
   const [loading, setLoading] = useState(false)
@@ -149,6 +160,7 @@ function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
 }
 
 function HealthInner() {
+  const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const [logs, setLogs] = useState<HealthLog[]>([])
   const [loading, setLoading] = useState(true)
@@ -211,7 +223,7 @@ function HealthInner() {
 
   return (
     <div className="cyber-bg-grid min-h-screen">
-      <div className="max-w-[1100px] mx-auto p-6">
+      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{color:'var(--text-muted)'}}>← LIFE HUB</Link>
@@ -238,7 +250,7 @@ function HealthInner() {
               <div><label className="text-xs font-mono mb-1.5 flex items-center justify-between" style={{color:'var(--text-muted)'}}><span>⚡ ENERGY LEVEL</span><span style={{color:'#ffb400'}}>{form.energy}/10</span></label><input type="range" min="1" max="10" value={form.energy} onChange={e=>setForm(f=>({...f,energy:parseInt(e.target.value)}))} className="w-full" /><div className="flex justify-between text-xs font-mono mt-0.5" style={{color:'var(--text-muted)',opacity:0.5}}><span>Dead</span><span>Wired</span></div></div>
               <div><label className="text-xs font-mono mb-1.5 flex items-center gap-1.5" style={{color:'var(--text-muted)'}}>📝 NOTE <span className="opacity-40">optional</span></label><input value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} className="cyber-input w-full" placeholder="How are you feeling?" /></div>
             </div>
-            <button type="submit" disabled={saving} className="btn-cyber-primary w-full" style={{opacity:saving?0.6:1}}>{saving?'Saving...':todayLog?"Update Today's Log":'Log Today'}</button>
+            <button type="submit" disabled={saving} className="btn-cyber-primary w-full" style={{opacity:saving?0.6:1,minHeight:'44px'}}>{saving?'Saving...':todayLog?"Update Today's Log":'Log Today'}</button>
           </form>
         </div>
 
