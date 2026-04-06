@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import {
   LayoutDashboard,
   Users,
@@ -23,6 +23,7 @@ import {
   Settings,
   ChevronLeft,
 } from 'lucide-react'
+import { ADMIN_EMAIL } from '@/lib/isAdmin'
 
 // Platform nav definitions
 const INSTAGRAM_NAV = [
@@ -71,6 +72,7 @@ function LiveDot() {
 
 export default function Sidebar() {
   const pathname = usePathname()
+    const { data: session } = useSession()
 
   // Auto-detect platform from pathname
   function detectPlatform(): Platform {
@@ -340,6 +342,27 @@ export default function Sidebar() {
             </div>
           </div>
         )}
+        {session?.user?.email === ADMIN_EMAIL && (
+                <div style={{ padding: '12px 16px 4px' }}>
+                              <div style={{
+                                fontFamily: 'JetBrains Mono, monospace', fontSize: '9px',
+                                color: 'rgba(0,242,255,0.4)', letterSpacing: '4px',
+                                textTransform: 'uppercase', marginBottom: '8px',
+                }}>// CONTENT</div>
+                              <Link href='/instagram' className={`nav-item-dark ${pathname?.startsWith('/instagram') ? 'active' : ''}`}>
+                                              <span className='nav-item-icon'><Camera size={13} strokeWidth={2} /></span>
+                                            <span>Instagram</span>
+                              </Link>
+                            <Link href='/tiktok/analytics' className={`nav-item-dark ${pathname?.startsWith('/tiktok') ? 'active' : ''}`}>
+                                          <span className='nav-item-icon'><Music2 size={13} strokeWidth={2} /></span>
+                                          <span>TikTok</span>
+                            </Link>
+                            <Link href='/youtube' className={`nav-item-dark ${pathname?.startsWith('/youtube') ? 'active' : ''}`}>
+                                          <span className='nav-item-icon'><Youtube size={13} strokeWidth={2} /></span>
+                                          <span>YouTube</span>
+                            </Link>
+                </div>
+              )}
       </div>
 
       {/* Bottom profile */}
