@@ -297,6 +297,8 @@ function TradingJournalInner() {
   const [coachInsight, setCoachInsight] = useState<CoachInsight>({ text: '', visible: false, fading: false })
   const insightTimerRef = useRef<NodeJS.Timeout | null>(null)
   const fadeTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const lastInsightTime = useRef<number>(0)
+  const COOLDOWN_MS = 5 * 60 * 1000 // 5 minutes
 
   const emptyForm = {
     date: new Date().toISOString().split('T')[0],
@@ -362,6 +364,9 @@ function TradingJournalInner() {
   }
 
   async function triggerCoachInsight(trade: Trade) {
+    const now = Date.now()
+    if (now - lastInsightTime.current < COOLDOWN_MS) return
+    lastInsightTime.current = now
     if (insightTimerRef.current) clearTimeout(insightTimerRef.current)
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
     setCoachInsight({ text: 'Coach Shai is watching...', visible: true, fading: false })
