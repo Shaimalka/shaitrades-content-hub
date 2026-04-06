@@ -67,22 +67,22 @@ function JournalInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const inputStyle = {
-    background: isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f1f4f9',
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: '8px', color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc'),
+    background: isDark ? '#1a1a24' : '#f1f4f9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
     boxSizing: 'border-box' as const,
   }
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '20px',
   }
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
+  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const labelStyle = {
     fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 500 as const,
-    color: isDark ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : 'rgba(0,0,0,0.5)',
+    color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     textTransform: 'uppercase' as const, letterSpacing: '0.1em',
     display: 'block' as const, marginBottom: '6px',
   }
@@ -364,7 +364,7 @@ function JournalInner() {
                 const isExpanded = expandedId === entry.id
                 const moodColor = primaryMood ? MOOD_COLORS[primaryMood] : 'rgba(37,99,235,0.4)'
                 return (
-                  <div key={entry.id} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderLeft: `3px solid ${moodColor}`, borderRadius: 10, overflow: 'hidden' }}>
+                  <div key={entry.id} style={{ background: (isDark ? '#111118' : '#ffffff'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` , borderLeft: `3px solid ${moodColor}`, borderRadius: 10, overflow: 'hidden' }}>
                     <button onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                       style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                       <div style={{ minWidth: 150 }}>
@@ -383,7 +383,7 @@ function JournalInner() {
                       {isExpanded ? <ChevronUp size={14} style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), flexShrink: 0 }} /> : <ChevronDown size={14} style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), flexShrink: 0 }} />}
                     </button>
                     {isExpanded && (
-                      <div style={{ padding: '0 16px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ padding: '0 16px 20px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
                           {entry.morningFocus && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 4, textTransform: 'uppercase' }}>🎯 #1 FOCUS</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{entry.morningFocus}</p></div>}
                           {entry.tradingMindset && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 4, textTransform: 'uppercase' }}>🧠 MORNING MINDSET</p><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '2px 8px', borderRadius: 20, border: `1px solid ${MINDSET_COLORS[entry.tradingMindset]}55`, background: MINDSET_COLORS[entry.tradingMindset] + '11', color: MINDSET_COLORS[entry.tradingMindset] }}>{entry.tradingMindset}</span></div>}
