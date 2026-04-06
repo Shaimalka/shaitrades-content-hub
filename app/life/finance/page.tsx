@@ -60,18 +60,18 @@ function useWindowWidth() {
 function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id'>) => void; onCancel: () => void }) {
   const { isDark } = useTheme()
   const inputStyle = {
-    background: isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f1f4f9',
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: '8px', color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc'),
+    background: isDark ? '#1a1a24' : '#f1f4f9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
   } as React.CSSProperties
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '20px',
   } as React.CSSProperties
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
+  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const [name, setName] = useState('')
   const [color, setColor] = useState('#00c48c')
   const [emoji, setEmoji] = useState('💰')
@@ -109,23 +109,23 @@ function FinancePage() {
   const isMobile = useWindowWidth() < 768
   const params = useSearchParams()
   const inputStyle = {
-    background: isDark ? (isDark ? '#1a1a24' : '#f1f4f9') : '#f1f4f9',
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: '8px', color: isDark ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? '#0a0a0f' : '#f8f9fc'),
+    background: isDark ? '#1a1a24' : '#f1f4f9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
   } as React.CSSProperties
   const cardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '20px',
   } as React.CSSProperties
   const statCardStyle = {
-    background: isDark ? (isDark ? '#111118' : '#ffffff') : (isDark ? '#ffffff' : '#0a0a0f'),
-    border: `1px solid ${isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#111118' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px', padding: '16px',
   } as React.CSSProperties
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
+  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const [streams, setStreams] = useState<IncomeStream[]>(DEFAULT_STREAMS)
   const [activeTab, setActiveTab] = useState<string>('trading')
   const [showForm, setShowForm] = useState(false)
@@ -220,7 +220,7 @@ function FinancePage() {
   const activeIncome = income.filter(e => e.streamId === activeTab)
 
   const tooltipStyle = { background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? '#ffffff' : '#0a0a0f') }
-  const axisTickStyle = { fill: isDark ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
+  const axisTickStyle = { fill: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
 
   return (
     <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
@@ -430,7 +430,7 @@ function FinancePage() {
           <div style={{ ...cardStyle, marginBottom: 24, padding: 0, overflow: 'hidden' }}>
             {activeTab !== 'expenses' && activeStream && (
               <>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                   <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: activeStream.color, margin: 0 }}>
                     {activeStream.emoji} {activeStream.name.toUpperCase()} INCOME · {activeIncome.length} ENTRIES · {fmt(activeIncome.reduce((s,e)=>s+e.amount,0))}
                   </h3>
@@ -438,7 +438,7 @@ function FinancePage() {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      <tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                         {['DATE','ACCOUNT / SOURCE','AMOUNT','NOTES',''].map(h => (
                           <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>
                         ))}
@@ -466,7 +466,7 @@ function FinancePage() {
             )}
             {activeTab === 'expenses' && (
               <>
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                   <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: 0 }}>
                     EXPENSES · {expenses.length} ENTRIES · {fmt(expenses.reduce((s,e)=>s+e.amount,0))}
                   </h3>
@@ -474,7 +474,7 @@ function FinancePage() {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      <tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                         {['DATE','CATEGORY','AMOUNT','NOTES',''].map(h => (
                           <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>
                         ))}
