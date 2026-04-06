@@ -8,109 +8,73 @@ import { useSearchParams } from 'next/navigation'
 
 type MoodTag = 'Focused' | 'Anxious' | 'Motivated' | 'Tired' | 'Grateful' | 'Neutral' | 'Proud' | 'Disappointed'
 type TradingMindset = 'Confident' | 'Cautious' | 'Uncertain' | 'Sharp' | 'Emotional'
-
 type JournalEntry = {
-  id: string
-  date: string
-  morningFocus?: string
-  tradingMindset?: TradingMindset
-  grateful?: string
-  intention?: string
-  hitFocus?: boolean
-  hitFocusNotes?: string
-  bestMoment?: string
-  doDifferently?: string
-  eveningMindsetRating?: number
-  moodTags?: MoodTag[]
-  createdAt: string
-  updatedAt: string
+  id: string; date: string; morningFocus?: string; tradingMindset?: TradingMindset; grateful?: string
+  intention?: string; hitFocus?: boolean; hitFocusNotes?: string; bestMoment?: string
+  doDifferently?: string; eveningMindsetRating?: number; moodTags?: MoodTag[]; createdAt: string; updatedAt: string
 }
 
 const MINDSET_OPTIONS: TradingMindset[] = ['Confident', 'Cautious', 'Uncertain', 'Sharp', 'Emotional']
 const MOOD_TAGS: MoodTag[] = ['Focused', 'Anxious', 'Motivated', 'Tired', 'Grateful', 'Neutral', 'Proud', 'Disappointed']
 
 const MOOD_COLORS: Record<MoodTag, string> = {
-  Focused: '#00f2ff',
-  Anxious: '#ff2d78',
-  Motivated: '#00ff88',
-  Tired: '#888',
-  Grateful: '#ffb400',
-  Neutral: '#aaa',
-  Proud: '#c084fc',
-  Disappointed: '#f97316',
+  Focused: '#2563eb', Anxious: '#ff4d6a', Motivated: '#00c48c', Tired: 'rgba(255,255,255,0.4)',
+  Grateful: '#f59e0b', Neutral: 'rgba(255,255,255,0.4)', Proud: '#a78bfa', Disappointed: '#f97316',
 }
 
 const MINDSET_COLORS: Record<TradingMindset, string> = {
-  Confident: '#00ff88',
-  Cautious: '#ffb400',
-  Uncertain: '#888',
-  Sharp: '#00f2ff',
-  Emotional: '#ff2d78',
-}
-
-const MOOD_BORDER: Record<MoodTag, string> = {
-  Focused: '#00f2ff',
-  Anxious: '#ff2d78',
-  Motivated: '#00ff88',
-  Tired: '#555',
-  Grateful: '#ffb400',
-  Neutral: '#666',
-  Proud: '#c084fc',
-  Disappointed: '#f97316',
+  Confident: '#00c48c', Cautious: '#f59e0b', Uncertain: 'rgba(255,255,255,0.4)', Sharp: '#2563eb', Emotional: '#ff4d6a',
 }
 
 const RATING_OPTIONS = [
-  { value: '', label: 'ALL RATINGS' },
-  { value: '5', label: '5 — Excellent' },
-  { value: '4', label: '4 — Good' },
-  { value: '3', label: '3 — Neutral' },
-  { value: '2', label: '2 — Poor' },
-  { value: '1', label: '1 — Terrible' },
+  { value: '', label: 'ALL RATINGS' }, { value: '5', label: '5 — Excellent' }, { value: '4', label: '4 — Good' },
+  { value: '3', label: '3 — Neutral' }, { value: '2', label: '2 — Poor' }, { value: '1', label: '1 — Terrible' },
 ]
 
 function formatDate(dateStr: string) {
-  try {
-    const d = new Date(dateStr + 'T12:00:00')
-    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-  } catch {
-    return dateStr
-  }
+  try { return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) }
+  catch { return dateStr }
 }
 
 function getPrimaryMood(entry: JournalEntry): MoodTag | null {
   return entry.moodTags && entry.moodTags.length > 0 ? entry.moodTags[0] : null
 }
 
-
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{
-    width,
-    height,
-    borderRadius,
-    background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(0,242,255,0.06) 50%, rgba(255,255,255,0.03) 75%)',
-    backgroundSize: '200% 100%',
-    animation: 'shimmer 1.5s infinite',
-  }} />
+  <div style={{ width, height, borderRadius, background: 'rgba(255,255,255,0.06)', animation: 'shimmer 1.5s infinite' }} />
 )
 
 function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType; heading: string; subtext: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: 'rgba(0,242,255,0.3)', marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: '#888888', fontSize: 13, letterSpacing: '0.15em', fontVariant: 'small-caps', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+      <Icon size={48} style={{ color: 'rgba(255,255,255,0.2)', marginBottom: 16 }} />
+      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: 'rgba(255,255,255,0.25)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
     </div>
   )
 }
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
+  useEffect(() => { const h = () => setWidth(window.innerWidth); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h) }, [])
   return width
+}
+
+const inputStyle = {
+  background: '#1a1a24', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px',
+  color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%', boxSizing: 'border-box' as const,
+}
+
+const cardStyle = {
+  background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '20px',
+}
+
+const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
+const blurStyle = { borderColor: 'rgba(255,255,255,0.06)', boxShadow: 'none' }
+
+const labelStyle = {
+  fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 500 as const, color: 'rgba(255,255,255,0.5)',
+  textTransform: 'uppercase' as const, letterSpacing: '0.1em', display: 'block' as const, marginBottom: '6px',
 }
 
 function JournalInner() {
@@ -122,91 +86,38 @@ function JournalInner() {
   const [authChecked, setAuthChecked] = useState(false)
   const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [expandedId, setExpandedId] = useState<string | null>(null)
-
-  // Search & Filter state
   const [searchText, setSearchText] = useState('')
   const [filterRating, setFilterRating] = useState('')
   const [filterMood, setFilterMood] = useState('')
-
   const today = new Date().toLocaleDateString('en-CA')
   const [selectedDate, setSelectedDate] = useState(today)
   const selectedEntry = entries.find((e) => e.date === selectedDate)
-
-  const [morning, setMorning] = useState({
-    morningFocus: '',
-    tradingMindset: 'Sharp' as TradingMindset,
-    grateful: '',
-    intention: '',
-  })
-
-  const [evening, setEvening] = useState({
-    hitFocus: null as boolean | null,
-    hitFocusNotes: '',
-    bestMoment: '',
-    doDifferently: '',
-    eveningMindsetRating: 7,
-    moodTags: [] as MoodTag[],
-  })
-
+  const [morning, setMorning] = useState({ morningFocus: '', tradingMindset: 'Sharp' as TradingMindset, grateful: '', intention: '' })
+  const [evening, setEvening] = useState({ hitFocus: null as boolean | null, hitFocusNotes: '', bestMoment: '', doDifferently: '', eveningMindsetRating: 7, moodTags: [] as MoodTag[] })
   const [saving, setSaving] = useState<'morning' | 'evening' | null>(null)
   const [saved, setSaved] = useState<'morning' | 'evening' | null>(null)
 
-  // Session auth check
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch('/api/life/journal', {
-          method: 'GET',
-          credentials: 'include',
-        })
-        if (res.status === 401 || res.redirected) {
-          router.push('/login')
-          return
-        }
+        const res = await fetch('/api/life/journal', { method: 'GET', credentials: 'include' })
+        if (res.status === 401 || res.redirected) { router.push('/login'); return }
         const d = await res.json()
-        if (d.data && Array.isArray(d.data)) {
-          setEntries(d.data)
-        }
-      } catch (err) {
-        console.error('[journal] auth/fetch error:', err)
-        router.push('/login')
-      } finally {
-        setAuthChecked(true)
-        setLoading(false)
-      }
+        if (d.data && Array.isArray(d.data)) setEntries(d.data)
+      } catch (err) { console.error('[journal] auth/fetch error:', err); router.push('/login') }
+      finally { setAuthChecked(true); setLoading(false) }
     }
     checkAuth()
   }, [router])
 
   const fetchEntries = useCallback(async () => {
-    try {
-      const res = await fetch('/api/life/journal', { credentials: 'include' })
-      const d = await res.json()
-      if (d.data && Array.isArray(d.data)) {
-        setEntries(d.data)
-      }
-    } catch (err) {
-      console.error('[journal page] fetchEntries error:', err)
-    }
+    try { const res = await fetch('/api/life/journal', { credentials: 'include' }); const d = await res.json(); if (d.data && Array.isArray(d.data)) setEntries(d.data) } catch (err) { console.error('[journal page] fetchEntries error:', err) }
   }, [])
 
-  // Populate forms when selected date changes
   useEffect(() => {
     if (selectedEntry) {
-      setMorning({
-        morningFocus: selectedEntry.morningFocus || '',
-        tradingMindset: selectedEntry.tradingMindset || 'Sharp',
-        grateful: selectedEntry.grateful || '',
-        intention: selectedEntry.intention || '',
-      })
-      setEvening({
-        hitFocus: selectedEntry.hitFocus ?? null,
-        hitFocusNotes: selectedEntry.hitFocusNotes || '',
-        bestMoment: selectedEntry.bestMoment || '',
-        doDifferently: selectedEntry.doDifferently || '',
-        eveningMindsetRating: selectedEntry.eveningMindsetRating ?? 7,
-        moodTags: selectedEntry.moodTags || [],
-      })
+      setMorning({ morningFocus: selectedEntry.morningFocus || '', tradingMindset: selectedEntry.tradingMindset || 'Sharp', grateful: selectedEntry.grateful || '', intention: selectedEntry.intention || '' })
+      setEvening({ hitFocus: selectedEntry.hitFocus ?? null, hitFocusNotes: selectedEntry.hitFocusNotes || '', bestMoment: selectedEntry.bestMoment || '', doDifferently: selectedEntry.doDifferently || '', eveningMindsetRating: selectedEntry.eveningMindsetRating ?? 7, moodTags: selectedEntry.moodTags || [] })
     } else {
       setMorning({ morningFocus: '', tradingMindset: 'Sharp', grateful: '', intention: '' })
       setEvening({ hitFocus: null, hitFocusNotes: '', bestMoment: '', doDifferently: '', eveningMindsetRating: 7, moodTags: [] })
@@ -214,876 +125,275 @@ function JournalInner() {
   }, [selectedEntry, selectedDate])
 
   async function saveMorning(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving('morning')
+    e.preventDefault(); setSaving('morning')
     const entry = { date: selectedDate, ...morning }
-    const payload = selectedEntry
-      ? { action: 'update', entry: { ...entry, id: selectedEntry.id } }
-      : { entry }
+    const payload = selectedEntry ? { action: 'update', entry: { ...entry, id: selectedEntry.id } } : { entry }
     try {
-      const res = await fetch('/api/life/journal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      })
+      const res = await fetch('/api/life/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) })
       const responseData = await res.json()
-      if (responseData.success && responseData.data) {
-        setEntries(responseData.data)
-      } else {
-        await fetchEntries()
-      }
-      setSaved('morning')
-      setTimeout(() => setSaved(null), 3000)
-    } catch (err) {
-      console.error('[journal page] saveMorning error:', err)
-    } finally {
-      setSaving(null)
-    }
+      if (responseData.success && responseData.data) setEntries(responseData.data); else await fetchEntries()
+      setSaved('morning'); setTimeout(() => setSaved(null), 3000)
+    } catch (err) { console.error('[journal page] saveMorning error:', err) } finally { setSaving(null) }
   }
 
   async function saveEvening(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving('evening')
+    e.preventDefault(); setSaving('evening')
     const entry = { date: selectedDate, ...morning, ...evening }
-    const payload = selectedEntry
-      ? { action: 'update', entry: { ...entry, id: selectedEntry.id } }
-      : { entry }
+    const payload = selectedEntry ? { action: 'update', entry: { ...entry, id: selectedEntry.id } } : { entry }
     try {
-      const res = await fetch('/api/life/journal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      })
+      const res = await fetch('/api/life/journal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) })
       const responseData = await res.json()
-      if (responseData.success && responseData.data) {
-        setEntries(responseData.data)
-      } else {
-        await fetchEntries()
-      }
-      setSaved('evening')
-      setTimeout(() => setSaved(null), 3000)
-    } catch (err) {
-      console.error('[journal page] saveEvening error:', err)
-    } finally {
-      setSaving(null)
-    }
+      if (responseData.success && responseData.data) setEntries(responseData.data); else await fetchEntries()
+      setSaved('evening'); setTimeout(() => setSaved(null), 3000)
+    } catch (err) { console.error('[journal page] saveEvening error:', err) } finally { setSaving(null) }
   }
 
   function toggleMoodTag(tag: MoodTag) {
-    setEvening((e) => ({
-      ...e,
-      moodTags: e.moodTags.includes(tag)
-        ? e.moodTags.filter((t) => t !== tag)
-        : [...e.moodTags, tag],
-    }))
+    setEvening((e) => ({ ...e, moodTags: e.moodTags.includes(tag) ? e.moodTags.filter((t) => t !== tag) : [...e.moodTags, tag] }))
   }
 
-  // All past entries sorted
   const allPastEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30)
+  const availableMoodTags = useMemo(() => { const tagSet = new Set<string>(); entries.forEach((e) => { e.moodTags?.forEach((t) => tagSet.add(t)) }); return Array.from(tagSet).sort() }, [entries])
 
-  // Dynamically build mood tag options from all entries
-  const availableMoodTags = useMemo(() => {
-    const tagSet = new Set<string>()
-    entries.forEach((e) => {
-      e.moodTags?.forEach((t) => tagSet.add(t))
-    })
-    return Array.from(tagSet).sort()
-  }, [entries])
-
-  // Filtered entries using search + filter (AND logic)
   const filteredEntries = useMemo(() => {
     return allPastEntries.filter((entry) => {
-      // Text search
-      if (searchText.trim()) {
-        const q = searchText.toLowerCase()
-        const fields = [
-          entry.morningFocus,
-          entry.tradingMindset,
-          entry.grateful,
-          entry.intention,
-          entry.bestMoment,
-          entry.doDifferently,
-          entry.hitFocusNotes,
-        ]
-        const matched = fields.some((f) => f && f.toLowerCase().includes(q))
-        if (!matched) return false
-      }
-      // Rating filter
-      if (filterRating) {
-        const rating = parseInt(filterRating)
-        if (entry.eveningMindsetRating !== rating) return false
-      }
-      // Mood filter
-      if (filterMood) {
-        if (!entry.moodTags || !entry.moodTags.includes(filterMood as MoodTag)) return false
-      }
+      if (searchText.trim()) { const q = searchText.toLowerCase(); const fields = [entry.morningFocus, entry.tradingMindset, entry.grateful, entry.intention, entry.bestMoment, entry.doDifferently, entry.hitFocusNotes]; if (!fields.some((f) => f && f.toLowerCase().includes(q))) return false }
+      if (filterRating) { if (entry.eveningMindsetRating !== parseInt(filterRating)) return false }
+      if (filterMood) { if (!entry.moodTags || !entry.moodTags.includes(filterMood as MoodTag)) return false }
       return true
     })
   }, [allPastEntries, searchText, filterRating, filterMood])
 
-  const inputStyle: React.CSSProperties = {
-    background: '#0a0a0f',
-    border: '1px solid rgba(0,242,255,0.2)',
-    borderRadius: '6px',
-    color: '#ffffff',
-    fontFamily: 'JetBrains Mono, monospace',
-    fontSize: '12px',
-    padding: '8px 12px',
-    outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  }
-
   if (!authChecked || loading) {
     return (
-      <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
-        <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
+      <div style={{ background: '#0a0a0f', minHeight: '100vh' }}>
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
         <div className="max-w-[900px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
-          <div className="mb-8"><Skeleton height="40px" width="200px" /></div>
-          <div className="premium-card p-5 mb-5 space-y-4">
-            <Skeleton height="120px" />
-          </div>
-          <div className="premium-card p-5 mb-8 space-y-4">
-            <Skeleton height="120px" />
-          </div>
+          <div style={{ marginBottom: 32 }}><Skeleton height="40px" width="200px" /></div>
+          <div style={{ ...cardStyle, marginBottom: 20 }}><Skeleton height="120px" /></div>
+          <div style={{ ...cardStyle }}><Skeleton height="120px" /></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="cyber-bg-grid min-h-screen" style={{ background: '#060608' }}>
-      <div className="max-w-[900px] mx-auto p-6">
-        {/* PAGE HEADER */}
-        <div className="flex items-center justify-between mb-8" style={{ flexWrap: isMobile ? 'wrap' : 'nowrap', gap: '12px' }}>
+    <div style={{ background: '#0a0a0f', minHeight: '100vh' }}>
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
+      <div className="max-w-[900px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, flexWrap: isMobile ? 'wrap' : 'nowrap', gap: 12 }}>
           <div>
-            <Link
-              href="/life"
-              className="text-xs font-mono block mb-1"
-              style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-            >
-              &#8592; LIFE HUB
-            </Link>
-            <span
-              className="section-header"
-              style={{
-                fontSize: '10px',
-                letterSpacing: '4px',
-                fontFamily: 'JetBrains Mono, monospace',
-                color: '#00f2ff',
-                textTransform: 'uppercase',
-              }}
-            >
-              // JOURNAL
-            </span>
-            <h1 className="text-2xl font-bold mt-1" style={{ color: '#ffffff', fontFamily: 'Georgia, serif' }}>
-              Daily Journal
-            </h1>
+            <Link href="/life" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: '#ffffff', margin: 0 }}>Daily Journal</h1>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>Morning intentions · Evening reflection</p>
           </div>
-          <NotebookPen size={32} style={{ color: '#ff00e5', opacity: 0.4 }} />
+          <NotebookPen size={32} style={{ color: '#a78bfa', opacity: 0.4, flexShrink: 0 }} />
         </div>
 
-        {/* DATE PICKER */}
-        <div className="mb-6">
-          <label
-            htmlFor="journal-date-picker"
-            style={{
-              display: 'block',
-              fontSize: '10px',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontVariant: 'small-caps',
-              letterSpacing: '2px',
-              color: '#00f2ff',
-              opacity: 0.7,
-              marginBottom: '6px',
-            }}
-          >
-            JOURNALING FOR
-          </label>
-          <input
-            id="journal-date-picker"
-            type="date"
-            value={selectedDate}
-            max={today}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            style={{
-              width: isMobile ? '100%' : 'auto',
-              background: 'rgba(0, 242, 255, 0.04)',
-              border: '1px solid rgba(0,242,255,0.3)',
-              borderRadius: '6px',
-              color: '#ffffff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '13px',
-              padding: '8px 12px',
-              outline: 'none',
-              cursor: 'pointer',
-              colorScheme: 'dark',
-              transition: 'border-color 0.2s, box-shadow 0.2s',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#00f2ff'
-              e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.15)'
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(0,242,255,0.3)'
-              e.currentTarget.style.boxShadow = 'none'
-            }}
-          />
+        {/* Date Picker */}
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ ...labelStyle }}>JOURNALING FOR</label>
+          <input id="journal-date-picker" type="date" value={selectedDate} max={today} onChange={(e) => setSelectedDate(e.target.value)}
+            style={{ ...inputStyle, width: isMobile ? '100%' : 'auto', colorScheme: 'dark', fontFamily: 'JetBrains Mono, monospace' }}
+            onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} />
         </div>
-        {/* MORNING ENTRY FORM */}
-        <div
-          className="premium-card p-5 mb-5"
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(0,242,255,0.15)',
-            borderRadius: '12px',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span style={{ fontSize: '1.1rem' }}>&#127774;</span>
-              <h2 className="text-sm font-semibold" style={{ color: '#ffb400', fontFamily: 'JetBrains Mono, monospace' }}>
-                MORNING ENTRY
-              </h2>
-              <span className="text-xs font-mono" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                {selectedDate}
-              </span>
+
+        {/* Morning Entry */}
+        <div style={{ ...cardStyle, marginBottom: 20, borderColor: 'rgba(245,158,11,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '1.1rem' }}>☀️</span>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: '#f59e0b', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>MORNING ENTRY</h2>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>{selectedDate}</span>
             </div>
-            {saved === 'morning' && (
-              <span
-                className="text-xs font-mono px-2 py-1 rounded"
-                style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#10003; SAVED
-              </span>
-            )}
+            {saved === 'morning' && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(0,196,140,0.1)', color: '#00c48c' }}>✓ SAVED</span>}
           </div>
-          <form onSubmit={saveMorning} className="space-y-4">
+          <form onSubmit={saveMorning} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label
-                className="text-xs font-mono mb-1.5 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#127919; What is my #1 focus today?
-              </label>
-              <input
-                value={morning.morningFocus}
-                onChange={(e) => setMorning((m) => ({ ...m, morningFocus: e.target.value }))}
-                className="cyber-input w-full"
-                placeholder="e.g. Execute 3 clean ES scalps"
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              />
+              <label style={labelStyle}>🎯 What is my #1 focus today?</label>
+              <input value={morning.morningFocus} onChange={(e) => setMorning((m) => ({ ...m, morningFocus: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Execute 3 clean ES scalps" />
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-2 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#129504; My trading mindset going in is...
-              </label>
-              <div className="flex flex-wrap gap-2">
+              <label style={labelStyle}>🧠 My trading mindset going in is...</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {MINDSET_OPTIONS.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMorning((f) => ({ ...f, tradingMindset: m }))}
-                    className="px-3 py-1.5 rounded text-xs font-semibold border transition-all"
-                    style={
-                      morning.tradingMindset === m
-                        ? {
-                            background: MINDSET_COLORS[m] + '22',
-                            borderColor: MINDSET_COLORS[m],
-                            color: MINDSET_COLORS[m],
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }
-                        : {
-                            background: 'rgba(255,255,255,0.03)',
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            color: 'rgba(255,255,255,0.4)',
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }
-                    }
-                  >
+                  <button key={m} type="button" onClick={() => setMorning((f) => ({ ...f, tradingMindset: m }))}
+                    style={{ padding: '6px 14px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s', background: morning.tradingMindset === m ? MINDSET_COLORS[m] + '22' : 'rgba(255,255,255,0.03)', border: `1px solid ${morning.tradingMindset === m ? MINDSET_COLORS[m] : 'rgba(255,255,255,0.08)'}`, color: morning.tradingMindset === m ? MINDSET_COLORS[m] : 'rgba(255,255,255,0.5)' }}>
                     {m}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-1.5 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#128591; One thing I am grateful for today...
-              </label>
-              <input
-                value={morning.grateful}
-                onChange={(e) => setMorning((m) => ({ ...m, grateful: e.target.value }))}
-                className="cyber-input w-full"
-                placeholder="e.g. My health, my edge, my discipline"
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              />
+              <label style={labelStyle}>🙏 One thing I am grateful for today...</label>
+              <input value={morning.grateful} onChange={(e) => setMorning((m) => ({ ...m, grateful: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. My health, my edge, my discipline" />
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-1.5 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#10024; My intention for today is...
-              </label>
-              <input
-                value={morning.intention}
-                onChange={(e) => setMorning((m) => ({ ...m, intention: e.target.value }))}
-                className="cyber-input w-full"
-                placeholder="e.g. Stay patient. Only A+ setups."
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              />
+              <label style={labelStyle}>✨ My intention for today is...</label>
+              <input value={morning.intention} onChange={(e) => setMorning((m) => ({ ...m, intention: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Stay patient. Only A+ setups." />
             </div>
-            <button
-              type="submit"
-              disabled={saving === 'morning'}
-              className="btn-cyber-primary w-full"
-              style={{
-                opacity: saving === 'morning' ? 0.6 : 1,
-                fontFamily: 'JetBrains Mono, monospace',
-                background: 'rgba(0,242,255,0.1)',
-                border: '1px solid rgba(0,242,255,0.4)',
-                color: '#00f2ff',
-                borderRadius: '6px',
-                padding: '10px',
-                fontSize: '12px',
-                fontWeight: '600',
-                letterSpacing: '1px',
-                cursor: saving === 'morning' ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
+            <button type="submit" disabled={saving === 'morning'}
+              style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, padding: '10px', cursor: saving === 'morning' ? 'not-allowed' : 'pointer', opacity: saving === 'morning' ? 0.6 : 1, transition: 'all 0.2s' }}>
               {saving === 'morning' ? 'Saving...' : 'Save Morning Entry'}
             </button>
           </form>
         </div>
-        {/* EVENING ENTRY FORM */}
-        <div
-          className="premium-card p-5 mb-8"
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(192,132,252,0.2)',
-            borderRadius: '12px',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span style={{ fontSize: '1.1rem' }}>&#127762;</span>
-              <h2 className="text-sm font-semibold" style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}>
-                EVENING ENTRY
-              </h2>
-              <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                {selectedDate}
-              </span>
+
+        {/* Evening Entry */}
+        <div style={{ ...cardStyle, marginBottom: 32, borderColor: 'rgba(167,139,250,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '1.1rem' }}>🌙</span>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: '#a78bfa', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>EVENING ENTRY</h2>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>{selectedDate}</span>
             </div>
-            {saved === 'evening' && (
-              <span
-                className="text-xs px-2 py-1 rounded"
-                style={{ color: '#00ff88', background: 'rgba(0,255,136,0.1)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#10003; SAVED
-              </span>
-            )}
+            {saved === 'evening' && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(0,196,140,0.1)', color: '#00c48c' }}>✓ SAVED</span>}
           </div>
-          <form onSubmit={saveEvening} className="space-y-4">
+          <form onSubmit={saveEvening} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label
-                className="text-xs font-mono mb-2 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#127919; Did I hit my #1 focus?
-              </label>
-              <div className="flex gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setEvening((e) => ({ ...e, hitFocus: true }))}
-                  className="px-4 py-2 rounded text-xs font-semibold border transition-all"
-                  style={
-                    evening.hitFocus === true
-                      ? { background: 'rgba(0,255,136,0.15)', borderColor: '#00ff88', color: '#00ff88', fontFamily: 'JetBrains Mono, monospace' }
-                      : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }
-                  }
-                >
-                  &#10003; YES
+              <label style={labelStyle}>🎯 Did I hit my #1 focus?</label>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <button type="button" onClick={() => setEvening((e) => ({ ...e, hitFocus: true }))}
+                  style={{ padding: '8px 20px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, cursor: 'pointer', background: evening.hitFocus === true ? 'rgba(0,196,140,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${evening.hitFocus === true ? '#00c48c' : 'rgba(255,255,255,0.08)'}`, color: evening.hitFocus === true ? '#00c48c' : 'rgba(255,255,255,0.5)' }}>
+                  ✓ YES
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setEvening((e) => ({ ...e, hitFocus: false }))}
-                  className="px-4 py-2 rounded text-xs font-semibold border transition-all"
-                  style={
-                    evening.hitFocus === false
-                      ? { background: 'rgba(255,45,120,0.1)', borderColor: '#ff2d78', color: '#ff2d78', fontFamily: 'JetBrains Mono, monospace' }
-                      : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }
-                  }
-                >
-                  &#10005; NO
+                <button type="button" onClick={() => setEvening((e) => ({ ...e, hitFocus: false }))}
+                  style={{ padding: '8px 20px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, cursor: 'pointer', background: evening.hitFocus === false ? 'rgba(255,77,106,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${evening.hitFocus === false ? '#ff4d6a' : 'rgba(255,255,255,0.08)'}`, color: evening.hitFocus === false ? '#ff4d6a' : 'rgba(255,255,255,0.5)' }}>
+                  ✗ NO
                 </button>
               </div>
-              <input
-                value={evening.hitFocusNotes}
-                onChange={(e) => setEvening((f) => ({ ...f, hitFocusNotes: e.target.value }))}
-                className="cyber-input w-full"
-                placeholder="Notes on your focus..."
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              />
+              <input value={evening.hitFocusNotes} onChange={(e) => setEvening((f) => ({ ...f, hitFocusNotes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Notes on your focus..." />
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-1.5 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#11088; Best moment of today...
-              </label>
-              <input
-                value={evening.bestMoment}
-                onChange={(e) => setEvening((f) => ({ ...f, bestMoment: e.target.value }))}
-                className="cyber-input w-full"
-                placeholder="e.g. Caught a perfect ES reversal"
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              />
+              <label style={labelStyle}>⭐ Best moment of today...</label>
+              <input value={evening.bestMoment} onChange={(e) => setEvening((f) => ({ ...f, bestMoment: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Caught a perfect ES reversal" />
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-1.5 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#128260; What would I do differently?
-              </label>
-              <input
-                value={evening.doDifferently}
-                onChange={(e) => setEvening((f) => ({ ...f, doDifferently: e.target.value }))}
-                className="cyber-input w-full"
-                placeholder="e.g. Took 2 revenge trades after the loss"
-                style={{ fontFamily: 'JetBrains Mono, monospace' }}
-              />
+              <label style={labelStyle}>🔄 What would I do differently?</label>
+              <input value={evening.doDifferently} onChange={(e) => setEvening((f) => ({ ...f, doDifferently: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Took 2 revenge trades after the loss" />
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-1.5 flex items-center justify-between"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                <span>&#129504; How was my trading mindset today?</span>
-                <span style={{ color: '#c084fc' }}>{evening.eveningMindsetRating}/10</span>
+              <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>🧠 How was my trading mindset today?</span>
+                <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#a78bfa' }}>{evening.eveningMindsetRating}/10</span>
               </label>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={evening.eveningMindsetRating}
-                onChange={(e) => setEvening((f) => ({ ...f, eveningMindsetRating: parseInt(e.target.value) }))}
-                className="w-full"
-                style={{ accentColor: '#c084fc' }}
-              />
-              <div
-                className="flex justify-between text-xs mt-0.5"
-                style={{ color: 'var(--text-muted)', opacity: 0.5, fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                <span>Chaotic</span>
-                <span>Locked in</span>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {[1,2,3,4,5].map(v => (
+                  <button key={v} type="button" onClick={() => setEvening(f => ({ ...f, eveningMindsetRating: v }))}
+                    style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, cursor: 'pointer', background: evening.eveningMindsetRating === v ? '#2563eb' : 'rgba(255,255,255,0.04)', border: `1px solid ${evening.eveningMindsetRating === v ? '#2563eb' : 'rgba(255,255,255,0.06)'}`, color: evening.eveningMindsetRating === v ? '#ffffff' : 'rgba(255,255,255,0.5)' }}>
+                    {v}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
+                <span>Chaotic</span><span>Locked in</span>
               </div>
             </div>
             <div>
-              <label
-                className="text-xs font-mono mb-2 block"
-                style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}
-              >
-                &#127991; Mood tags
-              </label>
-              <div className="flex flex-wrap gap-2">
+              <label style={labelStyle}>🏷️ Mood tags</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {MOOD_TAGS.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => toggleMoodTag(tag)}
-                    className="px-3 py-1 rounded text-xs border transition-all"
-                    style={
-                      evening.moodTags.includes(tag)
-                        ? { background: MOOD_COLORS[tag] + '22', borderColor: MOOD_COLORS[tag], color: MOOD_COLORS[tag], fontFamily: 'JetBrains Mono, monospace' }
-                        : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }
-                    }
-                  >
+                  <button key={tag} type="button" onClick={() => toggleMoodTag(tag)}
+                    style={{ padding: '6px 12px', borderRadius: 20, fontFamily: 'Inter, sans-serif', fontSize: 12, cursor: 'pointer', transition: 'all 0.15s', background: evening.moodTags.includes(tag) ? 'rgba(37,99,235,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${evening.moodTags.includes(tag) ? '#2563eb' : 'rgba(255,255,255,0.08)'}`, color: evening.moodTags.includes(tag) ? '#2563eb' : 'rgba(255,255,255,0.5)' }}>
                     {tag}
                   </button>
                 ))}
               </div>
             </div>
-            <button
-              type="submit"
-              disabled={saving === 'evening'}
-              style={{
-                width: '100%',
-                opacity: saving === 'evening' ? 0.6 : 1,
-                fontFamily: 'JetBrains Mono, monospace',
-                background: 'rgba(192,132,252,0.1)',
-                border: '1px solid rgba(192,132,252,0.4)',
-                color: '#c084fc',
-                borderRadius: '6px',
-                padding: '10px',
-                fontSize: '12px',
-                fontWeight: '600',
-                letterSpacing: '1px',
-                cursor: saving === 'evening' ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
+            <button type="submit" disabled={saving === 'evening'}
+              style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, padding: '10px', cursor: saving === 'evening' ? 'not-allowed' : 'pointer', opacity: saving === 'evening' ? 0.6 : 1, transition: 'all 0.2s' }}>
               {saving === 'evening' ? 'Saving...' : 'Save Evening Entry'}
             </button>
           </form>
         </div>
-        {/* PAST ENTRIES */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2
-              style={{
-                fontSize: '11px',
-                letterSpacing: '4px',
-                fontFamily: 'JetBrains Mono, monospace',
-                color: '#00f2ff',
-                textTransform: 'uppercase',
-              }}
-            >
-              // PAST ENTRIES &middot;{' '}
-              <span style={{ color: '#00ff88' }}>{allPastEntries.length} LOGGED</span>
+
+        {/* Past Entries */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <h2 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+              PAST ENTRIES · <span style={{ color: '#00c48c' }}>{allPastEntries.length} LOGGED</span>
             </h2>
           </div>
 
-          {/* SEARCH & FILTER CONTROLS */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: '10px',
-              marginBottom: '12px',
-              alignItems: isMobile ? 'stretch' : 'center',
-              width: '100%',
-            }}
-          >
-            {/* Search input with X clear */}
+          {/* Search & Filters */}
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 12 }}>
             <div style={{ position: 'relative', flex: 1 }}>
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="SEARCH ENTRIES..."
-                style={{
-                  ...inputStyle,
-                  width: '100%',
-                  paddingRight: searchText ? '32px' : '12px',
-                  boxSizing: 'border-box',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#00f2ff'
-                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.12)'
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(0,242,255,0.2)'
-                  e.currentTarget.style.boxShadow = 'none'
-                }}
-              />
+              <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="SEARCH ENTRIES..."
+                style={{ ...inputStyle, paddingRight: searchText ? '32px' : '12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}
+                onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} />
               {searchText && (
-                <button
-                  onClick={() => setSearchText('')}
-                  style={{
-                    position: 'absolute',
-                    right: '8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'rgba(255,255,255,0.35)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: 0,
-                  }}
-                  aria-label="Clear search"
-                >
+                <button onClick={() => setSearchText('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', padding: 0 }}>
                   <X size={14} />
                 </button>
               )}
             </div>
-            {/* Rating filter */}
-            <select
-              value={filterRating}
-              onChange={(e) => setFilterRating(e.target.value)}
-              style={{
-                ...inputStyle,
-                flexShrink: 0,
-                cursor: 'pointer',
-                colorScheme: 'dark',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#00f2ff'
-                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.12)'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(0,242,255,0.2)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              {RATING_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
+            <select value={filterRating} onChange={(e) => setFilterRating(e.target.value)}
+              style={{ ...inputStyle, width: isMobile ? '100%' : 160, cursor: 'pointer', colorScheme: 'dark', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}
+              onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)}>
+              {RATING_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
-            {/* Mood tag filter */}
-            <select
-              value={filterMood}
-              onChange={(e) => setFilterMood(e.target.value)}
-              style={{
-                ...inputStyle,
-                flexShrink: 0,
-                cursor: 'pointer',
-                colorScheme: 'dark',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#00f2ff'
-                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(0,242,255,0.12)'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(0,242,255,0.2)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
+            <select value={filterMood} onChange={(e) => setFilterMood(e.target.value)}
+              style={{ ...inputStyle, width: isMobile ? '100%' : 150, cursor: 'pointer', colorScheme: 'dark', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}
+              onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)}>
               <option value="">ALL MOODS</option>
-              {availableMoodTags.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
+              {availableMoodTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
             </select>
           </div>
 
-          {/* Results count */}
           {(searchText || filterRating || filterMood) && (
-            <p
-              style={{
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '11px',
-                color: 'rgba(255,255,255,0.3)',
-                fontVariant: 'small-caps',
-                textTransform: 'uppercase',
-                letterSpacing: '0.15em',
-                marginBottom: '10px',
-              }}
-            >
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)', marginBottom: 10 }}>
               SHOWING {filteredEntries.length} OF {allPastEntries.length} ENTRIES
             </p>
           )}
 
-          {/* Entry list or empty states */}
           {allPastEntries.length === 0 ? (
-            <div>
-              <EmptyState
-                icon={BookOpen}
-                heading="NO JOURNAL ENTRIES YET"
-                subtext="Your past entries will appear here after you save your first journal."
-              />
-            </div>
+            <EmptyState icon={BookOpen} heading="NO JOURNAL ENTRIES YET" subtext="Your past entries will appear here after you save your first journal." />
           ) : filteredEntries.length === 0 ? (
-            <div>
-              <EmptyState
-                icon={BookOpen}
-                heading="NO ENTRIES MATCH YOUR SEARCH"
-                subtext="Try adjusting your search or filter to find what you&#39;re looking for."
-              />
-            </div>
+            <EmptyState icon={BookOpen} heading="NO ENTRIES MATCH YOUR SEARCH" subtext="Try adjusting your search or filter." />
           ) : (
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {filteredEntries.map((entry) => {
                 const primaryMood = getPrimaryMood(entry)
-                const borderColor = primaryMood ? MOOD_BORDER[primaryMood] : 'rgba(0,242,255,0.15)'
                 const isExpanded = expandedId === entry.id
-
+                const moodColor = primaryMood ? MOOD_COLORS[primaryMood] : 'rgba(37,99,235,0.4)'
                 return (
-                  <div
-                    key={entry.id}
-                    style={{
-                      background: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderLeft: `3px solid ${borderColor}`,
-                      borderRadius: '10px',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : entry.id)}
-                      className="w-full p-4 flex items-center gap-3 text-left transition-colors"
-                      style={{ background: 'transparent' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                    >
-                      <div style={{ minWidth: '150px' }}>
-                        <span
-                          className="text-xs font-semibold"
-                          style={{ color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace' }}
-                        >
-                          {formatDate(entry.date)}
-                        </span>
+                  <div key={entry.id} style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.06)', borderLeft: `3px solid ${moodColor}`, borderRadius: 10, overflow: 'hidden' }}>
+                    <button onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                      style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                      <div style={{ minWidth: 150 }}>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.7)' }}>{formatDate(entry.date)}</span>
                       </div>
                       {entry.tradingMindset ? (
-                        <span
-                          className="text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0"
-                          style={{
-                            color: MINDSET_COLORS[entry.tradingMindset],
-                            borderColor: MINDSET_COLORS[entry.tradingMindset] + '55',
-                            background: MINDSET_COLORS[entry.tradingMindset] + '11',
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }}
-                        >
-                          {entry.tradingMindset}
-                        </span>
-                      ) : (
-                        <span style={{ minWidth: '60px' }} />
-                      )}
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 20, border: `1px solid ${MINDSET_COLORS[entry.tradingMindset]}55`, background: MINDSET_COLORS[entry.tradingMindset] + '11', color: MINDSET_COLORS[entry.tradingMindset], flexShrink: 0 }}>{entry.tradingMindset}</span>
+                      ) : <span style={{ minWidth: 60 }} />}
                       {primaryMood ? (
-                        <span
-                          className="text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0"
-                          style={{
-                            color: MOOD_COLORS[primaryMood],
-                            borderColor: MOOD_COLORS[primaryMood] + '55',
-                            background: MOOD_COLORS[primaryMood] + '11',
-                            fontFamily: 'JetBrains Mono, monospace',
-                          }}
-                        >
-                          {primaryMood}
-                        </span>
-                      ) : (
-                        <span style={{ minWidth: '50px' }} />
-                      )}
-                      <span
-                        className="text-xs flex-1 truncate"
-                        style={{ color: 'var(--text-muted)', minWidth: 0, fontFamily: 'JetBrains Mono, monospace' }}
-                      >
-                        {entry.morningFocus
-                          ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '...' : '')
-                          : entry.intention
-                          ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '...' : '')
-                          : <span style={{ opacity: 0.4 }}>No focus logged</span>}
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 20, border: `1px solid ${MOOD_COLORS[primaryMood]}55`, background: MOOD_COLORS[primaryMood] + '11', color: MOOD_COLORS[primaryMood], flexShrink: 0 }}>{primaryMood}</span>
+                      ) : <span style={{ minWidth: 50 }} />}
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.4)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+                        {entry.morningFocus ? entry.morningFocus.slice(0, 60) + (entry.morningFocus.length > 60 ? '...' : '') : entry.intention ? entry.intention.slice(0, 60) + (entry.intention.length > 60 ? '...' : '') : <span style={{ opacity: 0.4 }}>No focus logged</span>}
                       </span>
-                      {entry.eveningMindsetRating != null && (
-                        <span
-                          className="text-xs flex-shrink-0"
-                          style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}
-                        >
-                          {entry.eveningMindsetRating}/10
-                        </span>
-                      )}
-                      {isExpanded ? (
-                        <ChevronUp size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                      ) : (
-                        <ChevronDown size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-                      )}
+                      {entry.eveningMindsetRating != null && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#a78bfa', flexShrink: 0 }}>{entry.eveningMindsetRating}/5</span>}
+                      {isExpanded ? <ChevronUp size={14} style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }} /> : <ChevronDown size={14} style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }} />}
                     </button>
                     {isExpanded && (
-                      <div className="px-4 pb-5 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                          {entry.morningFocus && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#127919; #1 FOCUS
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.morningFocus}</p>
-                            </div>
-                          )}
-                          {entry.tradingMindset && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#129504; MORNING MINDSET
-                              </p>
-                              <span
-                                className="text-xs px-2 py-0.5 rounded-full border"
-                                style={{
-                                  color: MINDSET_COLORS[entry.tradingMindset],
-                                  borderColor: MINDSET_COLORS[entry.tradingMindset] + '55',
-                                  background: MINDSET_COLORS[entry.tradingMindset] + '11',
-                                  fontFamily: 'JetBrains Mono, monospace',
-                                }}
-                              >
-                                {entry.tradingMindset}
-                              </span>
-                            </div>
-                          )}
-                          {entry.grateful && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#128591; GRATEFUL FOR
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.grateful}</p>
-                            </div>
-                          )}
-                          {entry.intention && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#10024; INTENTION
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.intention}</p>
-                            </div>
-                          )}
-                          {entry.hitFocus !== undefined && entry.hitFocus !== null && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#9989; HIT FOCUS?
-                              </p>
-                              <p className="text-sm" style={{ color: entry.hitFocus ? '#00ff88' : '#ff2d78' }}>
-                                {entry.hitFocus ? 'YES' : 'NO'} {entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}
-                              </p>
-                            </div>
-                          )}
-                          {entry.bestMoment && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#11088; BEST MOMENT
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.bestMoment}</p>
-                            </div>
-                          )}
-                          {entry.doDifferently && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#128260; DO DIFFERENTLY
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{entry.doDifferently}</p>
-                            </div>
-                          )}
-                          {entry.eveningMindsetRating != null && (
-                            <div>
-                              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#129504; EVENING MINDSET RATING
-                              </p>
-                              <p className="text-sm" style={{ color: '#c084fc', fontFamily: 'JetBrains Mono, monospace' }}>
-                                {entry.eveningMindsetRating}/10
-                              </p>
-                            </div>
-                          )}
+                      <div style={{ padding: '0 16px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                          {entry.morningFocus && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>🎯 #1 FOCUS</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{entry.morningFocus}</p></div>}
+                          {entry.tradingMindset && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>🧠 MORNING MINDSET</p><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '2px 8px', borderRadius: 20, border: `1px solid ${MINDSET_COLORS[entry.tradingMindset]}55`, background: MINDSET_COLORS[entry.tradingMindset] + '11', color: MINDSET_COLORS[entry.tradingMindset] }}>{entry.tradingMindset}</span></div>}
+                          {entry.grateful && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>🙏 GRATEFUL FOR</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{entry.grateful}</p></div>}
+                          {entry.intention && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>✨ INTENTION</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{entry.intention}</p></div>}
+                          {entry.hitFocus !== undefined && entry.hitFocus !== null && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>✅ HIT FOCUS?</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: entry.hitFocus ? '#00c48c' : '#ff4d6a' }}>{entry.hitFocus ? 'YES' : 'NO'}{entry.hitFocusNotes ? ' — ' + entry.hitFocusNotes : ''}</p></div>}
+                          {entry.bestMoment && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>⭐ BEST MOMENT</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{entry.bestMoment}</p></div>}
+                          {entry.doDifferently && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>🔄 DO DIFFERENTLY</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#ffffff' }}>{entry.doDifferently}</p></div>}
+                          {entry.eveningMindsetRating != null && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 4, textTransform: 'uppercase' }}>🧠 EVENING MINDSET</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, color: '#a78bfa' }}>{entry.eveningMindsetRating}/5</p></div>}
                           {entry.moodTags && entry.moodTags.length > 0 && (
                             <div>
-                              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-                                &#127991; MOOD TAGS
-                              </p>
-                              <div className="flex flex-wrap gap-1.5">
+                              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(255,255,255,0.25)', marginBottom: 8, textTransform: 'uppercase' }}>🏷️ MOOD TAGS</p>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                                 {entry.moodTags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="text-xs px-2 py-0.5 rounded-full border"
-                                    style={{
-                                      color: MOOD_COLORS[tag],
-                                      borderColor: MOOD_COLORS[tag] + '66',
-                                      background: MOOD_COLORS[tag] + '11',
-                                      fontFamily: 'JetBrains Mono, monospace',
-                                    }}
-                                  >
-                                    {tag}
-                                  </span>
+                                  <span key={tag} style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '3px 10px', borderRadius: 20, border: `1px solid ${MOOD_COLORS[tag]}66`, background: MOOD_COLORS[tag] + '11', color: MOOD_COLORS[tag] }}>{tag}</span>
                                 ))}
                               </div>
                             </div>
@@ -1098,34 +408,14 @@ function JournalInner() {
           )}
         </div>
       </div>
-      <LifeHubChat
-        section="journal"
-        apiRoute="/api/life/journal/chat"
-        contextData={{ entries: entries.slice(-30) }}
-        systemPrompt="You are Coach Shai, a mindset AI. Read the last 30 journal entries and spot recurring themes, emotional patterns, and mindset trends. Be insightful and direct."
-        defaultOpen={chatOpen}
-      />
+      <LifeHubChat section="journal" apiRoute="/api/life/journal/chat" contextData={{ entries: entries.slice(-30) }} systemPrompt="You are Coach Shai, a mindset AI. Read the last 30 journal entries and spot recurring themes, emotional patterns, and mindset trends. Be insightful and direct." defaultOpen={chatOpen} />
     </div>
   )
 }
 
 export default function JournalPage() {
   return (
-    <Suspense
-      fallback={
-        <div
-          className="cyber-bg-grid min-h-screen flex items-center justify-center"
-          style={{ background: '#060608' }}
-        >
-          <div
-            className="text-xs"
-            style={{ color: '#00f2ff', opacity: 0.6, fontFamily: 'JetBrains Mono, monospace' }}
-          >
-            Loading...
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<div style={{ background: '#0a0a0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>Loading...</div></div>}>
       <JournalInner />
     </Suspense>
   )
