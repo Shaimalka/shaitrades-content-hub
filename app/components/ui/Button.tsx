@@ -1,98 +1,76 @@
 'use client'
+
+import React from 'react'
 import { useTheme } from '@/app/contexts/ThemeContext'
-import { ButtonHTMLAttributes, ReactNode, CSSProperties, useState } from 'react'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: ButtonVariant
-    children: ReactNode
-    style?: CSSProperties
-}
-
-const BASE_STYLE: CSSProperties = {
-    minHeight: '40px',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    padding: '10px 20px',
-    fontFamily: "'Inter', -apple-system, sans-serif",
-    fontSize: '14px',
-    fontWeight: 600,
-    border: '1px solid transparent',
-    transition: 'all 150ms',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    outline: 'none',
-}
-
-function getVariantStyle(variant: ButtonVariant, isDark: boolean, isHover: boolean): CSSProperties {
-    const surfaceHover = isDark ? '#1a1a24' : '#f1f4f9'
-    switch (variant) {
-      case 'primary':
-              return {
-                        background: isHover ? '#1d4ed8' : '#2563eb',
-                        color: '#ffffff',
-                        borderColor: 'transparent',
-                        boxShadow: '0 4px 16px rgba(37,99,235,0.25)',
-              }
-      case 'secondary':
-              return {
-                        background: isHover ? 'rgba(37,99,235,0.1)' : 'transparent',
-                        color: '#2563eb',
-                        borderColor: 'rgba(37,99,235,0.3)',
-              }
-      case 'ghost':
-              return {
-                        background: isHover ? surfaceHover : 'transparent',
-                        color: isDark ? '#ffffff' : '#0a0a0f',
-                        borderColor: 'transparent',
-              }
-      case 'danger':
-              return {
-                        background: isHover ? 'rgba(255,77,106,0.1)' : 'transparent',
-                        color: '#ff4d6a',
-                        borderColor: '#ff4d6a',
-              }
-      default:
-              return {}
-    }
+interface ButtonProps {
+      variant?: ButtonVariant
+      children: React.ReactNode
+      onClick?: () => void
+      disabled?: boolean
+      type?: 'button' | 'submit' | 'reset'
+      style?: React.CSSProperties
+      className?: string
 }
 
 export default function Button({
-    variant = 'primary',
-    children,
-    style,
-    disabled,
-    ...props
+      variant = 'primary',
+      children,
+      onClick,
+      disabled,
+      type = 'button',
+      style,
 }: ButtonProps) {
-    const { isDark } = useTheme()
-    const [isHover, setIsHover] = useState(false)
+      const { isDark } = useTheme()
+      const [hovered, setHovered] = React.useState(false)
 
-  const variantStyle = getVariantStyle(variant, isDark, isHover && !disabled)
+  const base: React.CSSProperties = {
+          minHeight: '40px',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.5 : 1,
+          transition: 'all 150ms',
+          border: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+  }
 
-  return (
-        <button
-          {...props}
-                disabled={disabled}
-                style={{
-                          ...BASE_STYLE,
-                          ...variantStyle,
-                          opacity: disabled ? 0.5 : 1,
-                          cursor: disabled ? 'not-allowed' : 'pointer',
-                          ...style,
-                }}
-                onMouseEnter={(e) => {
-                          setIsHover(true)
-                          props.onMouseEnter?.(e)
-                }}
-                onMouseLeave={(e) => {
-                          setIsHover(false)
-                          props.onMouseLeave?.(e)
-                }}
-              >
-          {children}
-        </button>button>
-      )
-}</button>
+  const variants: Record<ButtonVariant, React.CSSProperties> = {
+          primary: {
+                    background: hovered ? '#1d4ed8' : '#2563eb',
+                    color: '#ffffff',
+          },
+          secondary: {
+                    background: hovered ? 'rgba(37,99,235,0.1)' : 'transparent',
+                    color: '#2563eb',
+                    border: '1px solid rgba(37,99,235,0.3)',
+          },
+          ghost: {
+                    background: hovered
+                      ? isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+                                : 'transparent',
+                    color: isDark ? '#ffffff' : '#0a0a0f',
+          },
+          danger: {
+                    background: hovered ? 'rgba(255,77,106,0.1)' : 'transparent',
+                    color: '#ff4d6a',
+                    border: '1px solid #ff4d6a',
+          },
+  }
+
+  return React.createElement('button', {
+          type,
+          onClick,
+          disabled,
+          onMouseEnter: () => setHovered(true),
+          onMouseLeave: () => setHovered(false),
+          style: { ...base, ...variants[variant], ...style },
+  }, children)
+}
