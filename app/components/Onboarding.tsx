@@ -239,8 +239,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   }
 
   const motivationLine = profile.name && profile.motivation
-    ? `Let's get you to ${profile.motivation.toLowerCase()}, ${profile.name}. One trade at a time.`
-    : 'Let's build something real. One trade at a time.'
+    ? "Let's get you to " + profile.motivation.toLowerCase() + ", " + profile.name + ". One trade at a time."
+    : "Let's build something real. One trade at a time."
 
   const overlayStyle: React.CSSProperties = {
     position: 'fixed', inset: 0, zIndex: 9999,
