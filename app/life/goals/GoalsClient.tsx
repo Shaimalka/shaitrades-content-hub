@@ -38,6 +38,17 @@ const CAT_COLORS: Record<Category, string> = {
   Personal: '#a78bfa',
 }
 
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 function getStatus(pct: number, daysLeft: number | null): { label: string; color: string } {
   if (daysLeft !== null && daysLeft < 0) return { label: 'Overdue', color: '#ff4444' }
   if (pct >= 100) return { label: 'Crushing It', color: '#00ff88' }
@@ -71,6 +82,7 @@ function EmptyState({ icon: Icon, heading, subtext }: { icon: React.ElementType;
 }
 
 function GoalsInner() {
+  const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
   const [goals, setGoals] = useState<Goal[]>([])
   const [loading, setLoading] = useState(true)
@@ -169,7 +181,7 @@ function GoalsInner() {
 
   return (
     <div className="cyber-bg-grid min-h-screen">
-      <div className="max-w-[1100px] mx-auto p-6">
+      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link href="/life" className="text-xs font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{'<-'} LIFE HUB</Link>
@@ -263,7 +275,7 @@ function GoalsInner() {
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px' }}>
             <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
             <Skeleton height="80px" />
             <Skeleton height="80px" />
