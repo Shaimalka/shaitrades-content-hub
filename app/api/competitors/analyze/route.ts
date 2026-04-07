@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/ratelimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
 function formatPost(p: any, i: number): string {
     const viewsPart = p.videoViewCount ? ' | Views: ' + p.videoViewCount : ''
