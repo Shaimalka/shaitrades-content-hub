@@ -511,7 +511,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
           <div key={d} style={{ textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, padding: '3px 0' }}>{d}</div>
         ))}
-      </div
+      </div>
 
       {/* Calendar grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
