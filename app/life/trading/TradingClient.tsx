@@ -1,15 +1,15 @@
-// v8 - Professional Trading Journal — Tradezella-style Dashboard
 'use client'
-import { useState, useEffect, useRef, useMemo, Suspense } from 'react'
+// v8 - Professional Trading Journal — Tradezella-style Dashboard
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, ReferenceLine,
   RadarChart, Radar, PolarGrid, PolarAngleAxis
 } from 'recharts'
 import {
   Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle,
   Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp,
-  Calendar, Filter, ChevronDown, Building2
+  ChevronDown, Building2
 } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
@@ -269,7 +269,7 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
           ))}
           {/* Grid */}
           {weekLabels.map((label, di) => (
-            <>
+            <React.Fragment key={di}>
               <div key={`label-${di}`} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: di % 2 === 1 ? textMuted : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{label}</div>
               {weeks.map((wk, wi) => {
                 const cell = wk[di]
@@ -282,8 +282,8 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
                   />
                 )
               })}
-            </>
-          ))}
+            </React.Fragment>
+          })}
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
