@@ -210,7 +210,7 @@ export default function SettingsPage() {
         textTransform: 'uppercase',
   })
 
-  if (loading) return <div style={{ padding: 40, color: text, fontFamily: 'Inter, sans-serif' }}>Loading...</div>div>
+  if (loading) return <div style={{ padding: 40, color: text, fontFamily: 'Inter, sans-serif' }}>Loading...</div>
 
       return (
         <div style={{ minHeight: '100vh', background: bg, padding: '32px 24px', fontFamily: 'Inter, sans-serif' }}>
@@ -230,55 +230,55 @@ export default function SettingsPage() {
                                     onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
                                     >
                                     ← Dashboard
-                          </Link>Link>
-                </div>div>
+                          </Link>
+                </div>
         
           {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <Settings size={20} color={blue} />
-                                <h1 style={{ fontSize: 22, fontWeight: 700, color: text, margin: 0 }}>Settings</h1>h1>
-                      </div>div>
+                                <h1 style={{ fontSize: 22, fontWeight: 700, color: text, margin: 0 }}>Settings</h1>
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <button onClick={toggleTheme} style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted, padding: 6 }}>
                                   {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                                </button>button>
+                                </button>
                         {session?.user?.email && (
-                      <span style={{ fontSize: 12, color: muted }}>{session.user.email}</span>span>
+                      <span style={{ fontSize: 12, color: muted }}>{session.user.email}</span>
                                 )}
-                      </div>div>
-              </div>div>
+                      </div>
+              </div>
         
               <div style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', gap: 24 }}>
               
                 {/* Profile */}
                       <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
-                                <p style={sectionLabel}>PROFILE</p>p>
+                                <p style={sectionLabel}>PROFILE</p>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                             <div>
-                                                          <label style={labelStyle}>Full Name</label>label>
+                                                          <label style={labelStyle}>Full Name</label>
                                                           <input style={inputStyle} value={settings.fullName} onChange={e => setSettings(p => ({ ...p, fullName: e.target.value }))} placeholder="Your name" />
-                                            </div>div>
+                                            </div>
                                             <div>
-                                                          <label style={labelStyle}>Phone</label>label>
+                                                          <label style={labelStyle}>Phone</label>
                                                           <input style={inputStyle} value={settings.phone} onChange={e => setSettings(p => ({ ...p, phone: e.target.value }))} placeholder="+1 234 567 8900" />
-                                            </div>div>
+                                            </div>
                                             <div>
-                                                          <label style={labelStyle}>Location</label>label>
+                                                          <label style={labelStyle}>Location</label>
                                                           <input style={inputStyle} value={settings.location} onChange={e => setSettings(p => ({ ...p, location: e.target.value }))} placeholder="City, Country" />
-                                            </div>div>
-                                </div>div>
+                                            </div>
+                                </div>
                                 <div style={{ marginTop: 16 }}>
-                                            <label style={labelStyle}>Bio</label>label>
+                                            <label style={labelStyle}>Bio</label>
                                             <textarea style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} value={settings.bio} onChange={e => setSettings(p => ({ ...p, bio: e.target.value }))} placeholder="Short bio..." />
-                                </div>div>
-                      </div>div>
+                                </div>
+                      </div>
               
                 {/* Trading Preferences */}
                       <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
-                                <p style={sectionLabel}>TRADING PREFERENCES</p>p>
+                                <p style={sectionLabel}>TRADING PREFERENCES</p>
                                 <div style={{ marginBottom: 16 }}>
-                                            <label style={labelStyle}>Markets</label>label>
+                                            <label style={labelStyle}>Markets</label>
                                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                               {MARKETS.map(m => (
                           <button key={m} onClick={() => toggleMarket(m)} style={{
@@ -288,35 +288,35 @@ export default function SettingsPage() {
                                               border: `1px solid ${settings.markets.includes(m) ? blue : border}`,
                           }}>
                             {m}
-                          </button>button>
+                          </button>
                         ))}
-                                            </div>div>
-                                </div>div>
+                                            </div>
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                             <div>
-                                                          <label style={labelStyle}>Trading Session</label>label>
+                                                          <label style={labelStyle}>Trading Session</label>
                                                           <select style={inputStyle} value={settings.tradingSession} onChange={e => setSettings(p => ({ ...p, tradingSession: e.target.value }))}>
-                                                            {SESSIONS.map(s => <option key={s} value={s}>{s}</option>option>)}
-                                                          </select>select>
-                                            </div>div>
+                                                            {SESSIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                                          </select>
+                                            </div>
                                             <div>
-                                                          <label style={labelStyle}>Timezone</label>label>
+                                                          <label style={labelStyle}>Timezone</label>
                                                           <select style={inputStyle} value={settings.timezone} onChange={e => setSettings(p => ({ ...p, timezone: e.target.value }))}>
-                                                            {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>option>)}
-                                                          </select>select>
-                                            </div>div>
-                                </div>div>
-                      </div>div>
+                                                            {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+                                                          </select>
+                                            </div>
+                                </div>
+                      </div>
               
                 {/* Trading Capital */}
                       <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
-                                <p style={sectionLabel}>TRADING CAPITAL</p>p>
+                                <p style={sectionLabel}>TRADING CAPITAL</p>
                       
                         {/* Accounts list */}
                         {accountsLoading ? (
-                      <p style={{ fontSize: 13, color: muted }}>Loading accounts...</p>p>
+                      <p style={{ fontSize: 13, color: muted }}>Loading accounts...</p>
                     ) : accounts.length === 0 ? (
-                      <p style={{ fontSize: 13, color: muted, marginBottom: 16 }}>No accounts added yet.</p>p>
+                      <p style={{ fontSize: 13, color: muted, marginBottom: 16 }}>No accounts added yet.</p>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                         {accounts.map(acc => (
@@ -325,39 +325,39 @@ export default function SettingsPage() {
                                                             background: inputBg, border: `1px solid ${border}`, borderRadius: 8, padding: '10px 14px',
                                         }}>
                                                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                                                                              <span style={{ fontSize: 13, color: text, fontWeight: 500 }}>{acc.label}</span>span>
-                                                                              <span style={typeBadgeStyle(acc.type)}>{acc.type === 'propfirm' ? 'Prop' : acc.type === 'live' ? 'Live' : 'Paper'}</span>span>
-                                                                              <span style={{ fontSize: 12, color: muted }}>{acc.firm}</span>span>
-                                                          </div>div>
+                                                                              <span style={{ fontSize: 13, color: text, fontWeight: 500 }}>{acc.label}</span>
+                                                                              <span style={typeBadgeStyle(acc.type)}>{acc.type === 'propfirm' ? 'Prop' : acc.type === 'live' ? 'Live' : 'Paper'}</span>
+                                                                              <span style={{ fontSize: 12, color: muted }}>{acc.firm}</span>
+                                                          </div>
                                                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                                              <span style={{ fontSize: 14, fontWeight: 600, color: text, fontFamily: 'JetBrains Mono, monospace' }}>{fmt(acc.size)}</span>span>
+                                                                              <span style={{ fontSize: 14, fontWeight: 600, color: text, fontFamily: 'JetBrains Mono, monospace' }}>{fmt(acc.size)}</span>
                                                                               <button onClick={() => removeAccount(acc.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: 4, display: 'flex', alignItems: 'center' }}>
                                                                                                     <Trash2 size={14} />
-                                                                              </button>button>
-                                                          </div>div>
-                                        </div>div>
+                                                                              </button>
+                                                          </div>
+                                        </div>
                                       ))}
-                      </div>div>
+                      </div>
                                 )}
                       
                         {/* Add account form */}
                                 <div style={{ background: isDark ? '#0a0a0f' : '#f1f5f9', border: `1px solid ${border}`, borderRadius: 8, padding: 16 }}>
-                                            <p style={{ ...sectionLabel, marginBottom: 14 }}>ADD ACCOUNT</p>p>
+                                            <p style={{ ...sectionLabel, marginBottom: 14 }}>ADD ACCOUNT</p>
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                                           <div>
-                                                                          <label style={labelStyle}>Label</label>label>
+                                                                          <label style={labelStyle}>Label</label>
                                                                           <input style={inputStyle} value={newAccount.label} onChange={e => setNewAccount(p => ({ ...p, label: e.target.value }))} placeholder="e.g. APEX 50K Account 1" />
-                                                          </div>div>
+                                                          </div>
                                                           <div>
-                                                                          <label style={labelStyle}>Firm</label>label>
+                                                                          <label style={labelStyle}>Firm</label>
                                                                           <input style={inputStyle} value={newAccount.firm} onChange={e => setNewAccount(p => ({ ...p, firm: e.target.value }))} placeholder="e.g. APEX Funding, Topstep" />
-                                                          </div>div>
+                                                          </div>
                                                           <div>
-                                                                          <label style={labelStyle}>Size ($)</label>label>
+                                                                          <label style={labelStyle}>Size ($)</label>
                                                                           <input style={inputStyle} type="number" value={newAccount.size} onChange={e => setNewAccount(p => ({ ...p, size: e.target.value }))} placeholder="e.g. 50000" min={0} />
-                                                          </div>div>
+                                                          </div>
                                                           <div>
-                                                                          <label style={labelStyle}>Type</label>label>
+                                                                          <label style={labelStyle}>Type</label>
                                                                           <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
                                                                             {(['propfirm', 'live', 'paper'] as const).map(t => (
                               <button key={t} onClick={() => setNewAccount(p => ({ ...p, type: t }))} style={{
@@ -368,48 +368,48 @@ export default function SettingsPage() {
                                                       fontWeight: newAccount.type === t ? 600 : 400,
                               }}>
                                 {t === 'propfirm' ? 'Prop Firm' : t === 'live' ? 'Live' : 'Paper'}
-                              </button>button>
+                              </button>
                             ))}
-                                                                          </div>div>
-                                                          </div>div>
-                                            </div>div>
+                                                                          </div>
+                                                          </div>
+                                            </div>
                                             <button onClick={addAccount} style={{
                         marginTop: 12, padding: '8px 18px', background: blue, color: '#fff', border: 'none', borderRadius: 8,
                         fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           + Add Account
-                                            </button>button>
-                                </div>div>
+                                            </button>
+                                </div>
                       
                         {/* Capital totals */}
                         {accounts.length > 0 && (
                       <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
                                     <div style={{ padding: '16px 20px', background: isDark ? '#0a0a1a' : '#eff6ff', border: `1px solid ${isDark ? '#1e2d5a' : '#bfdbfe'}`, borderRadius: 10 }}>
-                                                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: blue, margin: '0 0 6px' }}>TOTAL CAPITAL</p>p>
-                                                    <p style={{ fontSize: 28, fontWeight: 700, color: blue, fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(totalCapital)}</p>p>
+                                                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: blue, margin: '0 0 6px' }}>TOTAL CAPITAL</p>
+                                                    <p style={{ fontSize: 28, fontWeight: 700, color: blue, fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(totalCapital)}</p>
                                                     <p style={{ fontSize: 11, color: isDark ? '#93bbfc' : '#3b82f6', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
                                                       {accounts.length} account{accounts.length !== 1 ? 's' : ''} — {propCount} prop firm, {liveCount} live
-                                                    </p>p>
-                                    </div>div>
+                                                    </p>
+                                    </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                                                     <div style={{ padding: '12px 16px', background: isDark ? '#0a1a12' : '#f0fdf4', border: `1px solid ${isDark ? '#1a3a26' : '#bbf7d0'}`, borderRadius: 10 }}>
-                                                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#10b981', margin: '0 0 4px' }}>PROP FIRM CAPITAL</p>p>
-                                                                      <p style={{ fontSize: 20, fontWeight: 700, color: '#10b981', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(propCapital)}</p>p>
-                                                    </div>div>
+                                                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#10b981', margin: '0 0 4px' }}>PROP FIRM CAPITAL</p>
+                                                                      <p style={{ fontSize: 20, fontWeight: 700, color: '#10b981', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(propCapital)}</p>
+                                                    </div>
                                                     <div style={{ padding: '12px 16px', background: isDark ? '#1a1500' : '#fffbeb', border: `1px solid ${isDark ? '#3a2d00' : '#fde68a'}`, borderRadius: 10 }}>
-                                                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#f59e0b', margin: '0 0 4px' }}>LIVE CAPITAL</p>p>
-                                                                      <p style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(liveCapital)}</p>p>
-                                                    </div>div>
-                                    </div>div>
-                      </div>div>
+                                                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#f59e0b', margin: '0 0 4px' }}>LIVE CAPITAL</p>
+                                                                      <p style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(liveCapital)}</p>
+                                                    </div>
+                                    </div>
+                      </div>
                                 )}
-                      </div>div>
+                      </div>
               
                 {/* Account */}
                       <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
-                                <p style={sectionLabel}>ACCOUNT</p>p>
+                                <p style={sectionLabel}>ACCOUNT</p>
                         {session?.user?.email && (
-                      <p style={{ fontSize: 13, color: muted, marginBottom: 16 }}>Signed in as <span style={{ color: text }}>{session.user.email}</span>span></p>p>
+                      <p style={{ fontSize: 13, color: muted, marginBottom: 16 }}>Signed in as <span style={{ color: text }}>{session.user.email}</span></p>
                                 )}
                                 <div style={{ display: 'flex', gap: 10 }}>
                                             <button onClick={() => { setPwMsg(true); setTimeout(() => setPwMsg(false), 3000) }} style={{
@@ -417,16 +417,16 @@ export default function SettingsPage() {
                         fontSize: 13, color: text, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           Change Password
-                                            </button>button>
+                                            </button>
                                             <button onClick={() => signOut({ callbackUrl: '/login' })} style={{
                         padding: '8px 16px', background: 'transparent', border: '1px solid #ef4444', borderRadius: 8,
                         fontSize: 13, color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           Sign Out
-                                            </button>button>
-                                </div>div>
-                        {pwMsg && <p style={{ fontSize: 12, color: muted, marginTop: 8 }}>Password reset link sent to your email.</p>p>}
-                      </div>div>
+                                            </button>
+                                </div>
+                        {pwMsg && <p style={{ fontSize: 12, color: muted, marginTop: 8 }}>Password reset link sent to your email.</p>}
+                      </div>
               
                 {/* Save */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -436,10 +436,10 @@ export default function SettingsPage() {
                       fontFamily: 'Inter, sans-serif',
         }}>
                                   {saving ? 'Saving...' : 'Save Settings'}
-                                </button>button>
-                        {toast && <span style={{ fontSize: 13, color: toast === 'Saved!' ? '#10b981' : '#ef4444', fontFamily: 'Inter, sans-serif' }}>{toast}</span>span>}
-                      </div>div>
-              </div>div>
-        </div>div>
+                                </button>
+                        {toast && <span style={{ fontSize: 13, color: toast === 'Saved!' ? '#10b981' : '#ef4444', fontFamily: 'Inter, sans-serif' }}>{toast}</span>}
+                      </div>
+              </div>
+        </div>
       )
 }</Link>

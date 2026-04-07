@@ -21,7 +21,7 @@ function SettingsLayoutInner({ children }: { children: React.ReactNode }) {
                                                           ` }} />
                 <div className="life-sidebar">
                         <Sidebar />
-                </div>div>
+                </div>
               <div className="life-content" style={{
                   flex: 1,
                   marginLeft: '240px',
@@ -32,16 +32,16 @@ function SettingsLayoutInner({ children }: { children: React.ReactNode }) {
                       <TopBar />
                       <main style={{ flex: 1 }}>
                         {children}
-                      </main>main>
-              </div>div>
-        </div>div>
+                      </main>
+              </div>
+        </div>
       )
-}
+
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
     return (
           <SessionProvider>
-                <SettingsLayoutInner>{children}</SettingsLayoutInner>SettingsLayoutInner>
-          </SessionProvider>SessionProvider>
+                <SettingsLayoutInner>{children}</SettingsLayoutInner>
+          </SessionProvider>
         )
-}</div>
+}
