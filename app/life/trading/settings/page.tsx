@@ -15,6 +15,7 @@ type TradingAccount = {
   startingBalance: number
   createdAt: string
   isActive?: boolean
+}
 
 
 const PROP_FIRM_BROKERS = [
