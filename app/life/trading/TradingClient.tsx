@@ -13,7 +13,7 @@ import {
   ChevronDown, Building2
 } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
-import Link from 'next/link' x
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import StatCard from '@/app/components/ui/StatCard'
