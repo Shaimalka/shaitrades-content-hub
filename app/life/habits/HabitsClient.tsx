@@ -596,7 +596,7 @@ function HabitsInner() {
                                   <X size={12} />
                                 </button>
                                 <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb', fontWeight: 700, letterSpacing: '0.15em', marginBottom: 6 }}>⚡ COACH SHAI</p>
-                                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f'), lineHeight: 1.5, margin: 0, paddingRight: 20 }}>{milestoneCard.message}</p>
+                                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f'), lineHeight: 1.5, margin: 0, paddingRight: 20 }}>{milestoneCard.message.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')}</p>
                               </div>
                             )}
 
