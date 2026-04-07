@@ -1,7 +1,6 @@
 'use client'
-
-import { useState, useEffect, Suspense } from 'react'
-import { Plus, Trash2, Flame, CheckSquare, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { Plus, Trash2, Flame, CheckSquare, CheckCircle2, X } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -22,16 +21,22 @@ type Habit = {
 }
 type Completions = Record<string, Record<string, boolean>>
 type MissLog = Record<string, Record<string, string>>
+type MilestoneCard = {
+  habitId: string
+  message: string
+  milestone: number
+}
 
 const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
   { key: 'Morning', label: 'MORNING STACK', icon: '🌅', color: '#f59e0b' },
   { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#2563eb' },
   { key: 'Evening', label: 'EVENING STACK', icon: '🌙', color: '#a78bfa' },
 ]
-
 const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MISS_KEY = 'life:habits:misslog'
+const MILESTONE_DISMISS_KEY = 'life:habits:milestones:dismissed'
+const MILESTONES = [1, 3, 7, 14, 21, 30, 50, 66, 100]
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -98,6 +103,13 @@ function getWeakestDay(habitId: string, completions: Completions): string {
   return DAY_NAMES[weakest]
 }
 
+function getFireEmoji(streak: number): string {
+  if (streak >= 66) return '🔥🔥🔥'
+  if (streak >= 30) return '🔥🔥'
+  if (streak >= 7) return '🔥'
+  return ''
+}
+
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
   <div style={{ width, height, borderRadius, background: 'rgba(128,128,128,0.12)', animation: 'shimmer 1.5s infinite', backgroundSize: '200% 100%' }} />
 )
@@ -111,6 +123,7 @@ function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: Re
     </div>
   )
 }
+
 function HabitsInner() {
   const { isDark } = useTheme()
   const isMobile = useWindowWidth() < 768
@@ -148,6 +161,8 @@ function HabitsInner() {
   const [chatOpen] = useState(searchParams.get('chat') === '1')
   const [expandedStack, setExpandedStack] = useState<Stack | null>(null)
   const [showWeeklyReview, setShowWeeklyReview] = useState(false)
+  const [milestoneCards, setMilestoneCards] = useState<Record<string, MilestoneCard>>({})
+  const [fetchingMilestone, setFetchingMilestone] = useState<Record<string, boolean>>({})
   const [form, setForm] = useState({
     name: '',
     stack: 'Morning' as Stack,
@@ -161,6 +176,30 @@ function HabitsInner() {
   const today = new Date().toISOString().split('T')[0]
   const last30 = getLast30Days()
   const currentHour = new Date().getHours()
+
+  // Load dismissed milestones from localStorage
+  const getDismissedMilestones = useCallback((): Record<string, number> => {
+    try {
+      const stored = localStorage.getItem(MILESTONE_DISMISS_KEY)
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  }, [])
+
+  const dismissMilestone = useCallback((habitId: string) => {
+    setMilestoneCards(prev => {
+      const next = { ...prev }
+      delete next[habitId]
+      return next
+    })
+    const dismissed = getDismissedMilestones()
+    const card = milestoneCards[habitId]
+    if (card) {
+      dismissed[habitId] = card.milestone
+      try { localStorage.setItem(MILESTONE_DISMISS_KEY, JSON.stringify(dismissed)) } catch {}
+    }
+  }, [milestoneCards, getDismissedMilestones])
 
   useEffect(() => {
     fetch('/api/life/habits')
@@ -177,13 +216,42 @@ function HabitsInner() {
     } catch {}
   }, [])
 
-  // FIX: Optimistic toggle — update UI immediately, then sync with server response.
-  // Previously: waited for API round-trip before updating state, so UI felt broken.
-  // Also fixed: sends { action:'toggle', habitId, date } matching the corrected API handler.
+  // Check milestones after completions load
+  useEffect(() => {
+    if (loading || habits.length === 0) return
+    const dismissed = getDismissedMilestones()
+    habits.filter(h => h.name && h.name.trim() !== '').forEach(habit => {
+      const streak = getStreak(habit.id, completions)
+      if (streak === 0) return
+      const currentMilestone = MILESTONES.filter(m => m <= streak).pop() || 0
+      if (currentMilestone === 0) return
+      const lastDismissed = dismissed[habit.id] || 0
+      if (currentMilestone <= lastDismissed) return
+      // Check if we already fetched this
+      if (milestoneCards[habit.id] || fetchingMilestone[habit.id]) return
+      // Fetch milestone message
+      setFetchingMilestone(prev => ({ ...prev, [habit.id]: true }))
+      fetch('/api/life/habits/milestone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ habitName: habit.name, habitId: habit.id, streak }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.message) {
+            setMilestoneCards(prev => ({
+              ...prev,
+              [habit.id]: { habitId: habit.id, message: data.message, milestone: data.milestone },
+            }))
+          }
+          setFetchingMilestone(prev => ({ ...prev, [habit.id]: false }))
+        })
+        .catch(() => setFetchingMilestone(prev => ({ ...prev, [habit.id]: false })))
+    })
+  }, [loading, habits, completions]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function toggleHabit(habitId: string, date: string) {
     const wasDone = !!completions[date]?.[habitId]
-
-    // 1. Optimistic update — flip the checkbox immediately
     setCompletions(prev => {
       const updated = { ...prev, [date]: { ...(prev[date] || {}) } }
       if (updated[date][habitId]) {
@@ -193,8 +261,6 @@ function HabitsInner() {
       }
       return updated
     })
-
-    // 2. Sync with server
     try {
       const res = await fetch('/api/life/habits', {
         method: 'POST',
@@ -202,10 +268,8 @@ function HabitsInner() {
         body: JSON.stringify({ action: 'toggle', date, habitId }),
       })
       const data = await res.json()
-      // Reconcile with authoritative server state
       if (data.completions) setCompletions(data.completions)
     } catch {
-      // Revert optimistic update on network error
       setCompletions(prev => {
         const reverted = { ...prev, [date]: { ...(prev[date] || {}) } }
         if (wasDone) {
@@ -216,7 +280,6 @@ function HabitsInner() {
         return reverted
       })
     }
-
     if (wasDone && date === today && currentHour >= 21) setMissPrompt({ habitId, date })
   }
 
@@ -244,27 +307,17 @@ function HabitsInner() {
     setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [] })
   }
 
-  // FIX: Optimistic delete — remove habit from state immediately, then sync with server.
-  // Previously: waited for API response (which also had no DELETE handler), so nothing happened.
   async function deleteHabit(id: string) {
-    // 1. Optimistic update — remove from list immediately
     setHabits(prev => prev.filter(h => h.id !== id))
-
-    // 2. Sync with server
     try {
       const res = await fetch(`/api/life/habits?id=${id}`, { method: 'DELETE' })
       const data = await res.json()
-      // Reconcile with authoritative server state
       if (data.habits) setHabits(data.habits)
     } catch {
-      // On error, re-fetch to restore correct state
-      fetch('/api/life/habits')
-        .then(r => r.json())
-        .then(d => { if (d.habits) setHabits(d.habits) })
-        .catch(() => {})
+      fetch('/api/life/habits').then(r => r.json()).then(d => { if (d.habits) setHabits(d.habits) }).catch(() => {})
     }
   }
-  // filter out habits with no name
+
   const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
   const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
   const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
@@ -275,6 +328,7 @@ function HabitsInner() {
     <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+
         {/* Daily Habit Score */}
         <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 24, padding: '32px' }}>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? '56px' : '72px', fontWeight: 700, color: scoreColor, lineHeight: 1, letterSpacing: '-2px' }}>
@@ -326,19 +380,17 @@ function HabitsInner() {
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8, marginBottom: 12 }}>
                       {stackItems.map(h => {
                         const done = completions[today]?.[h.id] || false
+                        const streak = getStreak(h.id, completions)
+                        const fireEmoji = getFireEmoji(streak)
                         return (
-                          <button
-                            key={h.id}
-                            onClick={() => toggleHabit(h.id, today)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, background: done ? color + '12' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
-                          >
+                          <button key={h.id} onClick={() => toggleHabit(h.id, today)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, background: done ? color + '12' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
                             <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${done ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: done ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                               {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>✓</span>}
                             </div>
                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: done ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : (isDark ? '#ffffff' : '#0a0a0f'), textDecoration: done ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
-                            {getStreak(h.id, completions) > 0 && (
+                            {streak > 0 && (
                               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                                <Flame size={10} />{getStreak(h.id, completions)}
+                                <Flame size={10} />{streak}d {fireEmoji}
                               </span>
                             )}
                           </button>
@@ -351,6 +403,7 @@ function HabitsInner() {
             </div>
           </div>
         )}
+
         {/* Weekly Review */}
         {showWeeklyReview && validHabits.length > 0 && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
@@ -440,6 +493,7 @@ function HabitsInner() {
             </form>
           </div>
         )}
+
         {/* Miss Reason Prompt */}
         {missPrompt && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
@@ -499,22 +553,32 @@ function HabitsInner() {
                       {items.map(habit => {
                         const streak = getStreak(habit.id, completions)
                         const todayDone = completions[today]?.[habit.id] || false
+                        const fireEmoji = getFireEmoji(streak)
+                        const isLockedIn = streak >= 66
+                        const milestoneCard = milestoneCards[habit.id]
                         return (
                           <div key={habit.id} style={{ background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                              <button
-                                onClick={() => toggleHabit(habit.id, today)}
-                                style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}
-                              >
+                              <button onClick={() => toggleHabit(habit.id, today)} style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}>
                                 {todayDone && <span style={{ color: '#ffffff', fontSize: 11, fontWeight: 700 }}>✓</span>}
                               </button>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                   <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: todayDone ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : (isDark ? '#ffffff' : '#0a0a0f'), textDecoration: todayDone ? 'line-through' : 'none' }}>{habit.name}</span>
+                                  {isLockedIn && (
+                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#f59e0b' }}>LOCKED IN 🏆</span>
+                                  )}
                                   {streak > 0 && (
-                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />{streak} day streak</span>
+                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />{streak}d {fireEmoji}</span>
                                   )}
                                   <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>{habit.frequency || 'Daily'}</span>
+                                </div>
+                                {/* Streak progress */}
+                                <div style={{ fontSize: 11, color: '#2563eb', fontFamily: 'JetBrains Mono, monospace', marginTop: 4 }}>
+                                  {streak > 0 ? `Day ${streak} · ${Math.max(0, 66 - streak)} days to make it permanent` : 'Start your streak today'}
+                                </div>
+                                <div style={{ height: 2, background: 'rgba(0,0,0,0.1)', borderRadius: 1, marginTop: 4 }}>
+                                  <div style={{ height: 2, width: `${Math.min(100, (streak / 66) * 100)}%`, background: streak >= 66 ? '#00c48c' : '#2563eb', borderRadius: 1, transition: 'width 0.3s ease' }} />
                                 </div>
                                 {habit.intention && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 4 }}>{habit.intention}</p>}
                                 {habit.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2 }}>{habit.whyMatters}</p>}
@@ -524,6 +588,18 @@ function HabitsInner() {
                                 <Trash2 size={11} style={{ color: '#ff4d6a' }} />
                               </button>
                             </div>
+
+                            {/* Coach Shai Milestone Card */}
+                            {milestoneCard && (
+                              <div style={{ position: 'relative', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                                <button onClick={() => dismissMilestone(habit.id)} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), display: 'flex', alignItems: 'center', padding: 2 }}>
+                                  <X size={12} />
+                                </button>
+                                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb', fontWeight: 700, letterSpacing: '0.15em', marginBottom: 6 }}>⚡ COACH SHAI</p>
+                                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f'), lineHeight: 1.5, margin: 0, paddingRight: 20 }}>{milestoneCard.message}</p>
+                              </div>
+                            )}
+
                             <div>
                               <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 6 }}>LAST 30 DAYS</p>
                               <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -532,12 +608,7 @@ function HabitsInner() {
                                   const isToday = date === today
                                   const hasMissReason = missLog[date]?.[habit.id]
                                   return (
-                                    <button
-                                      key={date}
-                                      onClick={() => toggleHabit(habit.id, date)}
-                                      title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
-                                      style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }}
-                                    />
+                                    <button key={date} onClick={() => toggleHabit(habit.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')} style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }} />
                                   )
                                 })}
                               </div>
@@ -558,25 +629,7 @@ function HabitsInner() {
           </div>
         )}
       </div>
-      <LifeHubChat
-        section="habits"
-        apiRoute="/api/life/habits/chat"
-        contextData={{
-          habits: validHabits.map(h => ({
-            name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters,
-            frequency: h.frequency, streak: getStreak(h.id, completions),
-            completionRate7d: getCompletionRate(h.id, completions, 7),
-            completionRate30d: getCompletionRate(h.id, completions, 30),
-            weakestDay: getWeakestDay(h.id, completions),
-            todayDone: !!completions[today]?.[h.id],
-          })),
-          totalHabits: validHabits.length,
-          todayCompleted,
-          missLog,
-        }}
-        systemPrompt="You are Coach Shai, a behavioral science-based habit AI. You have access to the user's habit stacks (Morning, Trading, Evening), each habit's implementation intention, why it matters, current streak, 7-day and 30-day completion rates, weakest day of week, today's status, and miss reason logs. Analyze patterns, celebrate streaks, identify skip patterns, and give sharp, science-backed advice to improve consistency. Reference specific habits and data when coaching."
-        defaultOpen={chatOpen}
-      />
+      <LifeHubChat section="habits" apiRoute="/api/life/habits/chat" contextData={{ habits: validHabits.map(h => ({ name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters, frequency: h.frequency, streak: getStreak(h.id, completions), completionRate7d: getCompletionRate(h.id, completions, 7), completionRate30d: getCompletionRate(h.id, completions, 30), weakestDay: getWeakestDay(h.id, completions), todayDone: !!completions[today]?.[h.id], })), totalHabits: validHabits.length, todayCompleted, missLog, }} systemPrompt="You are Coach Shai, a behavioral science-based habit AI. You have access to the user's habit stacks (Morning, Trading, Evening), each habit's implementation intention, why it matters, current streak, 7-day and 30-day completion rates, weakest day of week, today's status, and miss reason logs. Analyze patterns, celebrate streaks, identify skip patterns, and give sharp, science-backed advice to improve consistency. Reference specific habits and data when coaching." defaultOpen={chatOpen} />
     </div>
   )
 }
