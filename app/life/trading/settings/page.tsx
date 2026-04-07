@@ -15,7 +15,7 @@ type TradingAccount = {
   startingBalance: number
   createdAt: string
   isActive?: boolean
-}
+
 
 const PROP_FIRM_BROKERS = [
   'APEX Funding',
@@ -267,9 +267,7 @@ export default function TradingSettingsPage() {
 
   // ─── CSV helpers ──────────────────────────────────────────────────────────
   function parseCSVPreview(text: string): { headers: string[]; rows: CSVRow[] } {
-    const lines = text.split(/
-?
-/).filter(l => l.trim())
+    const lines = text.split(/\r?\n/).filter(l => l.trim())
     if (lines.length < 2) return { headers: [], rows: [] }
     const delimiter = lines[0].includes('	') ? '	' : ','
     const headers = lines[0].split(delimiter).map(h => h.replace(/^"|"$/g, '').trim())
