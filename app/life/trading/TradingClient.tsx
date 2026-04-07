@@ -313,7 +313,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
   const lastDay = new Date(year, month + 1, 0)
 
   // Split month into 4 weeks
-  const weeks = []
+  const weeks: { weekNum: number; startStr: string; endStr: string; pnl: number; trades: number; days: number }[] = []
   let weekStart = new Date(firstDay)
   let weekNum = 1
   while (weekStart <= lastDay && weekNum <= 5) {
