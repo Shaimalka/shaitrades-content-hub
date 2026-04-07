@@ -1,4 +1,5 @@
 'use client'
+
 import { useState, useEffect, Suspense } from 'react'
 import { Plus, Trash2, Flame, CheckSquare, CheckCircle2 } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
@@ -27,6 +28,7 @@ const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
   { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#2563eb' },
   { key: 'Evening', label: 'EVENING STACK', icon: '🌙', color: '#a78bfa' },
 ]
+
 const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MISS_KEY = 'life:habits:misslog'
@@ -58,7 +60,11 @@ function getStreak(habitId: string, completions: Completions): number {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
     const dateStr = d.toISOString().split('T')[0]
-    if (completions[dateStr]?.[habitId]) { streak++ } else { break }
+    if (completions[dateStr]?.[habitId]) {
+      streak++
+    } else {
+      break
+    }
   }
   return streak
 }
@@ -110,9 +116,10 @@ function HabitsInner() {
   const { isDark } = useTheme()
   const isMobile = useWindowWidth() < 768
   const searchParams = useSearchParams()
+
   const inputStyle = {
     background: isDark ? '#1a1a24' : '#f1f4f9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` ,
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '8px',
     color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif',
@@ -122,13 +129,16 @@ function HabitsInner() {
     width: '100%',
     transition: 'border-color 0.2s, box-shadow 0.2s',
   } as React.CSSProperties
+
   const selectStyle = { ...inputStyle, cursor: 'pointer' } as React.CSSProperties
+
   const cardStyle = {
     background: isDark ? '#111118' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` ,
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px',
     padding: '20px',
   } as React.CSSProperties
+
   const [habits, setHabits] = useState<Habit[]>([])
   const [completions, setCompletions] = useState<Completions>({})
   const [missLog, setMissLog] = useState<MissLog>({})
@@ -140,9 +150,15 @@ function HabitsInner() {
   const [expandedStack, setExpandedStack] = useState<Stack | null>(null)
   const [showWeeklyReview, setShowWeeklyReview] = useState(false)
   const [form, setForm] = useState({
-    name: '', stack: 'Morning' as Stack, intention: '', twoMinute: '', whyMatters: '',
-    frequency: 'Daily' as Frequency, customDays: [] as number[],
+    name: '',
+    stack: 'Morning' as Stack,
+    intention: '',
+    twoMinute: '',
+    whyMatters: '',
+    frequency: 'Daily' as Frequency,
+    customDays: [] as number[],
   })
+
   const today = new Date().toISOString().split('T')[0]
   const last30 = getLast30Days()
   const currentHour = new Date().getHours()
@@ -150,14 +166,25 @@ function HabitsInner() {
   useEffect(() => {
     fetch('/api/life/habits')
       .then(r => r.json())
-      .then(d => { setHabits(d.habits || []); setCompletions(d.completions || {}); setLoading(false) })
+      .then(d => {
+        setHabits(d.habits || [])
+        setCompletions(d.completions || {})
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
-    try { const stored = localStorage.getItem(MISS_KEY); if (stored) setMissLog(JSON.parse(stored)) } catch {}
+    try {
+      const stored = localStorage.getItem(MISS_KEY)
+      if (stored) setMissLog(JSON.parse(stored))
+    } catch {}
   }, [])
 
   async function toggleHabit(habitId: string, date: string) {
     const wasDone = completions[date]?.[habitId]
-    const res = await fetch('/api/life/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'toggle', date, habitId }) })
+    const res = await fetch('/api/life/habits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'toggle', date, habitId })
+    })
     const data = await res.json()
     setCompletions(data.completions || {})
     if (wasDone && date === today && currentHour >= 21) setMissPrompt({ habitId, date })
@@ -170,28 +197,43 @@ function HabitsInner() {
     updated[missPrompt.date][missPrompt.habitId] = missReason
     setMissLog(updated)
     try { localStorage.setItem(MISS_KEY, JSON.stringify(updated)) } catch {}
-    setMissPrompt(null); setMissReason('')
+    setMissPrompt(null)
+    setMissReason('')
   }
 
   async function addHabit(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry: { ...form } }) })
+    const res = await fetch('/api/life/habits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry: { ...form } })
+    })
     const data = await res.json()
     setHabits(data.habits || [])
     setShowForm(false)
     setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [] })
   }
 
+  // Bug 2 fix: use DELETE method instead of POST with action:'delete'
   async function deleteHabit(id: string) {
-    const res = await fetch('/api/life/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', entry: { id } }) })
+    const res = await fetch(`/api/life/habits?id=${id}`, {
+      method: 'DELETE',
+    })
     const data = await res.json()
     setHabits(data.habits || [])
   }
 
-  const todayCompleted = habits.filter(h => completions[today]?.[h.id]).length
-  const dailyScore = habits.length === 0 ? null : Math.round((todayCompleted / habits.length) * 100)
-  const scoreColor = dailyScore === null ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : dailyScore >= 80 ? '#00c48c' : dailyScore >= 50 ? '#2563eb' : '#f59e0b'
-  const stackHabits = (stack: Stack) => habits.filter(h => (h.stack || 'Morning') === stack)
+  // Bug 3 fix: filter out habits with no name
+  const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
+
+  const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
+  const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
+  const scoreColor = dailyScore === null
+    ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')
+    : dailyScore >= 80 ? '#00c48c' : dailyScore >= 50 ? '#2563eb' : '#f59e0b'
+
+  // Bug 3 fix: stackHabits filters by stack AND name
+  const stackHabits = (stack: Stack) => validHabits.filter(h => (h.stack || 'Morning') === stack)
 
   return (
     <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
@@ -221,9 +263,9 @@ function HabitsInner() {
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 2 }}>Track your daily habit stacks</p>
           </div>
           <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
-            {habits.length > 0 && (
+            {validHabits.length > 0 && (
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.3)', color: '#2563eb' }}>
-                {todayCompleted}/{habits.length} today
+                {todayCompleted}/{validHabits.length} today
               </div>
             )}
             <button onClick={() => setShowWeeklyReview(!showWeeklyReview)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 14px', cursor: 'pointer' }}>
@@ -235,10 +277,10 @@ function HabitsInner() {
           </div>
         </div>
 
-        {/* Today's Stack — Daily View */}
-        {habits.length > 0 && (
+        {/* Bug 4 fix: Label top section clearly as TODAY'S HABITS */}
+        {validHabits.length > 0 && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16, margin: '0 0 16px 0' }}>TODAY'S STACK</h3>
+            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16, margin: '0 0 16px 0' }}>TODAY'S HABITS</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {STACKS.map(({ key, label, icon, color }) => {
                 const stackItems = stackHabits(key)
@@ -250,10 +292,14 @@ function HabitsInner() {
                       {stackItems.map(h => {
                         const done = completions[today]?.[h.id] || false
                         return (
-                          <button key={h.id} onClick={() => toggleHabit(h.id, today)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, background: done ? color + '12' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+                          <button
+                            key={h.id}
+                            onClick={() => toggleHabit(h.id, today)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, background: done ? color + '12' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
+                          >
+                            {/* Bug 1 fix: checkbox always shows white checkmark on blue fill */}
                             <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${done ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: done ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
-                              {done && <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontSize: 10, fontWeight: 700 }}>✓</span>}
+                              {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>✓</span>}
                             </div>
                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: done ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : (isDark ? '#ffffff' : '#0a0a0f'), textDecoration: done ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
                             {getStreak(h.id, completions) > 0 && (
@@ -273,14 +319,14 @@ function HabitsInner() {
         )}
 
         {/* Weekly Review */}
-        {showWeeklyReview && habits.length > 0 && (
+        {showWeeklyReview && validHabits.length > 0 && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
             <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
               <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>WEEKLY REVIEW</h3>
               <button onClick={() => setShowWeeklyReview(false)} style={{ background: 'none', border: 'none', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 12, cursor: 'pointer' }}>Close</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {habits.map(h => {
+              {validHabits.map(h => {
                 const rate7 = getCompletionRate(h.id, completions, 7)
                 const weakDay = getWeakestDay(h.id, completions)
                 const streak = getStreak(h.id, completions)
@@ -341,8 +387,7 @@ function HabitsInner() {
                   <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>CUSTOM DAYS</label>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {DAY_NAMES.map((d, i) => (
-                      <button key={i} type="button" onClick={() => setForm(f => ({ ...f, customDays: f.customDays.includes(i) ? f.customDays.filter(x => x !== i) : [...f.customDays, i] }))}
-                        style={{ flex: 1, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '6px 0', borderRadius: 6, background: form.customDays.includes(i) ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.customDays.includes(i) ? 'rgba(37,99,235,0.5)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)')}`, color: form.customDays.includes(i) ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer' }}>{d}</button>
+                      <button key={i} type="button" onClick={() => setForm(f => ({ ...f, customDays: f.customDays.includes(i) ? f.customDays.filter(x => x !== i) : [...f.customDays, i] }))} style={{ flex: 1, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '6px 0', borderRadius: 6, background: form.customDays.includes(i) ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.customDays.includes(i) ? 'rgba(37,99,235,0.5)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)')}`, color: form.customDays.includes(i) ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer' }}>{d}</button>
                     ))}
                   </div>
                 </div>
@@ -368,7 +413,7 @@ function HabitsInner() {
           <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
             <div style={{ ...cardStyle, maxWidth: 360, width: '100%', margin: '0 16px', padding: 24 }}>
               <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), marginBottom: 4 }}>Why did you skip today?</h3>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginBottom: 16 }}>{habits.find(h => h.id === missPrompt.habitId)?.name}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginBottom: 16 }}>{validHabits.find(h => h.id === missPrompt.habitId)?.name}</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                 {MISS_REASONS.map(reason => (
                   <button key={reason} onClick={() => setMissReason(reason)} style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 12px', borderRadius: 8, background: missReason === reason ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'), border: `1px solid ${missReason === reason ? 'rgba(37,99,235,0.5)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)')}`, color: missReason === reason ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer' }}>{reason}</button>
@@ -382,7 +427,7 @@ function HabitsInner() {
           </div>
         )}
 
-        {/* Habit Stacks */}
+        {/* Bug 4 fix: Label bottom section as MANAGE HABITS */}
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
             <Skeleton height="50px" />
@@ -390,10 +435,11 @@ function HabitsInner() {
             <Skeleton height="50px" />
             <Skeleton height="50px" />
           </div>
-        ) : habits.length === 0 ? (
+        ) : validHabits.length === 0 ? (
           <EmptyState icon={CheckCircle2} heading="NO HABITS YET" isDark={isDark} subtext="Add your first habit below to start building your streak." />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: '0 0 4px 0' }}>MANAGE HABITS</h3>
             {STACKS.map(({ key, label, icon, color }) => {
               const items = stackHabits(key)
               if (items.length === 0) return null
@@ -401,8 +447,7 @@ function HabitsInner() {
               const doneCount = items.filter(h => completions[today]?.[h.id]).length
               return (
                 <div key={key} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-                  <button onClick={() => setExpandedStack(isExpanded ? null : key)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                  <button onClick={() => setExpandedStack(isExpanded ? null : key)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ fontSize: 20 }}>{icon}</span>
                       <div>
@@ -417,7 +462,6 @@ function HabitsInner() {
                       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>{isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </button>
-
                   {isExpanded && (
                     <div style={{ padding: '0 20px 20px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {items.map(habit => {
@@ -426,14 +470,18 @@ function HabitsInner() {
                         return (
                           <div key={habit.id} style={{ background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                              <button onClick={() => toggleHabit(habit.id, today)} style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}>
-                                {todayDone && <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontSize: 11, fontWeight: 700 }}>✓</span>}
+                              {/* Bug 1 fix: checkbox wired to toggleHabit with white checkmark */}
+                              <button
+                                onClick={() => toggleHabit(habit.id, today)}
+                                style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}
+                              >
+                                {todayDone && <span style={{ color: '#ffffff', fontSize: 11, fontWeight: 700 }}>✓</span>}
                               </button>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                   <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: todayDone ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : (isDark ? '#ffffff' : '#0a0a0f'), textDecoration: todayDone ? 'line-through' : 'none' }}>{habit.name}</span>
                                   {streak > 0 && (
-                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />🔥 {streak} day streak</span>
+                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />{streak} day streak</span>
                                   )}
                                   <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>{habit.frequency || 'Daily'}</span>
                                 </div>
@@ -441,6 +489,7 @@ function HabitsInner() {
                                 {habit.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2 }}>{habit.whyMatters}</p>}
                                 {habit.twoMinute && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2, fontStyle: 'italic' }}>2-min: {habit.twoMinute}</p>}
                               </div>
+                              {/* Bug 2 fix: delete button calls deleteHabit correctly */}
                               <button onClick={() => deleteHabit(habit.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, flexShrink: 0 }}>
                                 <Trash2 size={11} style={{ color: '#ff4d6a' }} />
                               </button>
@@ -453,8 +502,7 @@ function HabitsInner() {
                                   const isToday = date === today
                                   const hasMissReason = missLog[date]?.[habit.id]
                                   return (
-                                    <button key={date} onClick={() => toggleHabit(habit.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
-                                      style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }} />
+                                    <button key={date} onClick={() => toggleHabit(habit.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')} style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }} />
                                   )
                                 })}
                               </div>
@@ -479,12 +527,21 @@ function HabitsInner() {
         section="habits"
         apiRoute="/api/life/habits/chat"
         contextData={{
-          habits: habits.map(h => ({
-            name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters, frequency: h.frequency,
-            streak: getStreak(h.id, completions), completionRate7d: getCompletionRate(h.id, completions, 7),
-            completionRate30d: getCompletionRate(h.id, completions, 30), weakestDay: getWeakestDay(h.id, completions), todayDone: !!completions[today]?.[h.id],
+          habits: validHabits.map(h => ({
+            name: h.name,
+            stack: h.stack,
+            intention: h.intention,
+            whyMatters: h.whyMatters,
+            frequency: h.frequency,
+            streak: getStreak(h.id, completions),
+            completionRate7d: getCompletionRate(h.id, completions, 7),
+            completionRate30d: getCompletionRate(h.id, completions, 30),
+            weakestDay: getWeakestDay(h.id, completions),
+            todayDone: !!completions[today]?.[h.id],
           })),
-          totalHabits: habits.length, todayCompleted, missLog,
+          totalHabits: validHabits.length,
+          todayCompleted,
+          missLog,
         }}
         systemPrompt="You are Coach Shai, a behavioral science-based habit AI. You have access to the user's habit stacks (Morning, Trading, Evening), each habit's implementation intention, why it matters, current streak, 7-day and 30-day completion rates, weakest day of week, today's status, and miss reason logs. Analyze patterns, celebrate streaks, identify skip patterns, and give sharp, science-backed advice to improve consistency. Reference specific habits and data when coaching."
         defaultOpen={chatOpen}
