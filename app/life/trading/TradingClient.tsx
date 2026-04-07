@@ -879,7 +879,7 @@ function TradingJournalInner() {
 
         {/* ===== TRADE FORM (always accessible) ===== */}
         {showForm && (
-          <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', ...(editingId ? { boxShadow: '0 0 0 2px #2563eb' } : { borderColor: '#2563eb', borderWidth: 1 }) }}>
+          <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: editingId ? '0 0 0 2px #2563eb' : isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#2563eb', margin: 0, letterSpacing: '0.1em' }}>
                 {editingId ? '// EDIT TRADE' : '// NEW TRADE ENTRY'}
