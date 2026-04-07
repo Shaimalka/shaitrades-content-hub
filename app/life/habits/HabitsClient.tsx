@@ -111,7 +111,6 @@ function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: Re
     </div>
   )
 }
-
 function HabitsInner() {
   const { isDark } = useTheme()
   const isMobile = useWindowWidth() < 768
@@ -178,15 +177,46 @@ function HabitsInner() {
     } catch {}
   }, [])
 
+  // FIX: Optimistic toggle — update UI immediately, then sync with server response.
+  // Previously: waited for API round-trip before updating state, so UI felt broken.
+  // Also fixed: sends { action:'toggle', habitId, date } matching the corrected API handler.
   async function toggleHabit(habitId: string, date: string) {
-    const wasDone = completions[date]?.[habitId]
-    const res = await fetch('/api/life/habits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'toggle', date, habitId })
+    const wasDone = !!completions[date]?.[habitId]
+
+    // 1. Optimistic update — flip the checkbox immediately
+    setCompletions(prev => {
+      const updated = { ...prev, [date]: { ...(prev[date] || {}) } }
+      if (updated[date][habitId]) {
+        delete updated[date][habitId]
+      } else {
+        updated[date][habitId] = true
+      }
+      return updated
     })
-    const data = await res.json()
-    setCompletions(data.completions || {})
+
+    // 2. Sync with server
+    try {
+      const res = await fetch('/api/life/habits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', date, habitId }),
+      })
+      const data = await res.json()
+      // Reconcile with authoritative server state
+      if (data.completions) setCompletions(data.completions)
+    } catch {
+      // Revert optimistic update on network error
+      setCompletions(prev => {
+        const reverted = { ...prev, [date]: { ...(prev[date] || {}) } }
+        if (wasDone) {
+          reverted[date][habitId] = true
+        } else {
+          delete reverted[date][habitId]
+        }
+        return reverted
+      })
+    }
+
     if (wasDone && date === today && currentHour >= 21) setMissPrompt({ habitId, date })
   }
 
@@ -206,7 +236,7 @@ function HabitsInner() {
     const res = await fetch('/api/life/habits', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entry: { ...form } })
+      body: JSON.stringify({ entry: { ...form } }),
     })
     const data = await res.json()
     setHabits(data.habits || [])
@@ -214,32 +244,37 @@ function HabitsInner() {
     setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [] })
   }
 
-  // Bug 2 fix: use DELETE method instead of POST with action:'delete'
+  // FIX: Optimistic delete — remove habit from state immediately, then sync with server.
+  // Previously: waited for API response (which also had no DELETE handler), so nothing happened.
   async function deleteHabit(id: string) {
-    const res = await fetch(`/api/life/habits?id=${id}`, {
-      method: 'DELETE',
-    })
-    const data = await res.json()
-    setHabits(data.habits || [])
+    // 1. Optimistic update — remove from list immediately
+    setHabits(prev => prev.filter(h => h.id !== id))
+
+    // 2. Sync with server
+    try {
+      const res = await fetch(`/api/life/habits?id=${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      // Reconcile with authoritative server state
+      if (data.habits) setHabits(data.habits)
+    } catch {
+      // On error, re-fetch to restore correct state
+      fetch('/api/life/habits')
+        .then(r => r.json())
+        .then(d => { if (d.habits) setHabits(d.habits) })
+        .catch(() => {})
+    }
   }
-
-  // Bug 3 fix: filter out habits with no name
+  // filter out habits with no name
   const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
-
   const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
   const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
-  const scoreColor = dailyScore === null
-    ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')
-    : dailyScore >= 80 ? '#00c48c' : dailyScore >= 50 ? '#2563eb' : '#f59e0b'
-
-  // Bug 3 fix: stackHabits filters by stack AND name
+  const scoreColor = dailyScore === null ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : dailyScore >= 80 ? '#00c48c' : dailyScore >= 50 ? '#2563eb' : '#f59e0b'
   const stackHabits = (stack: Stack) => validHabits.filter(h => (h.stack || 'Morning') === stack)
 
   return (
     <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
-
         {/* Daily Habit Score */}
         <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 24, padding: '32px' }}>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? '56px' : '72px', fontWeight: 700, color: scoreColor, lineHeight: 1, letterSpacing: '-2px' }}>
@@ -277,7 +312,7 @@ function HabitsInner() {
           </div>
         </div>
 
-        {/* Bug 4 fix: Label top section clearly as TODAY'S HABITS */}
+        {/* TODAY'S HABITS */}
         {validHabits.length > 0 && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
             <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16, margin: '0 0 16px 0' }}>TODAY'S HABITS</h3>
@@ -297,7 +332,6 @@ function HabitsInner() {
                             onClick={() => toggleHabit(h.id, today)}
                             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, background: done ? color + '12' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}
                           >
-                            {/* Bug 1 fix: checkbox always shows white checkmark on blue fill */}
                             <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${done ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: done ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                               {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>✓</span>}
                             </div>
@@ -317,7 +351,6 @@ function HabitsInner() {
             </div>
           </div>
         )}
-
         {/* Weekly Review */}
         {showWeeklyReview && validHabits.length > 0 && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
@@ -407,7 +440,6 @@ function HabitsInner() {
             </form>
           </div>
         )}
-
         {/* Miss Reason Prompt */}
         {missPrompt && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
@@ -427,7 +459,7 @@ function HabitsInner() {
           </div>
         )}
 
-        {/* Bug 4 fix: Label bottom section as MANAGE HABITS */}
+        {/* MANAGE HABITS */}
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
             <Skeleton height="50px" />
@@ -470,7 +502,6 @@ function HabitsInner() {
                         return (
                           <div key={habit.id} style={{ background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                              {/* Bug 1 fix: checkbox wired to toggleHabit with white checkmark */}
                               <button
                                 onClick={() => toggleHabit(habit.id, today)}
                                 style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}
@@ -489,7 +520,6 @@ function HabitsInner() {
                                 {habit.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2 }}>{habit.whyMatters}</p>}
                                 {habit.twoMinute && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2, fontStyle: 'italic' }}>2-min: {habit.twoMinute}</p>}
                               </div>
-                              {/* Bug 2 fix: delete button calls deleteHabit correctly */}
                               <button onClick={() => deleteHabit(habit.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, flexShrink: 0 }}>
                                 <Trash2 size={11} style={{ color: '#ff4d6a' }} />
                               </button>
@@ -502,7 +532,12 @@ function HabitsInner() {
                                   const isToday = date === today
                                   const hasMissReason = missLog[date]?.[habit.id]
                                   return (
-                                    <button key={date} onClick={() => toggleHabit(habit.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')} style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }} />
+                                    <button
+                                      key={date}
+                                      onClick={() => toggleHabit(habit.id, date)}
+                                      title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
+                                      style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }}
+                                    />
                                   )
                                 })}
                               </div>
@@ -528,12 +563,8 @@ function HabitsInner() {
         apiRoute="/api/life/habits/chat"
         contextData={{
           habits: validHabits.map(h => ({
-            name: h.name,
-            stack: h.stack,
-            intention: h.intention,
-            whyMatters: h.whyMatters,
-            frequency: h.frequency,
-            streak: getStreak(h.id, completions),
+            name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters,
+            frequency: h.frequency, streak: getStreak(h.id, completions),
             completionRate7d: getCompletionRate(h.id, completions, 7),
             completionRate30d: getCompletionRate(h.id, completions, 30),
             weakestDay: getWeakestDay(h.id, completions),
