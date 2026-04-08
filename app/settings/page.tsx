@@ -10,7 +10,7 @@ const SESSIONS = ['London', 'New York', 'Asian', 'Overnight']
 const TIMEZONES = [
   { label: 'UTC', value: 'UTC' },
   { label: 'EST (UTC-5)', value: 'America/New_York' },
-  { label: 'CST (UTC-6)', value: 'America/Chicago' },
+  { label: 'CST (UTC-6)', value: 'America/Chicago' }
   { label: 'MST (UTC-7)', value: 'America/Denver' },
   { label: 'PST (UTC-8)', value: 'America/Los_Angeles' },
   { label: 'GMT (UTC+0)', value: 'Europe/London' },
@@ -266,6 +266,17 @@ export default function SettingsPage() {
                                             <div>
                                                           <label style={labelStyle}>Location</label>
                                                           <input style={inputStyle} value={settings.location} onChange={e => setSettings(p => ({ ...p, location: e.target.value }))} placeholder="City, Country" />
+                                            </div>
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                          <label style={labelStyle}>Email</label>
+                                                          <input
+                                                            style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed', background: isDark ? '#0a0a0f' : '#f1f5f9' }}
+                                                            value={session?.user?.email || ''}
+                                                            readOnly
+                                                            disabled
+                                                            placeholder="your@email.com"
+                                                          />
+                                                          <p style={{ fontSize: 11, color: muted, fontFamily: 'Inter, sans-serif', marginTop: 4 }}>Managed by your login provider</p>
                                             </div>
                                 </div>
                                 <div style={{ marginTop: 16 }}>
