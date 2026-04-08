@@ -10,7 +10,7 @@ import {
 import {
   Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle,
   Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp,
-  ChevronDown, Building2
+  ChevronDown, Building2, ImagePlus
 } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
@@ -26,6 +26,7 @@ type Trade = {
   source?: string; accountName?: string; symbol?: string
   playbookId?: string | null; accountType?: 'live' | 'propfirm' | 'paper'
   stopLoss?: number; takeProfit?: number
+  tradeImage?: string // base64
 }
 type Playbook = { id: string; name: string; description: string; createdAt: string }
 type CoachInsight = { text: string; visible: boolean; fading: boolean }
@@ -330,7 +331,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
   const lastDay = new Date(year, month + 1, 0)
 
   // Split month into 4 weeks
-  const weeks: { weekNum: number; startStr: string; endStr: string; pnl: number; trades: number; days: number }[] = []
+  const weeks: { weekNum: number; startStr: string; endStr: string; pnl: number; trades: number; days: number; wins: number; winRate: number }[] = []
   let weekStart = new Date(firstDay)
   let weekNum = 1
   while (weekStart <= lastDay && weekNum <= 5) {
@@ -342,7 +343,9 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     const weekTrades = trades.filter(t => t.date >= startStr && t.date <= endStr)
     const pnl = weekTrades.reduce((s, t) => s + t.pnl, 0)
     const uniqueDays = new Set(weekTrades.map(t => t.date)).size
-    weeks.push({ weekNum, startStr, endStr, pnl, trades: weekTrades.length, days: uniqueDays })
+    const weekWins = weekTrades.filter(t => t.pnl > 0).length
+    const weekWinRate = weekTrades.length > 0 ? (weekWins / weekTrades.length) * 100 : 0
+    weeks.push({ weekNum, startStr, endStr, pnl, trades: weekTrades.length, days: uniqueDays, wins: weekWins, winRate: weekWinRate })
     weekStart = new Date(weekEnd)
     weekStart.setDate(weekEnd.getDate() + 1)
     weekNum++
@@ -369,7 +372,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textSecondary }}>{week.trades} trades</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>{week.days} day{week.days !== 1 ? 's' : ''}</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>{week.winRate.toFixed(0)}% WR</span>
             </div>
             {week.trades > 0 && (
               <div style={{ marginTop: 8, height: 3, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 2 }}>
@@ -467,11 +470,16 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
 
   const dayMap = useMemo(() => {
-    const map: Record<string, { pnl: number; trades: Trade[] }> = {}
+    const map: Record<string, { pnl: number; trades: Trade[]; tradeCount: number; wins: number; winRate: number }> = {}
     for (const trade of trades) {
-      if (!map[trade.date]) map[trade.date] = { pnl: 0, trades: [] }
+      if (!map[trade.date]) map[trade.date] = { pnl: 0, trades: [], tradeCount: 0, wins: 0, winRate: 0 }
       map[trade.date].pnl += trade.pnl
       map[trade.date].trades.push(trade)
+      map[trade.date].tradeCount++
+      if (trade.pnl > 0) map[trade.date].wins++
+    }
+    for (const key of Object.keys(map)) {
+      map[key].winRate = map[key].tradeCount > 0 ? (map[key].wins / map[key].tradeCount) * 100 : 0
     }
     return map
   }, [trades])
@@ -556,9 +564,17 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
           const boxShadow = isToday ? '0 0 0 2px #2563eb' : isSelected ? '0 0 0 2px rgba(37,99,235,0.5)' : undefined
           return (
             <div key={dateStr} onClick={() => { if (hasTrades) setSelectedDay(prev => prev === dateStr ? null : dateStr) }}
-              style={{ minHeight: 50, borderRadius: 5, background: bg, border: cellBorder, boxShadow, cursor: hasTrades ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3px 2px', transition: 'box-shadow 0.15s ease' }}>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 600, color: isToday ? '#2563eb' : hasTrades ? textPrimary : textMuted }}>{day}</span>
-              {hasTrades && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 8, marginTop: 1, color: pnlColor, lineHeight: 1 }}>{pnl > 0 ? '+' : ''}{pnl.toFixed(0)}</span>}
+              style={{ minHeight: 80, borderRadius: 5, background: bg, border: cellBorder, boxShadow, cursor: hasTrades ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '4px 5px', transition: 'box-shadow 0.15s ease' }}>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fontWeight: 600, color: isToday ? '#2563eb' : textMuted }}>{day}</span>
+              {hasTrades && (
+                <>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, marginTop: 2, color: pnlColor, lineHeight: 1.2 }}>
+                    {Math.abs(pnl) >= 1000 ? (pnl > 0 ? '+' : '-') + '$' + (Math.abs(pnl)/1000).toFixed(2) + 'K' : (pnl > 0 ? '+' : '') + '$' + pnl.toFixed(0)}
+                  </span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: textSecondary, marginTop: 2 }}>{dayData!.tradeCount} trade{dayData!.tradeCount !== 1 ? 's' : ''}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: textSecondary }}>{dayData!.winRate.toFixed(2)}%</span>
+                </>
+              )}
             </div>
           )
         })}
@@ -620,6 +636,7 @@ function TradingJournalInner() {
     notes: '', emotion: 3, playbookId: '', symbol: '',
     stopLoss: '', takeProfit: '',
     accountType: 'live' as 'live' | 'propfirm' | 'paper',
+    tradeImage: '',
   }
   const [form, setForm] = useState(emptyForm)
 
@@ -663,6 +680,7 @@ function TradingJournalInner() {
       emotion: trade.emotion || 3, playbookId: trade.playbookId || '',
       symbol: trade.symbol || '', stopLoss: '', takeProfit: '',
       accountType: trade.accountType || 'live',
+      tradeImage: trade.tradeImage || '',
     })
     setShowForm(true)
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
@@ -701,6 +719,7 @@ function TradingJournalInner() {
       contracts: parseFloat(form.contracts), notes: form.notes,
       emotion: form.emotion, playbookId: form.playbookId || null,
       symbol: form.symbol || undefined, accountType: form.accountType,
+      tradeImage: form.tradeImage || undefined,
     }
     if (editingId) {
       const res = await fetch('/api/life/trading', {
@@ -926,7 +945,7 @@ function TradingJournalInner() {
                 <input type='text' value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} placeholder='NQ, ES, AAPL...' style={inputStyle} />
               </div>
               <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>CONTRACTS / SHARES</label>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>CONTRACTS</label>
                 <input type='number' step='0.01' value={form.contracts} onChange={e => setForm(f => ({ ...f, contracts: e.target.value }))} placeholder='1' required style={inputStyle} />
               </div>
               <div>
@@ -938,15 +957,15 @@ function TradingJournalInner() {
                 <input type='number' step='0.01' value={form.exitPrice} onChange={e => setForm(f => ({ ...f, exitPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
               </div>
               <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>STOP LOSS (opt)</label>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}><span>STOP LOSS</span></label><span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>optional</span>
                 <input type='number' step='0.01' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='0.00' style={inputStyle} />
               </div>
               <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>TAKE PROFIT (opt)</label>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}><span>TAKE PROFIT</span></label><span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>optional</span>
                 <input type='number' step='0.01' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='0.00' style={inputStyle} />
               </div>
               <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>P&L (AUTO)</label>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}><span>NET P&L</span></label><span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>auto-calculated</span>
                 <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', fontFamily: 'JetBrains Mono, monospace' }}>
                   {form.entryPrice && form.exitPrice && form.contracts ? (() => {
                     const pnl = form.direction === 'Long'
@@ -974,6 +993,32 @@ function TradingJournalInner() {
               <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4' }}>
                 <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>NOTES</label>
                 <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder='What happened? Mistakes? Lessons? Setup?' style={{ ...inputStyle, height: 80, resize: 'none' }} />
+              </div>
+              {/* Trade Screenshot Upload */}
+              <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4' }}>
+                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 2 }}>TRADE SCREENSHOT</label>
+                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, marginBottom: 8 }}>optional</span>
+                {form.tradeImage ? (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <img src={form.tradeImage} alt='Trade screenshot' style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: `1px solid ${border}` }} />
+                    <button type='button' onClick={() => setForm(f => ({ ...f, tradeImage: '' }))} style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', background: '#ff4d6a', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                      <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>×</span>
+                    </button>
+                  </div>
+                ) : (
+                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 20, borderRadius: 8, border: '1.5px dashed rgba(37,99,235,0.3)', background: 'rgba(37,99,235,0.05)', cursor: 'pointer', minHeight: 80 }}>
+                    <ImagePlus size={24} style={{ color: 'rgba(37,99,235,0.5)' }} />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted }}>Upload trade screenshot</span>
+                    <input type='file' accept='image/jpeg,image/png,image/webp' style={{ display: 'none' }} onChange={e => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      if (file.size > 5 * 1024 * 1024) { alert('Max file size is 5MB'); return }
+                      const reader = new FileReader()
+                      reader.onload = ev => { if (ev.target?.result) setForm(f => ({ ...f, tradeImage: ev.target!.result as string })) }
+                      reader.readAsDataURL(file)
+                    }} />
+                  </label>
+                )}
               </div>
               <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4', display: 'flex', gap: 8 }}>
                 <Button type='submit'>{editingId ? 'UPDATE TRADE' : 'ADD TRADE'}</Button>
@@ -1004,7 +1049,7 @@ function TradingJournalInner() {
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${border}` }}>
-                    {['DATE','TIME','DIR','SYMBOL','ENTRY','EXIT','QTY','P&L','R:R','😊','NOTES',''].map(h => (
+                    {['DATE','TIME','DIR','SYMBOL','ENTRY','EXIT','QTY','P&L','R:R','😊','NOTES','IMG',''].map(h => (
                       <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500 }}>{h}</th>
                     ))}
                   </tr>
@@ -1031,6 +1076,17 @@ function TradingJournalInner() {
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textMuted }}>{rr}</td>
                         <td style={{ padding: '6px 14px', fontSize: 14 }}>{EMOTIONS[(trade.emotion || 3) - 1]}</td>
                         <td style={{ padding: '6px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textMuted }}>{trade.notes}</td>
+                        <td style={{ padding: '6px 14px' }}>
+                          {trade.tradeImage && (
+                            <img
+                              src={trade.tradeImage}
+                              alt='Trade screenshot'
+                              title='Click to open full image'
+                              style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, cursor: 'pointer', border: '1px solid rgba(37,99,235,0.3)' }}
+                              onClick={e => { e.stopPropagation(); const w = window.open(); if (w) { w.document.write('<img src="' + trade.tradeImage + '" style="max-width:100%;max-height:100vh;" />') } }}
+                            />
+                          )}
+                        </td>
                         <td style={{ padding: '6px 14px' }}>
                           <div className='trade-actions' style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0, transition: 'opacity 0.15s' }}>
                             <button onClick={() => startEdit(trade)} title='Edit' style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><Pencil size={12} style={{ color: '#2563eb' }} /></button>
