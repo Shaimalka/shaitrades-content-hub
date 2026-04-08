@@ -821,4 +821,4 @@ export default function LifeHubPage() {
                                                                                                           `}</style>
                       </div>
                     )
-}</div>
+}
