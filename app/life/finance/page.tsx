@@ -137,6 +137,9 @@ function FinancePage() {
   const [monthlyGoal, setMonthlyGoal] = useState<number>(10000)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('10000')
+  const [taxReservePercent, setTaxReservePercent] = useState(30)
+  const [taxReserveInput, setTaxReserveInput] = useState('30')
+  const [editingTaxRate, setEditingTaxRate] = useState(false)
   const [nwHistory, setNwHistory] = useState<NetWorthEntry[]>([])
   const [nwInput, setNwInput] = useState('')
   const [nwDate, setNwDate] = useState(new Date().toISOString().slice(0, 7))
@@ -147,6 +150,7 @@ function FinancePage() {
 
   useEffect(() => {
     fetch('/api/life/finance').then(r => r.json()).then(d => { setIncome(d.income || []); setExpenses(d.expenses || []); if (d.streams && d.streams.length > 0) setStreams(d.streams) }).catch(() => {}).finally(() => setLoading(false))
+    fetch('/api/finance/tax-rate').then(r => r.json()).then(d => { if (d.taxReservePercent) { setTaxReservePercent(d.taxReservePercent); setTaxReserveInput(String(d.taxReservePercent)) } }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -185,6 +189,7 @@ function FinancePage() {
   }
 
   function saveGoal() { const val = parseFloat(goalInput) || 10000; setMonthlyGoal(val); localStorage.setItem(GOAL_STORAGE_KEY, String(val)); setEditingGoal(false) }
+  async function saveTaxRate() { const val = Math.min(99, Math.max(1, parseFloat(taxReserveInput) || 30)); setTaxReservePercent(val); setTaxReserveInput(String(val)); setEditingTaxRate(false); try { await fetch('/api/finance/tax-rate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ taxReservePercent: val }) }) } catch {} }
 
   function saveNetWorth() {
     if (!nwInput) return
@@ -263,8 +268,18 @@ function FinancePage() {
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: netProfit >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{netProfit >= 0 ? '+' : ''}{fmt(netProfit)}</p>
           </div>
           <div style={statCardStyle}>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TAX RESERVE (25%)</p>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{fmt(Math.max(0, 0.25 * netProfit))}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>TAX RESERVE</p>
+              <button onClick={() => setEditingTaxRate(!editingTaxRate)} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '1px 6px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: '#f59e0b', cursor: 'pointer' }}>{editingTaxRate ? 'done' : 'edit'}</button>
+            </div>
+            {editingTaxRate ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <input type="number" min={1} max={99} value={taxReserveInput} onChange={e => setTaxReserveInput(e.target.value)} onBlur={saveTaxRate} onKeyDown={ev => { if (ev.key === 'Enter') saveTaxRate() }} style={{ background: isDark ? '#1a1a24' : '#f1f4f9', border: '1px solid rgba(245,158,11,0.4)', borderRadius: 6, color: '#f59e0b', fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, padding: '2px 6px', outline: 'none', width: 60, textAlign: 'right' }} />
+                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f59e0b' }}>%</span>
+              </div>
+            ) : (
+              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{fmt(Math.max(0, (taxReservePercent / 100) * totalIn))} <span style={{ fontSize: 11, fontWeight: 400, color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{taxReservePercent}%</span></p>
+            )}
           </div>
         </div>
 
