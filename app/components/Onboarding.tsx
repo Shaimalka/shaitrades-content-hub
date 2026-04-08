@@ -487,6 +487,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <Q label="What's one goal you want to hit?">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <TextInput value={goal} onChange={setGoal} placeholder="e.g. Grow account to $10k" />
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(0,242,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '4px', marginTop: '4px' }}>Target Date</label>
                 <input
                   type="date"
                   value={goalDate}
@@ -505,6 +506,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                     colorScheme: 'dark',
                   }}
                 />
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '4px' }}>When do you want to achieve this by?</p>
               </div>
             </Q>
             <button style={primaryBtn} onClick={goNext}>NEXT →</button>
