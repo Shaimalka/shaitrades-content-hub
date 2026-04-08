@@ -21,9 +21,63 @@ export async function POST(req: NextRequest) {
   try {
     const { weekStart, weekEnd } = await req.json()
 
-    // Fetch trader profile for personalization
+    // Fetch trader profile and user settings for personalization + timezone
     const userId = session.user?.email || 'default'
-    const profile: any = await redis.get(`profile:${userId}`).catch(() => null)
+    const [profile, userSettings] = await Promise.all([
+      redis.get(`profile:${userId}`).catch(() => null),
+      redis.get(`userSettings:${userId}`).catch(() => null),
+    ])
+
+    // --- Timezone context ---
+    const settings = userSettings as any
+    const userTimezone = settings?.timezone || 'UTC'
+    const userSession = settings?.primarySession || 'New York'
+
+    const now = new Date()
+    const localTime = new Intl.DateTimeFormat('en-US', {
+      timeZone: userTimezone,
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    }).format(now)
+
+    const localHour = parseInt(
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: userTimezone,
+        hour: 'numeric',
+        hour12: false,
+      }).format(now),
+      10
+    )
+
+    const timeOfDay =
+      localHour < 6
+        ? 'late night'
+        : localHour < 12
+        ? 'morning'
+        : localHour < 17
+        ? 'afternoon'
+        : localHour < 21
+        ? 'evening'
+        : 'night'
+
+    const sessionTimes: Record<string, Record<string, string>> = {
+      'New York': {
+        'America/New_York': '9:30 AM - 4:00 PM',
+        'Asia/Bangkok': '8:30 PM - 3:00 AM',
+        'Europe/London': '2:30 PM - 9:00 PM',
+        UTC: '2:30 PM - 9:00 PM',
+      },
+      London: {
+        'Europe/London': '8:00 AM - 4:30 PM',
+        'Asia/Bangkok': '2:00 PM - 10:30 PM',
+        'America/New_York': '3:00 AM - 11:30 AM',
+        UTC: '8:00 AM - 4:30 PM',
+      },
+    }
+
+    const sessionTime =
+      sessionTimes[userSession]?.[userTimezone] || 'check your local time'
 
     const [
       tradingLogs, habits, habitCompletions, healthLogs,
@@ -82,10 +136,13 @@ export async function POST(req: NextRequest) {
 
     let profileContext = ''
     if (profile) {
-      profileContext = `\n\nTrader profile: Name: ${profile.name || 'unknown'}, Age: ${profile.age || 'unknown'}, Location: ${profile.location || 'unknown'}. Trades: ${(profile.instruments || []).join(', ')}. Experience: ${profile.experience || 'unknown'}. Level: ${profile.currentLevel || 'unknown'}. Biggest challenge: ${profile.biggestChallenge || 'unknown'}. Motivation: ${profile.motivation || 'unknown'}. Loss response: ${profile.lossResponse || 'unknown'}. Discipline: ${profile.disciplineRating || 'unknown'}/5. Use this to make the review deeply personal. Address them by name.`
+      profileContext = `\n\nTrader profile: Name: ${(profile as any).name || 'unknown'}, Age: ${(profile as any).age || 'unknown'}, Location: ${(profile as any).location || 'unknown'}. Trades: ${((profile as any).instruments || []).join(', ')}. Experience: ${(profile as any).experience || 'unknown'}. Level: ${(profile as any).currentLevel || 'unknown'}. Biggest challenge: ${(profile as any).biggestChallenge || 'unknown'}. Motivation: ${(profile as any).motivation || 'unknown'}. Loss response: ${(profile as any).lossResponse || 'unknown'}. Discipline: ${(profile as any).disciplineRating || 'unknown'}/5. Use this to make the review deeply personal. Address them by name.`
     }
 
-    const promptText = 'You are Coach Shai — a direct, motivating life coach writing a personal letter to your client. Analyze this week (' + weekStart + ' to ' + weekEnd + ') and return ONLY valid JSON.' + profileContext + '\n\n'
+    // Timezone context string for system prompt
+    const timezoneContext = `\n\nUser's timezone: ${userTimezone}\nCurrent local time for user: ${localTime} (${timeOfDay})\nPrimary trading session: ${userSession} open (${sessionTime} in user's local time)\nUse this to make time-relevant comments. Never reference wrong times of day. Example: if it's 11pm for the user and they trade NY session, acknowledge the late night grind. Do NOT say "good morning" if it's evening for the user.`
+
+    const promptText = 'You are Coach Shai — a direct, motivating life coach writing a personal letter to your client. Analyze this week (' + weekStart + ' to ' + weekEnd + ') and return ONLY valid JSON.' + profileContext + timezoneContext + '\n\n'
     const promptText2 = 'DATA: ' + JSON.stringify(summaryData) + '\n\n'
     const promptText3 = 'Return EXACTLY this JSON structure. The letter field must be 3-4 sentences of flowing prose (not bullet points) starting with \"This week, Shai...\". Do not use bullet points anywhere.\n'
     const promptText4 = '{"overallScore":<1-10>,"verdict":"<one sentence verdict>","letter":"<3-4 sentences prose starting with This week, Shai...>","trading":{"pnl":<number>,"winRate":"<string>","patterns":"<key pattern>","summary":"<2 sentences prose>"},"habits":{"completionRate":"<percentage>","bestHabit":"<name>","missedHabit":"<name>","streakStatus":"<1-2 sentences>"},"health":{"sleepAvg":"<string>","gymSessions":<number>,"energyTrend":"<1-2 sentences>"},"mindset":{"themes":"<recurring themes>","dominantMood":"<mood>","journalInsight":"<key insight>"},"goals":{"onTrack":[],"atRisk":[],"crushing":[]},"finance":{"incomeLogged":<number>,"expenses":<number>,"net":<number>},"focusNext":"<one specific action for next week — be direct and personal>"}'
