@@ -10,7 +10,7 @@ const SESSIONS = ['London', 'New York', 'Asian', 'Overnight']
 const TIMEZONES = [
   { label: 'UTC', value: 'UTC' },
   { label: 'EST (UTC-5)', value: 'America/New_York' },
-  { label: 'CST (UTC-6)', value: 'America/Chicago' }
+  { label: 'CST (UTC-6)', value: 'America/Chicago' },
   { label: 'MST (UTC-7)', value: 'America/Denver' },
   { label: 'PST (UTC-8)', value: 'America/Los_Angeles' },
   { label: 'GMT (UTC+0)', value: 'Europe/London' },
