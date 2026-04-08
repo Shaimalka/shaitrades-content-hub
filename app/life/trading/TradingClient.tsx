@@ -1,17 +1,8 @@
 'use client'
-// v8 - Professional Trading Journal — Tradezella-style Dashboard
+// v9 - Professional Trading Journal — Tradezella-style Dashboard
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
-import {
-  XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, ReferenceLine,
-  AreaChart, Area,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis
-} from 'recharts'
-import {
-  Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle,
-  Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp,
-  ChevronDown, Building2, ImagePlus
-} from 'lucide-react'
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts'
+import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp, ChevronDown, Building2, ImagePlus } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -28,9 +19,19 @@ type Trade = {
   stopLoss?: number; takeProfit?: number
   tradeImage?: string // base64
 }
+
 type Playbook = { id: string; name: string; description: string; createdAt: string }
 type CoachInsight = { text: string; visible: boolean; fading: boolean }
 
+// Emotion word pills config
+const EMOTION_WORDS = [
+  { label: 'Confident', value: 1, color: '#00c48c', bg: 'rgba(0,196,140,0.15)', border: 'rgba(0,196,140,0.4)' },
+  { label: 'Disciplined', value: 2, color: '#2563eb', bg: 'rgba(37,99,235,0.15)', border: 'rgba(37,99,235,0.4)' },
+  { label: 'Neutral', value: 3, color: 'rgba(255,255,255,0.5)', bg: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.2)' },
+  { label: 'Nervous', value: 4, color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.4)' },
+  { label: 'FOMO', value: 5, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
+  { label: 'Revenge', value: 6, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
+]
 const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const ACCOUNT_TYPES = [
@@ -38,7 +39,6 @@ const ACCOUNT_TYPES = [
   { value: 'propfirm', label: 'Prop Firm (APEX/Topstep/FTMO)' },
   { value: 'paper', label: 'Paper Trading (Manual)' },
 ]
-
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   useEffect(() => {
@@ -79,7 +79,6 @@ const WinRateGauge = ({ rate }: { rate: number }) => {
     </svg>
   )
 }
-
 function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boolean }) {
   const [progress, setProgress] = useState(100)
   const surface = isDark ? '#111118' : '#ffffff'
@@ -163,7 +162,6 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
     </div>
   )
 }
-
 // Performance Radar Chart
 function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const wins = trades.filter(t => t.pnl > 0)
@@ -172,18 +170,18 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
   const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
   const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 1
   const profitFactor = Math.min((avgWin / avgLoss) * 20, 100)
-  // Consistency: lower std dev is better
   const pnls = trades.map(t => t.pnl)
   const mean = pnls.length > 0 ? pnls.reduce((a, b) => a + b, 0) / pnls.length : 0
   const variance = pnls.length > 0 ? pnls.reduce((s, p) => s + Math.pow(p - mean, 2), 0) / pnls.length : 1
   const stdDev = Math.sqrt(variance)
   const consistency = Math.max(0, Math.min(100, 100 - (stdDev / (Math.abs(mean) + 1)) * 10))
-  // Drawdown: fewer losing streaks = better
   let maxDrawdown = 0; let current = 0
-  for (const t of trades) { if (t.pnl < 0) { current += Math.abs(t.pnl); if (current > maxDrawdown) maxDrawdown = current } else current = 0 }
+  for (const t of trades) {
+    if (t.pnl < 0) { current += Math.abs(t.pnl); if (current > maxDrawdown) maxDrawdown = current }
+    else current = 0
+  }
   const drawdownScore = Math.max(0, 100 - (maxDrawdown / (Math.max(...trades.map(t => t.pnl), 1)) * 20))
   const rrRatio = avgLoss > 0 ? Math.min((avgWin / avgLoss) * 25, 100) : 50
-
   const data = [
     { subject: 'Win Rate', value: Math.round(winRate), fullMark: 100 },
     { subject: 'Prof Factor', value: Math.min(Math.round(profitFactor), 100), fullMark: 100 },
@@ -192,18 +190,15 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
     { subject: 'Drawdown', value: Math.round(drawdownScore), fullMark: 100 },
     { subject: 'R:R Ratio', value: Math.round(rrRatio), fullMark: 100 },
   ]
-
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
   const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
-
   if (trades.length === 0) return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>PERFORMANCE SCORE</p>
       <EmptyState icon={BarChart2} heading="NO DATA" subtext="Log trades to see your radar" />
     </div>
   )
-
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>PERFORMANCE SCORE</p>
@@ -225,20 +220,14 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
     </div>
   )
 }
-
 // Trading Heatmap — GitHub-style contribution grid
 function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
   const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
-
-  // Build last 52 weeks of data
   const today = new Date()
   const weeks: { date: string; pnl: number }[][] = []
   let week: { date: string; pnl: number }[] = []
-
-  // Pad to start on Sunday
-  const dayOfWeek = today.getDay()
   for (let d = 364; d >= 0; d--) {
     const date = new Date(today)
     date.setDate(today.getDate() - d)
@@ -248,19 +237,12 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
     if (week.length === 7) { weeks.push(week); week = [] }
   }
   if (week.length > 0) weeks.push(week)
-
   const maxPnl = Math.max(...trades.map(t => t.pnl), 1)
-
   function getCellColor(pnl: number) {
     if (pnl === 0) return isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'
-    if (pnl > 0) {
-      const intensity = Math.min(pnl / maxPnl, 1)
-      return `rgba(0,196,140,${0.15 + intensity * 0.75})`
-    }
-    const intensity = Math.min(Math.abs(pnl) / maxPnl, 1)
-    return `rgba(255,77,106,${0.15 + intensity * 0.75})`
+    if (pnl > 0) { const intensity = Math.min(pnl / maxPnl, 1); return `rgba(0,196,140,${0.15 + intensity * 0.75})` }
+    const intensity = Math.min(Math.abs(pnl) / maxPnl, 1); return `rgba(255,77,106,${0.15 + intensity * 0.75})`
   }
-
   const weekLabels = ['S','M','T','W','T','F','S']
   const monthLabels: { label: string; col: number }[] = []
   let lastMonth = -1
@@ -268,13 +250,11 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
     const m = new Date(wk[0].date).getMonth()
     if (m !== lastMonth) { monthLabels.push({ label: MONTH_NAMES[m].slice(0,3), col: wi }); lastMonth = m }
   })
-
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>TRADING ACTIVITY</p>
       <div style={{ overflowX: 'auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: `20px repeat(${weeks.length}, 1fr)`, gap: 2, minWidth: 400 }}>
-          {/* Day labels */}
           <div />
           {weeks.map((_, wi) => (
             <div key={wi} style={{ position: 'relative' }}>
@@ -285,7 +265,6 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
               )}
             </div>
           ))}
-          {/* Grid */}
           {weekLabels.map((label, di) => (
             <React.Fragment key={di}>
               <div key={`label-${di}`} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: di % 2 === 1 ? textMuted : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{label}</div>
@@ -293,11 +272,8 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
                 const cell = wk[di]
                 if (!cell) return <div key={`empty-${wi}-${di}`} />
                 return (
-                  <div
-                    key={`${wi}-${di}`}
-                    title={`${cell.date}: ${cell.pnl !== 0 ? (cell.pnl > 0 ? '+' : '') + cell.pnl.toFixed(2) : 'No trades'}`}
-                    style={{ width: '100%', paddingBottom: '100%', borderRadius: 2, background: getCellColor(cell.pnl), cursor: cell.pnl !== 0 ? 'pointer' : 'default', transition: 'opacity 0.1s' }}
-                  />
+                  <div key={`${wi}-${di}`} title={`${cell.date}: ${cell.pnl !== 0 ? (cell.pnl > 0 ? '+' : '') + cell.pnl.toFixed(2) : 'No trades'}`}
+                    style={{ width: '100%', paddingBottom: '100%', borderRadius: 2, background: getCellColor(cell.pnl), cursor: cell.pnl !== 0 ? 'pointer' : 'default', transition: 'opacity 0.1s' }} />
                 )
               })}
             </React.Fragment>
@@ -314,7 +290,6 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
     </div>
   )
 }
-
 // Weekly Breakdown Panel
 function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
@@ -322,15 +297,11 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
   const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
   const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
-
-  // Get current month's weeks
   const today = new Date()
   const year = today.getFullYear()
   const month = today.getMonth()
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
-
-  // Split month into 4 weeks
   const weeks: { weekNum: number; startStr: string; endStr: string; pnl: number; trades: number; days: number; wins: number; winRate: number }[] = []
   let weekStart = new Date(firstDay)
   let weekNum = 1
@@ -350,9 +321,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     weekStart.setDate(weekEnd.getDate() + 1)
     weekNum++
   }
-
   const totalMonthPnl = weeks.reduce((s, w) => s + w.pnl, 0)
-
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -390,41 +359,30 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     </div>
   )
 }
-
 // Equity Curve Chart
 function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
   const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
   const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
-
   const sortedTrades = [...trades].sort((a, b) => {
     const dateCompare = a.date.localeCompare(b.date)
     if (dateCompare !== 0) return dateCompare
     return (a.time || '').localeCompare(b.time || '')
   })
-
   let cumulative = 0
   const data = sortedTrades.map((trade, i) => {
     cumulative += trade.pnl
-    return {
-      index: i + 1,
-      label: trade.date,
-      cumPnl: Math.round(cumulative * 100) / 100,
-      pnl: trade.pnl,
-    }
+    return { index: i + 1, label: trade.date, cumPnl: Math.round(cumulative * 100) / 100, pnl: trade.pnl }
   })
-
   if (data.length === 0) return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>EQUITY CURVE</p>
       <EmptyState icon={TrendingUp} heading="NO TRADES YET" subtext="Your equity curve will appear here as you log trades." />
     </div>
   )
-
   const totalPnl = data[data.length - 1]?.cumPnl ?? 0
   const lineColor = totalPnl >= 0 ? '#00c48c' : '#ff4d6a'
-
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -443,11 +401,7 @@ function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
           </defs>
           <XAxis dataKey="label" tick={{ fill: textMuted, fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
           <YAxis tick={{ fill: textMuted, fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}`} />
-          <Tooltip
-            contentStyle={{ background: surface, border: `1px solid ${border}`, borderRadius: 8, fontFamily: 'JetBrains Mono', fontSize: 11, color: textPrimary }}
-            formatter={(v: number) => [`${v.toFixed(2)}`, 'Cumulative P&L']}
-            labelFormatter={(label) => `Date: ${label}`}
-          />
+          <Tooltip contentStyle={{ background: surface, border: `1px solid ${border}`, borderRadius: 8, fontFamily: 'JetBrains Mono', fontSize: 11, color: textPrimary }} formatter={(v: number) => [`${v.toFixed(2)}`, 'Cumulative P&L']} labelFormatter={(label) => `Date: ${label}`} />
           <ReferenceLine y={0} stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} strokeDasharray="4 4" />
           <Area type="monotone" dataKey="cumPnl" stroke={lineColor} strokeWidth={2} fill="url(#equityGradient)" dot={false} activeDot={{ r: 4, fill: lineColor }} />
         </AreaChart>
@@ -455,7 +409,6 @@ function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
     </div>
   )
 }
-
 // Compact Trading Calendar Component
 function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobile: boolean; isDark: boolean }) {
   const today = new Date()
@@ -468,7 +421,6 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
   const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
   const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
-
   const dayMap = useMemo(() => {
     const map: Record<string, { pnl: number; trades: Trade[]; tradeCount: number; wins: number; winRate: number }> = {}
     for (const trade of trades) {
@@ -483,13 +435,11 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
     }
     return map
   }, [trades])
-
   const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
   const monthTrades = trades.filter(t => t.date.startsWith(monthStr))
   const monthPnl = monthTrades.reduce((s, t) => s + t.pnl, 0)
   const monthWins = monthTrades.filter(t => t.pnl > 0)
   const monthWinRate = monthTrades.length > 0 ? ((monthWins.length / monthTrades.length) * 100).toFixed(0) : '0'
-
   const calendarDays = useMemo(() => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay()
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
@@ -499,21 +449,19 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
     while (cells.length % 7 !== 0) cells.push(null)
     return cells
   }, [currentMonth, currentYear])
-
   function prevMonth() {
-    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1) } else setCurrentMonth(m => m - 1)
+    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1) }
+    else setCurrentMonth(m => m - 1)
     setSelectedDay(null)
   }
   function nextMonth() {
-    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1) } else setCurrentMonth(m => m + 1)
+    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1) }
+    else setCurrentMonth(m => m + 1)
     setSelectedDay(null)
   }
-
   const selectedTrades = selectedDay ? (dayMap[selectedDay]?.trades || []) : []
-
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
-      {/* Calendar Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <button onClick={prevMonth} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, background: 'transparent', border: `1px solid ${border}`, color: '#2563eb', cursor: 'pointer' }}>
           <ChevronLeft size={13} />
@@ -536,15 +484,11 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
           <ChevronRight size={13} />
         </button>
       </div>
-
-      {/* Day headers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3, marginBottom: 3 }}>
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
           <div key={d} style={{ textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, padding: '3px 0' }}>{d}</div>
         ))}
       </div>
-
-      {/* Calendar grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
         {calendarDays.map((day, idx) => {
           if (day === null) return <div key={`empty-${idx}`} style={{ minHeight: 50, borderRadius: 5 }} />
@@ -579,8 +523,6 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
           )
         })}
       </div>
-
-      {/* Selected day trades */}
       {selectedDay && selectedTrades.length > 0 && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${border}` }}>
           <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Trades — {selectedDay}</p>
@@ -601,7 +543,6 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
     </div>
   )
 }
-
 function TradingJournalInner() {
   const { isDark } = useTheme()
   const isMobile = useWindowWidth() < 768
@@ -632,8 +573,8 @@ function TradingJournalInner() {
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
     direction: 'Long' as 'Long' | 'Short',
-    entryPrice: '', exitPrice: '', contracts: '',
-    notes: '', emotion: 3, playbookId: '', symbol: '',
+    entryPrice: '', exitPrice: '', contracts: '', notes: '',
+    emotion: 3, playbookId: '', symbol: '',
     stopLoss: '', takeProfit: '',
     accountType: 'live' as 'live' | 'propfirm' | 'paper',
     tradeImage: '',
@@ -650,7 +591,6 @@ function TradingJournalInner() {
       setPlaybooks(d.playbooks || [])
     }).catch(() => setPlaybooks([]))
   }
-
   useEffect(() => { loadTrades(); loadPlaybooks() }, [])
   useEffect(() => {
     return () => {
@@ -659,13 +599,11 @@ function TradingJournalInner() {
     }
   }, [])
 
-  // Get unique account names for selector
   const accountNames = useMemo(() => {
     const names = new Set(trades.map(t => t.accountName).filter(Boolean))
     return Array.from(names) as string[]
   }, [trades])
 
-  // Filter trades by selected account
   const filteredTrades = useMemo(() => {
     if (selectedAccount === 'all') return trades
     return trades.filter(t => t.accountName === selectedAccount)
@@ -679,8 +617,7 @@ function TradingJournalInner() {
       contracts: String(trade.contracts), notes: trade.notes || '',
       emotion: trade.emotion || 3, playbookId: trade.playbookId || '',
       symbol: trade.symbol || '', stopLoss: '', takeProfit: '',
-      accountType: trade.accountType || 'live',
-      tradeImage: trade.tradeImage || '',
+      accountType: trade.accountType || 'live', tradeImage: trade.tradeImage || '',
     })
     setShowForm(true)
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
@@ -695,10 +632,7 @@ function TradingJournalInner() {
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
     setCoachInsight({ text: 'Coach Shai is watching...', visible: true, fading: false })
     try {
-      const res = await fetch('/api/life/trading/coach-insight', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trade })
-      })
+      const res = await fetch('/api/life/trading/coach-insight', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trade }) })
       const data = await res.json()
       const insightText = data.insight || 'Keep grinding. Every trade is data.'
       setCoachInsight({ text: insightText, visible: true, fading: false })
@@ -716,23 +650,16 @@ function TradingJournalInner() {
     const fields = {
       date: form.date, time: form.time, direction: form.direction,
       entryPrice: parseFloat(form.entryPrice), exitPrice: parseFloat(form.exitPrice),
-      contracts: parseFloat(form.contracts), notes: form.notes,
-      emotion: form.emotion, playbookId: form.playbookId || null,
-      symbol: form.symbol || undefined, accountType: form.accountType,
-      tradeImage: form.tradeImage || undefined,
+      contracts: parseFloat(form.contracts), notes: form.notes, emotion: form.emotion,
+      playbookId: form.playbookId || null, symbol: form.symbol || undefined,
+      accountType: form.accountType, tradeImage: form.tradeImage || undefined,
     }
     if (editingId) {
-      const res = await fetch('/api/life/trading', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingId, ...fields })
-      })
+      const res = await fetch('/api/life/trading', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editingId, ...fields }) })
       const data = await res.json()
       if (res.ok) { setTrades(data.logs || []); cancelEdit() }
     } else {
-      const res = await fetch('/api/life/trading', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entry: fields })
-      })
+      const res = await fetch('/api/life/trading', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entry: fields }) })
       const data = await res.json()
       const savedLogs: Trade[] = data.logs || []
       setTrades(savedLogs); setShowForm(false); setForm(emptyForm)
@@ -746,10 +673,7 @@ function TradingJournalInner() {
   async function deleteTrade(id: string) {
     const confirmed = window.confirm('Delete this trade? This cannot be undone.')
     if (!confirmed) return
-    const res = await fetch('/api/life/trading', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'delete', entry: { id } })
-    })
+    const res = await fetch('/api/life/trading', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', entry: { id } }) })
     const data = await res.json()
     setTrades(data.logs || [])
   }
@@ -763,31 +687,38 @@ function TradingJournalInner() {
   const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0
   const profitFactor = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
   const avgRR = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
-
   const sortedDates = Array.from(new Set(filteredTrades.map(t => t.date))).sort().reverse()
   let streak = 0
   for (const d of sortedDates) {
     const dayPnl = filteredTrades.filter(t => t.date === d).reduce((s, t) => s + t.pnl, 0)
     if (dayPnl > 0) streak++; else break
   }
-
-  // Today's stats
   const todayStr = new Date().toISOString().split('T')[0]
   const todayTrades = filteredTrades.filter(t => t.date === todayStr)
   const todayPnl = todayTrades.reduce((s, t) => s + t.pnl, 0)
   const todayWins = todayTrades.filter(t => t.pnl > 0)
   const todayWR = todayTrades.length > 0 ? ((todayWins.length / todayTrades.length) * 100).toFixed(0) : '—'
-
   const winRateNum = parseFloat(winRate)
   const winRateColor = winRateNum > 50 ? '#00c48c' : winRateNum < 50 ? '#ff4d6a' : textPrimary
   const pnlColor = totalPnl > 0 ? '#00c48c' : totalPnl < 0 ? '#ff4d6a' : textPrimary
+
+  // Auto-calculate R:R from form fields
+  const formRR = (() => {
+    const entry = parseFloat(form.entryPrice)
+    const sl = parseFloat(form.stopLoss)
+    const tp = parseFloat(form.takeProfit)
+    if (!entry || !sl || !tp || isNaN(entry) || isNaN(sl) || isNaN(tp)) return null
+    const risk = Math.abs(entry - sl)
+    const reward = Math.abs(tp - entry)
+    if (risk === 0) return null
+    return (reward / risk).toFixed(2)
+  })()
 
   const inputStyle: React.CSSProperties = {
     width: '100%', background: inputBg, border: `1px solid ${border}`,
     borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter, sans-serif',
     fontSize: 13, color: textPrimary, outline: 'none',
   }
-
   return (
     <div style={{ minHeight: '100vh', background: bg }}>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -807,13 +738,8 @@ function TradingJournalInner() {
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, margin: 0 }}>Track, analyze, and improve your trading edge.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {/* Account Selector */}
             <div style={{ position: 'relative' }}>
-              <select
-                value={selectedAccount}
-                onChange={e => setSelectedAccount(e.target.value)}
-                style={{ appearance: 'none', background: surface, border: `1px solid ${border}`, borderRadius: 8, padding: '8px 28px 8px 12px', fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, cursor: 'pointer', outline: 'none' }}
-              >
+              <select value={selectedAccount} onChange={e => setSelectedAccount(e.target.value)} style={{ appearance: 'none', background: surface, border: `1px solid ${border}`, borderRadius: 8, padding: '8px 28px 8px 12px', fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, cursor: 'pointer', outline: 'none' }}>
                 <option value="all">All Accounts</option>
                 {accountNames.map(name => <option key={name} value={name}>{name}</option>)}
                 <option value="live">Live (Tradovate)</option>
@@ -852,25 +778,20 @@ function TradingJournalInner() {
 
         {/* ===== 5 STAT CARDS ===== */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
-          {/* Total Trades */}
           <div style={{ borderTop: '3px solid #2563eb', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
             <StatCard label='TOTAL TRADES' value={filteredTrades.length} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
-          {/* Win Rate — semi-circular gauge */}
           <div style={{ background: isDark ? '#111118' : '#ffffff', border: `1px solid ${border}`, borderTop: `3px solid ${winRateColor}`, borderRadius: 10, padding: '20px 24px', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4, alignSelf: 'flex-start' }}>WIN RATE</div>
             <WinRateGauge rate={winRateNum} />
             <div style={{ color: winRateColor, fontSize: 22, fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', lineHeight: 1 }}>{winRate}%</div>
           </div>
-          {/* Net P&L */}
           <div style={{ borderTop: `3px solid ${pnlColor}`, borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
             <StatCard label='NET P&L' value={'$' + totalPnl.toFixed(2)} style={{ color: pnlColor, borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
-          {/* Profit Factor */}
           <div style={{ borderTop: '3px solid #2563eb', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
             <StatCard label='PROFIT FACTOR' value={profitFactor} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
-          {/* Avg R:R */}
           <div style={{ borderTop: '3px solid #2563eb', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
             <StatCard label='AVG R:R' value={avgRR} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
@@ -896,108 +817,163 @@ function TradingJournalInner() {
 
         {/* ===== CALENDAR ===== */}
         <TradingCalendar trades={filteredTrades} isMobile={isMobile} isDark={isDark} />
-
-        {/* ===== TRADE FORM (always accessible) ===== */}
+        {/* ===== TRADE FORM ===== */}
         {showForm && (
           <div ref={formRef} style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: editingId ? '0 0 0 2px #2563eb' : isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
+
+            {/* Form header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#2563eb', margin: 0, letterSpacing: '0.1em' }}>
-                {editingId ? '// EDIT TRADE' : '// NEW TRADE ENTRY'}
+              <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#2563eb', margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+                {editingId ? 'Edit Trade' : 'New Trade Entry'}
               </h3>
-              {/* Prop Firm Badge */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Building2 size={12} style={{ color: textMuted }} />
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>Manual logging — all account types supported</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted }}>Manual logging — all account types supported</span>
               </div>
             </div>
-            <form onSubmit={submitTrade} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 12 }}>
-              {/* Account Type */}
-              <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>ACCOUNT TYPE</label>
+
+            <form onSubmit={submitTrade}>
+
+              {/* Account Type Pills */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8, fontWeight: 600 }}>ACCOUNT TYPE</label>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {ACCOUNT_TYPES.map(at => (
-                    <button key={at.value} type="button" onClick={() => setForm(f => ({ ...f, accountType: at.value as 'live' | 'propfirm' | 'paper' }))}
-                      style={{ padding: '6px 14px', borderRadius: 6, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, cursor: 'pointer', border: `1px solid ${form.accountType === at.value ? '#2563eb' : border}`, background: form.accountType === at.value ? 'rgba(37,99,235,0.1)' : inputBg, color: form.accountType === at.value ? '#2563eb' : textMuted, transition: 'all 0.15s' }}>
+                    <button key={at.value} type="button"
+                      onClick={() => setForm(f => ({ ...f, accountType: at.value as 'live' | 'propfirm' | 'paper' }))}
+                      style={{
+                        padding: '12px 20px', borderRadius: 8,
+                        fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600,
+                        cursor: 'pointer', transition: 'all 0.15s',
+                        border: `1.5px solid ${form.accountType === at.value ? '#2563eb' : border}`,
+                        background: form.accountType === at.value ? 'rgba(37,99,235,0.12)' : inputBg,
+                        color: form.accountType === at.value ? '#2563eb' : textMuted,
+                        boxShadow: form.accountType === at.value ? '0 0 0 1px rgba(37,99,235,0.2)' : 'none',
+                      }}>
                       {at.label}
                     </button>
                   ))}
                 </div>
               </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>DATE</label>
-                <input type='date' value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>TIME</label>
-                <input type='time' value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>DIRECTION</label>
-                <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: `1px solid ${border}` }}>
-                  {(['Long', 'Short'] as const).map(dir => (
-                    <button key={dir} type='button' onClick={() => setForm(f => ({ ...f, direction: dir }))}
-                      style={{ flex: 1, padding: '8px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none', background: form.direction === dir ? '#2563eb' : inputBg, color: form.direction === dir ? '#ffffff' : textMuted, transition: 'all 0.15s' }}>{dir}</button>
-                  ))}
+
+              {/* Row 1: Date, Time, Direction, Symbol */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>DATE</label>
+                  <input type='date' value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>TIME</label>
+                  <input type='time' value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>DIRECTION</label>
+                  <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: `1px solid ${border}` }}>
+                    {(['Long', 'Short'] as const).map(dir => (
+                      <button key={dir} type='button' onClick={() => setForm(f => ({ ...f, direction: dir }))}
+                        style={{ flex: 1, padding: '8px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none', background: form.direction === dir ? '#2563eb' : inputBg, color: form.direction === dir ? '#ffffff' : textMuted, transition: 'all 0.15s' }}>
+                        {dir}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>SYMBOL</label>
+                  <input type='text' value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} placeholder='NQ, ES, AAPL...' style={inputStyle} />
                 </div>
               </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>SYMBOL</label>
-                <input type='text' value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} placeholder='NQ, ES, AAPL...' style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>CONTRACTS</label>
-                <input type='number' step='0.01' value={form.contracts} onChange={e => setForm(f => ({ ...f, contracts: e.target.value }))} placeholder='1' required style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>ENTRY PRICE</label>
-                <input type='number' step='0.01' value={form.entryPrice} onChange={e => setForm(f => ({ ...f, entryPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>EXIT PRICE</label>
-                <input type='number' step='0.01' value={form.exitPrice} onChange={e => setForm(f => ({ ...f, exitPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}><span>STOP LOSS</span></label><span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>optional</span>
-                <input type='number' step='0.01' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='0.00' style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}><span>TAKE PROFIT</span></label><span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>optional</span>
-                <input type='number' step='0.01' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='0.00' style={inputStyle} />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}><span>NET P&L</span></label><span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>auto-calculated</span>
-                <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', fontFamily: 'JetBrains Mono, monospace' }}>
-                  {form.entryPrice && form.exitPrice && form.contracts ? (() => {
-                    const pnl = form.direction === 'Long'
-                      ? (parseFloat(form.exitPrice) - parseFloat(form.entryPrice)) * parseFloat(form.contracts)
-                      : (parseFloat(form.entryPrice) - parseFloat(form.exitPrice)) * parseFloat(form.contracts)
-                    return <span style={{ color: pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>${pnl.toFixed(2)}</span>
-                  })() : <span style={{ color: textMuted }}>—</span>}
+
+              {/* Row 2: Contracts (narrow), Entry, Exit, Stop Loss, Take Profit */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '120px 1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>CONTRACTS</label>
+                  <input type='number' step='0.01' value={form.contracts} onChange={e => setForm(f => ({ ...f, contracts: e.target.value }))} placeholder='1' required style={{ ...inputStyle, maxWidth: 120 }} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>ENTRY PRICE</label>
+                  <input type='number' step='0.01' value={form.entryPrice} onChange={e => setForm(f => ({ ...f, entryPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>EXIT PRICE</label>
+                  <input type='number' step='0.01' value={form.exitPrice} onChange={e => setForm(f => ({ ...f, exitPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>STOP LOSS</label>
+                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 4 }}>optional</span>
+                  <input type='number' step='0.01' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='0.00' style={inputStyle} />
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>TAKE PROFIT</label>
+                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 4 }}>optional</span>
+                  <input type='number' step='0.01' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='0.00' style={inputStyle} />
                 </div>
               </div>
-              <div>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>EMOTION</label>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {EMOTIONS.map((em, i) => (
-                    <button key={i} type='button' onClick={() => setForm(f => ({ ...f, emotion: i + 1 }))}
-                      style={{ flex: 1, padding: '6px 2px', fontSize: 16, borderRadius: 4, border: `1px solid ${form.emotion === i + 1 ? '#2563eb' : border}`, background: form.emotion === i + 1 ? 'rgba(37,99,235,0.1)' : inputBg, cursor: 'pointer', opacity: form.emotion === i + 1 ? 1 : 0.5 }}>{em}</button>
-                  ))}
+
+              {/* Row 3: NET P&L (auto), R:R (auto), Emotion */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 2, fontWeight: 600 }}>NET P&L</label>
+                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 6 }}>auto-calculated</span>
+                  <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', fontFamily: 'JetBrains Mono, monospace' }}>
+                    {form.entryPrice && form.exitPrice && form.contracts ? (() => {
+                      const pnl = form.direction === 'Long'
+                        ? (parseFloat(form.exitPrice) - parseFloat(form.entryPrice)) * parseFloat(form.contracts)
+                        : (parseFloat(form.entryPrice) - parseFloat(form.exitPrice)) * parseFloat(form.contracts)
+                      return <span style={{ color: pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>${pnl.toFixed(2)}</span>
+                    })() : <span style={{ color: textMuted }}>—</span>}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 2, fontWeight: 600 }}>RISK : REWARD</label>
+                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 6 }}>auto-calculated</span>
+                  <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', fontFamily: 'JetBrains Mono, monospace' }}>
+                    {formRR ? (
+                      <span style={{ color: parseFloat(formRR) >= 1 ? '#00c48c' : '#f59e0b', fontWeight: 700 }}>1:{formRR}</span>
+                    ) : (
+                      <span style={{ color: textMuted }}>—</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>EMOTION</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {EMOTION_WORDS.map(em => {
+                      const isSelected = form.emotion === em.value
+                      return (
+                        <button key={em.value} type='button' onClick={() => setForm(f => ({ ...f, emotion: em.value }))}
+                          style={{
+                            padding: '8px 14px', fontSize: 13, fontFamily: 'Inter, sans-serif',
+                            borderRadius: 6, border: `1px solid ${isSelected ? em.border : border}`,
+                            background: isSelected ? em.bg : 'rgba(255,255,255,0.05)',
+                            color: isSelected ? em.color : textMuted,
+                            cursor: 'pointer', transition: 'all 0.15s', fontWeight: isSelected ? 600 : 400,
+                          }}>
+                          {em.label}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-              <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>TAG PLAYBOOK</label>
-                <select value={form.playbookId} onChange={e => setForm(f => ({ ...f, playbookId: e.target.value }))} disabled={playbooks.length === 0} style={{ ...inputStyle, fontFamily: 'JetBrains Mono, monospace' }}>
+
+              {/* Playbook Tag */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>TAG PLAYBOOK</label>
+                <select value={form.playbookId} onChange={e => setForm(f => ({ ...f, playbookId: e.target.value }))} disabled={playbooks.length === 0} style={{ ...inputStyle, fontFamily: 'Inter, sans-serif' }}>
                   {playbooks.length === 0 ? <option value=''>No playbooks yet</option> : <><option value=''>None</option>{playbooks.map(pb => <option key={pb.id} value={pb.id}>{pb.name}</option>)}</>}
                 </select>
               </div>
-              <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>NOTES</label>
+
+              {/* Notes */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>NOTES</label>
                 <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder='What happened? Mistakes? Lessons? Setup?' style={{ ...inputStyle, height: 80, resize: 'none' }} />
               </div>
-              {/* Trade Screenshot Upload */}
-              <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4' }}>
-                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 2 }}>TRADE SCREENSHOT</label>
-                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, fontWeight: 400, marginBottom: 8 }}>optional</span>
+
+              {/* Chart Screenshot Upload */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted, display: 'block', marginBottom: 4, fontWeight: 500 }}>Chart Screenshot</label>
+                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, opacity: 0.7, marginBottom: 8 }}>optional · PNG, JPG up to 5MB</span>
                 {form.tradeImage ? (
                   <div style={{ position: 'relative', display: 'inline-block' }}>
                     <img src={form.tradeImage} alt='Trade screenshot' style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: `1px solid ${border}` }} />
@@ -1006,9 +982,9 @@ function TradingJournalInner() {
                     </button>
                   </div>
                 ) : (
-                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 20, borderRadius: 8, border: '1.5px dashed rgba(37,99,235,0.3)', background: 'rgba(37,99,235,0.05)', cursor: 'pointer', minHeight: 80 }}>
-                    <ImagePlus size={24} style={{ color: 'rgba(37,99,235,0.5)' }} />
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted }}>Upload trade screenshot</span>
+                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 20, borderRadius: 8, border: '1.5px dashed rgba(37,99,235,0.5)', background: 'rgba(37,99,235,0.08)', cursor: 'pointer', minHeight: 80 }}>
+                    <ImagePlus size={24} style={{ color: 'rgba(37,99,235,0.6)' }} />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted }}>Chart Screenshot</span>
                     <input type='file' accept='image/jpeg,image/png,image/webp' style={{ display: 'none' }} onChange={e => {
                       const file = e.target.files?.[0]
                       if (!file) return
@@ -1020,14 +996,22 @@ function TradingJournalInner() {
                   </label>
                 )}
               </div>
-              <div style={{ gridColumn: isMobile ? 'span 2' : 'span 4', display: 'flex', gap: 8 }}>
-                <Button type='submit'>{editingId ? 'UPDATE TRADE' : 'ADD TRADE'}</Button>
-                <Button type='button' variant='ghost' onClick={cancelEdit}>Cancel</Button>
+
+              {/* Action buttons — ADD TRADE full width */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button type='submit' style={{ width: '100%', height: 48, background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#1d4ed8')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#2563eb')}>
+                  {editingId ? 'UPDATE TRADE' : 'ADD TRADE'}
+                </button>
+                <button type='button' onClick={cancelEdit} style={{ width: '100%', height: 36, background: 'transparent', border: `1px solid ${border}`, borderRadius: 8, color: textMuted, fontFamily: 'Inter, sans-serif', fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' }}>
+                  Cancel
+                </button>
               </div>
+
             </form>
           </div>
         )}
-
         {/* ===== COACH SHAI ===== */}
         <CoachShaiCard insight={coachInsight} isDark={isDark} />
 
@@ -1049,7 +1033,7 @@ function TradingJournalInner() {
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${border}` }}>
-                    {['DATE','TIME','DIR','SYMBOL','ENTRY','EXIT','QTY','P&L','R:R','😊','NOTES','IMG',''].map(h => (
+                    {['DATE','TIME','DIR','SYMBOL','ENTRY','EXIT','QTY','P&L','R:R','EMOTION','NOTES','IMG',''].map(h => (
                       <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500 }}>{h}</th>
                     ))}
                   </tr>
@@ -1059,6 +1043,7 @@ function TradingJournalInner() {
                     const tradePnl = trade.pnl
                     const tradeAvgLoss = avgLoss
                     const rr = tradeAvgLoss > 0 ? (tradePnl / tradeAvgLoss).toFixed(1) : '—'
+                    const emotionWord = EMOTION_WORDS.find(e => e.value === trade.emotion)
                     return (
                       <tr key={trade.id} className='trade-row' style={{ borderBottom: `1px solid ${border}`, height: 40 }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'}
@@ -1074,17 +1059,12 @@ function TradingJournalInner() {
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.contracts}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>${trade.pnl.toFixed(2)}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textMuted }}>{rr}</td>
-                        <td style={{ padding: '6px 14px', fontSize: 14 }}>{EMOTIONS[(trade.emotion || 3) - 1]}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'Inter, sans-serif', fontSize: 11, color: emotionWord ? emotionWord.color : textMuted }}>{emotionWord ? emotionWord.label : EMOTIONS[(trade.emotion || 3) - 1]}</td>
                         <td style={{ padding: '6px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textMuted }}>{trade.notes}</td>
                         <td style={{ padding: '6px 14px' }}>
                           {trade.tradeImage && (
-                            <img
-                              src={trade.tradeImage}
-                              alt='Trade screenshot'
-                              title='Click to open full image'
-                              style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, cursor: 'pointer', border: '1px solid rgba(37,99,235,0.3)' }}
-                              onClick={e => { e.stopPropagation(); const w = window.open(); if (w) { w.document.write('<img src="' + trade.tradeImage + '" style="max-width:100%;max-height:100vh;" />') } }}
-                            />
+                            <img src={trade.tradeImage} alt='Trade screenshot' title='Click to open full image' style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, cursor: 'pointer', border: '1px solid rgba(37,99,235,0.3)' }}
+                              onClick={e => { e.stopPropagation(); const w = window.open(); if (w) { w.document.write('<img src="' + trade.tradeImage + '" style="max-width:100%;max-height:100vh;" />') } }} />
                           )}
                         </td>
                         <td style={{ padding: '6px 14px' }}>
@@ -1101,15 +1081,8 @@ function TradingJournalInner() {
             </div>
           )}
         </div>
-
       </div>
-      <LifeHubChat
-        section='trading'
-        apiRoute='/api/life/trading/chat'
-        contextData={{ trades: filteredTrades, stats: { totalPnl, winRate, totalTrades: filteredTrades.length } }}
-        systemPrompt='You are a trading AI analyst. Analyze the user trade log and provide insights.'
-        defaultOpen={chatOpen}
-      />
+      <LifeHubChat section='trading' apiRoute='/api/life/trading/chat' contextData={{ trades: filteredTrades, stats: { totalPnl, winRate, totalTrades: filteredTrades.length } }} systemPrompt='You are a trading AI analyst. Analyze the user trade log and provide insights.' defaultOpen={chatOpen} />
     </div>
   )
 }
