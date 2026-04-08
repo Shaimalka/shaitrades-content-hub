@@ -398,8 +398,8 @@ export default function LifeHubPage() {
                                     }}
                                   >
                                   LOADING...
-                        </div>div>
-                </div>div>
+                        </div>
+                </div>
               )
   }
   
@@ -439,7 +439,7 @@ export default function LifeHubPage() {
                                                             }}
                                                           >
                                                           // LIFE HUB
-                                              </div>div>
+                                              </div>
                                               <h1
                                                             style={{
                                                                             fontFamily: 'Inter, sans-serif',
@@ -451,7 +451,7 @@ export default function LifeHubPage() {
                                                             }}
                                                           >
                                                           Personal Command Center
-                                              </h1>h1>
+                                              </h1>
                                               <p
                                                             style={{
                                                                             fontFamily: 'Inter, sans-serif',
@@ -461,8 +461,8 @@ export default function LifeHubPage() {
                                                             }}
                                                           >
                                                           Track everything. Miss nothing. Evolve daily.
-                                              </p>p>
-                                    </div>div>
+                                              </p>
+                                    </div>
                             
                               {/* "New brief available" pill — shown when user dismissed yesterday and it's a new day */}
                               {newBriefAvailable && !briefVisible && (
@@ -487,7 +487,7 @@ export default function LifeHubPage() {
                                               >
                                               <RefreshCw size={12} />
                                               New brief from Coach Shai
-                                  </button>button>
+                                  </button>
                                     )}
                             
                               {/* Coach Shai Daily Brief */}
@@ -528,13 +528,13 @@ export default function LifeHubPage() {
                                                                                             }}
                                                                                         >
                                                                                         COACH SHAI · DAILY BRIEF
-                                                                        </span>span>
+                                                                        </span>
                                                             {brief && (
                                                                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: textMuted }}>
                                                                               {formatGeneratedAt(brief.generatedAt)}
-                                                                            </span>span>
+                                                                            </span>
                                                                         )}
-                                                          </div>div>
+                                                          </div>
                                               
                                                 {/* Right side: Refresh + Dismiss */}
                                                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -546,7 +546,7 @@ export default function LifeHubPage() {
                                                                                         >
                                                                                         <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
                                                                                         Refresh
-                                                                        </Button>Button>
+                                                                        </Button>
                                                           
                                                             {/* Dismiss X button */}
                                                                         <button
@@ -576,9 +576,9 @@ export default function LifeHubPage() {
                                                                                             }}
                                                                                         >
                                                                                         <X size={14} />
-                                                                        </button>button>
-                                                          </div>div>
-                                              </div>div>
+                                                                        </button>
+                                                          </div>
+                                              </div>
                                     
                                       {briefLoading ? (
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -593,8 +593,8 @@ export default function LifeHubPage() {
                                                                                           />
                                                                           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: textSecondary }}>
                                                                                           Coach Shai is reading your data...
-                                                                          </span>span>
-                                                            </div>div>
+                                                                          </span>
+                                                            </div>
                                                           ) : briefNoData ? (
                                                             <p
                                                                             style={{
@@ -606,11 +606,11 @@ export default function LifeHubPage() {
                                                                             }}
                                                                           >
                                                                           Start logging your data and Coach Shai will brief you every morning.
-                                                            </p>p>
+                                                            </p>
                                                           ) : briefError ? (
                                                             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
                                                                           Failed to load brief. Click Refresh to try again.
-                                                            </p>p>
+                                                            </p>
                                                           ) : brief ? (
                                                             <p
                                                                             style={{
@@ -622,9 +622,9 @@ export default function LifeHubPage() {
                                                                             }}
                                                                           >
                                                               {brief.text}
-                                                            </p>p>
+                                                            </p>
                                                           ) : null}
-                                    </div>div>
+                                    </div>
                             
                               {/* Live Metrics Row */}
                                     <div
@@ -639,7 +639,7 @@ export default function LifeHubPage() {
                                               <StatCard label="HABIT STREAK" value={metrics.habitStreak} />
                                               <StatCard label="WEEK SCORE" value={metrics.weekScore} />
                                               <StatCard label="INCOME THIS MONTH" value={metrics.incomeMonth} />
-                                    </div>div>
+                                    </div>
                             
                               {/* Section Header */}
                                     <div
@@ -653,7 +653,7 @@ export default function LifeHubPage() {
                                                 }}
                                               >
                                               MODULES
-                                    </div>div>
+                                    </div>
                             
                               {/* Modules Grid */}
                                     <div
@@ -701,7 +701,7 @@ export default function LifeHubPage() {
                                                                                                                                                                                                                                                                       }}
                                                                                                                                                                                                                                             >
                                                                                                                                                                                                                                             <Icon size={20} color="#2563eb" />
-                                                                                                                                                                                                                                          </div>div>
+                                                                                                                                                                                                                                          </div>
                                                                                                                                                                                                                       <div>
                                                                                                                                                                                                                                             <div
                                                                                                                                                                                                                                                                       style={{
@@ -713,14 +713,14 @@ export default function LifeHubPage() {
                                                                                                                                                                                                                                                                                                 }}
                                                                                                                                                                                                                                                                     >
                                                                                                                                                                                                                                                                     {section.name}
-                                                                                                                                                                                                                                                                  </div>div>
+                                                                                                                                                                                                                                                                  </div>
                                                                                                                                                                                                                                             <div
                                                                                                                                                                                                                                                                       style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: textSecondary }}
                                                                                                                                                                                                                                                                     >
                                                                                                                                                                                                                                                                     {section.descriptor}
-                                                                                                                                                                                                                                                                  </div>div>
-                                                                                                                                                                                                                                          </div>div>
-                                                                                                                                                                                                                    </div>div>
+                                                                                                                                                                                                                                                                  </div>
+                                                                                                                                                                                                                                          </div>
+                                                                                                                                                                                                                    </div>
                                                                                                                                                                                                   <span
                                                                                                                                                                                                                         style={{
                                                                                                                                                                                                                                                 fontFamily: 'JetBrains Mono, monospace',
@@ -735,12 +735,12 @@ export default function LifeHubPage() {
                                                                                                                                                                                                                                               }}
                                                                                                                                                                                                                       >
                                                                                                                                                                                                                       {badgeLabel}
-                                                                                                                                                                                                                    </span>span>
-                                                                                                                                                                                  </div>div>
+                                                                                                                                                                                                                    </span>
+                                                                                                                                                                                  </div>
                                                                                                                                                                 
                                                                                                                                                                                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: textMuted, margin: 0, flex: 1 }}>
                                                                                                                                                                                   {statusText}
-                                                                                                                                                                                  </p>p>
+                                                                                                                                                                                  </p>
                                                                                                                                                                 
                                                                                                                                                                                 <div style={{ height: '1px', background: border }} />
                                                                                                                                                                 
@@ -765,7 +765,7 @@ export default function LifeHubPage() {
                                                                                                                                                                                                                                               }}
                                                                                                                                                                                                                       >
                                                                                                                                                                                                                       OPEN
-                                                                                                                                                                                                                    </Link>Link>
+                                                                                                                                                                                                                    </Link>
                                                                                                                                                                                                   <Link
                                                                                                                                                                                                                         href={section.href + '?chat=1'}
                                                                                                                                                                                                                         title="Open AI Chat"
@@ -787,12 +787,12 @@ export default function LifeHubPage() {
                                                                                                                                                                                                                                               }}
                                                                                                                                                                                                                       >
                                                                                                                                                                                                                       AI
-                                                                                                                                                                                                                    </Link>Link>
-                                                                                                                                                                                  </div>div>
-                                                                                                                                                                  </div>div>
+                                                                                                                                                                                                                    </Link>
+                                                                                                                                                                                  </div>
+                                                                                                                                                                  </div>
                                                                                                                                                               )
                                       })}
-                                    </div>div>
+                                    </div>
                             
                               {/* Footer */}
                                     <p
@@ -806,8 +806,8 @@ export default function LifeHubPage() {
                                                 }}
                                               >
                                       {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
-                                    </p>p>
-                            </div>div>
+                                    </p>
+                            </div>
                       
                             <style>{`
                                     @keyframes spin {
@@ -818,7 +818,7 @@ export default function LifeHubPage() {
                                                                                   0%, 100% { opacity: 1; }
                                                                                             50% { opacity: 0.3; }
                                                                                                     }
-                                                                                                          `}</style>style>
-                      </div>div>
+                                                                                                          `}</style>
+                      </div>
                     )
 }</div>
