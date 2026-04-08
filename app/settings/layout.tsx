@@ -36,6 +36,7 @@ function SettingsLayoutInner({ children }: { children: React.ReactNode }) {
               </div>
         </div>
       )
+}
 
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
