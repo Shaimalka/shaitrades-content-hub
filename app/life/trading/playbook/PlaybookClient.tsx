@@ -18,7 +18,7 @@ type Trade = {
     date: string
     pnl: number
     playbookId?: string | null
-    [key: string]: unknown
+    [key: string]: unknow
 }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
@@ -29,9 +29,9 @@ function EmptyState({ icon: Icon, heading, subtext, textMuted }: { icon: React.E
     return (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
                   <Icon size={48} style={{ color: textMuted, marginBottom: 16 }} />
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', color: textMuted, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>p>
-                  <p style={{ color: textMuted, fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>p>
-          </div>div>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', color: textMuted, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
+                  <p style={{ color: textMuted, fontSize: 13, maxWidth: 280, textAlign: 'center' }}>{subtext}</p>
+          </div>
         )
 }
 
@@ -109,21 +109,21 @@ function PlaybookRules({
         <div style={{ marginTop: 20, borderTop: `1px solid ${border}`, paddingTop: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                           <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
-                                      RULES {saving && <span style={{ color: '#2563eb' }}>· saving…</span>span>}
-                          </p>p>
+                                      RULES {saving && <span style={{ color: '#2563eb' }}>· saving…</span>}
+                          </p>
                           <button
                                       onClick={() => setShowInput(true)}
                                       style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: `1px solid ${border}`, borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: textSecondary }}
                                       title='Add rule'
                                     >
                                     <Plus size={11} /> Add Rule
-                          </button>button>
-                </div>div>
+                          </button>
+                </div>
         
           {rules.length === 0 && !showInput && (
                   <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: textMuted, margin: '0 0 8px' }}>
                             No rules yet — add rules to enforce this setup.
-                  </p>p>
+                  </p>
               )}
         
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -134,18 +134,18 @@ function PlaybookRules({
                                   onMouseLeave={() => setHoveredIdx(null)}
                                   style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: ruleBg, borderRadius: 6, padding: '7px 10px', position: 'relative' }}
                                 >
-                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, minWidth: 16, paddingTop: 1 }}>{idx + 1}.</span>span>
-                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, flex: 1, lineHeight: 1.4 }}>{rule}</span>span>
+                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, minWidth: 16, paddingTop: 1 }}>{idx + 1}.</span>
+                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, flex: 1, lineHeight: 1.4 }}>{rule}</span>
                                 <button
                                                 onClick={() => deleteRule(idx)}
                                                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, opacity: hoveredIdx === idx ? 0.8 : 0, transition: 'opacity 0.15s', flexShrink: 0 }}
                                                 title='Delete rule'
                                               >
                                               <X size={12} style={{ color: '#ff4d6a' }} />
-                                </button>button>
-                    </li>li>
+                                </button>
+                    </li>
                   ))}
-              </ol>ol>
+              </ol>
         
           {showInput && (
                   <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
@@ -159,9 +159,9 @@ function PlaybookRules({
                                           placeholder='e.g. Wait for 9:30 open'
                                           style={{ flex: 1, background: inputBg, border: `1px solid ${border}`, borderRadius: 6, padding: '6px 10px', fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, outline: 'none', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }}
                                         />
-                  </div>div>
+                  </div>
               )}
-        </div>div>
+        </div>
       )
 }
 
@@ -262,18 +262,18 @@ export default function PlaybookPage() {
                                       </Link>Link>
                                       <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 24 : 28, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em', margin: '0 0 8px' }}>
                                                   Trading Playbook
-                                      </h1>h1>
+                                      </h1>
                                       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textSecondary, margin: 0 }}>
                                                   Define your setups. Know what works.
-                                      </p>p>
-                            </div>div>
+                                      </p>
+                            </div>
                     
                       {/* Playbook Cards */}
                             <section style={{ marginBottom: 48 }}>
                               {loadingPb || loadingTrades ? (
                             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 20 }}>
                                           <Skeleton height='140px' /><Skeleton height='140px' />
-                            </div>div>
+                            </div>
                           ) : playbooks.length === 0 ? (
                             <EmptyState icon={BookOpen} heading='NO PLAYBOOKS YET' subtext='Create your first playbook below to start tracking your setups.' textMuted={textMuted} />
                           ) : (
@@ -299,121 +299,121 @@ export default function PlaybookPage() {
                                                                                                                                                                                                                                                                                 onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.opacity = '0.3'}
                                                                                                                                                                                                                                                                               >
                                                                                                                                                                                                                                                                               <Trash2 size={14} style={{ color: '#ff4d6a' }} />
-                                                                                                                                                                                                                                                                            </button>button>
+                                                                                                                                                                                                                                                                            </button>
                                                                                                                                                                                                                                     
                                                                                                                                                                                                                                                         <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 600, color: textPrimary, margin: '0 0 6px', paddingRight: 28 }}>
                                                                                                                                                                                                                                                                               {pb.name}
-                                                                                                                                                                                                                                                                            </h2>h2>
+                                                                                                                                                                                                                                                                            </h2>
                                                                                                                                                                                                                                                         {pb.description && (
                                                                                                                                                                                                                                                             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, marginBottom: 16, lineHeight: 1.5 }}>
                                                                                                                                                                                                                                                                                     {pb.description}
-                                                                                                                                                                                                                                                                                  </p>p>
+                                                                                                                                                                                                                                                                                  </p>
                                                                                                                                                                                                                                                         )}
                                                                                                                                                                                                                                     
                                                                                                                                                                                                                                                         {totalTrades === 0 ? (
                                                                                                                                                                                                                                                             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted, marginTop: pb.description ? 0 : 12 }}>
                                                                                                                                                                                                                                                                                     No trades tagged yet
-                                                                                                                                                                                                                                                                                  </p>p>
+                                                                                                                                                                                                                                                                                  </p>
                                                                                                                                                                                                                                                           ) : !hasEnoughData ? (
                                                                                                                                                                                                                                                             <div style={{ marginTop: pb.description ? 0 : 12 }}>
                                                                                                                                                                                                                                                                                     <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary, marginBottom: 12 }}>
                                                                                                                                                                                                                                                                                                               {totalTrades} {totalTrades === 1 ? 'trade' : 'trades'}
-                                                                                                                                                                                                                                                                                                            </p>p>
+                                                                                                                                                                                                                                                                                                            </p>
                                                                                                                                                                                                                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                                                                                                                                                                                                                                                                                                               <AlertTriangle size={15} style={{ color: '#f59e0b', flexShrink: 0 }} />
                                                                                                                                                                                                                                                                                                               <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
                                                                                                                                                                                                                                                                                                                                           Insufficient Data
-                                                                                                                                                                                                                                                                                                                                        </p>p>
-                                                                                                                                                                                                                                                                                                            </div>div>
+                                                                                                                                                                                                                                                                                                                                        </p>
+                                                                                                                                                                                                                                                                                                            </div>
                                                                                                                                                                                                                                                                                     <p style={{ fontFamily: 'Inter, sans-serif', color: textSecondary, fontSize: 12, maxWidth: 260, lineHeight: 1.5, margin: 0 }}>
                                                                                                                                                                                                                                                                                                               Tag at least 10 trades to this playbook to see reliable stats.
-                                                                                                                                                                                                                                                                                                            </p>p>
-                                                                                                                                                                                                                                                                                  </div>div>
+                                                                                                                                                                                                                                                                                                            </p>
+                                                                                                                                                                                                                                                                                  </div>
                                                                                                                                                                                                                                                           ) : (
                                                                                                                                                                                                                                                             <div style={{ marginTop: pb.description ? 0 : 12 }}>
                                                                                                                                                                                                                                                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                                                                                                                                                                                                                                                                                                               <div>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>TOTAL TRADES</p>p>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: textPrimary, margin: 0 }}>{totalTrades}</p>p>
-                                                                                                                                                                                                                                                                                                                                        </div>div>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>TOTAL TRADES</p>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: textPrimary, margin: 0 }}>{totalTrades}</p>
+                                                                                                                                                                                                                                                                                                                                        </div>
                                                                                                                                                                                                                                                                                                               <div>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>WIN RATE</p>p>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: winRateColor, margin: 0 }}>{winRate.toFixed(1)}%</p>p>
-                                                                                                                                                                                                                                                                                                                                        </div>div>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>WIN RATE</p>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: winRateColor, margin: 0 }}>{winRate.toFixed(1)}%</p>
+                                                                                                                                                                                                                                                                                                                                        </div>
                                                                                                                                                                                                                                                                                                               <div>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>AVG P&L</p>p>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: avgPnl >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{avgPnl >= 0 ? '+' : ''}${avgPnl.toFixed(2)}</p>p>
-                                                                                                                                                                                                                                                                                                                                        </div>div>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>AVG P&L</p>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: avgPnl >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{avgPnl >= 0 ? '+' : ''}${avgPnl.toFixed(2)}</p>
+                                                                                                                                                                                                                                                                                                                                        </div>
                                                                                                                                                                                                                                                                                                               <div>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>TOTAL P&L</p>p>
-                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: (s?.totalPnl ?? 0) >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{(s?.totalPnl ?? 0) >= 0 ? '+' : ''}${(s?.totalPnl ?? 0).toFixed(2)}</p>p>
-                                                                                                                                                                                                                                                                                                                                        </div>div>
-                                                                                                                                                                                                                                                                                                            </div>div>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>TOTAL P&L</p>
+                                                                                                                                                                                                                                                                                                                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: (s?.totalPnl ?? 0) >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{(s?.totalPnl ?? 0) >= 0 ? '+' : ''}${(s?.totalPnl ?? 0).toFixed(2)}</p>
+                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                            </div>
                                                                                                                                                                                                                                                                                     {(bestPnl !== null || worstPnl !== null) && (
                                                                                                                                                                                                                                                                                         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
                                                                                                                                                                                                                                                                                                                     {bestPnl !== null && (
                                                                                                                                                                                                                                                                                                                         <div style={{ flex: 1, padding: '8px 12px', borderRadius: 6, background: 'rgba(0,196,140,0.06)', border: '1px solid rgba(0,196,140,0.2)' }}>
-                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', marginBottom: 4 }}>BEST TRADE</p>p>
-                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#00c48c', margin: 0 }}>+${bestPnl.toFixed(2)}</p>p>
-                                                                                                                                                                                                                                                                                                                                                      </div>div>
+                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', marginBottom: 4 }}>BEST TRADE</p>
+                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#00c48c', margin: 0 }}>+${bestPnl.toFixed(2)}</p>
+                                                                                                                                                                                                                                                                                                                                                      </div>
                                                                                                                                                                                                                                                                                                                     )}
                                                                                                                                                                                                                                                                                                                     {worstPnl !== null && (
                                                                                                                                                                                                                                                                                                                         <div style={{ flex: 1, padding: '8px 12px', borderRadius: 6, background: 'rgba(255,77,106,0.06)', border: '1px solid rgba(255,77,106,0.2)' }}>
-                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', marginBottom: 4 }}>WORST TRADE</p>p>
-                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#ff4d6a', margin: 0 }}>${worstPnl.toFixed(2)}</p>p>
-                                                                                                                                                                                                                                                                                                                                                      </div>div>
+                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.1em', marginBottom: 4 }}>WORST TRADE</p>
+                                                                                                                                                                                                                                                                                                                                                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: '#ff4d6a', margin: 0 }}>${worstPnl.toFixed(2)}</p>
+                                                                                                                                                                                                                                                                                                                                                      </div>
                                                                                                                                                                                                                                                                                                                     )}
-                                                                                                                                                                                                                                                                                                                  </div>div>
+                                                                                                                                                                                                                                                                                                                  </div>
                                                                                                                                                                                                                                                                                     )}
                                                                                                                                                                                                                                                                                     <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,77,106,0.2)', overflow: 'hidden' }}>
                                                                                                                                                                                                                                                                                                               <div style={{ height: '100%', width: `${winRate}%`, background: '#00c48c', borderRadius: 3, transition: 'width 0.4s ease' }} />
-                                                                                                                                                                                                                                                                                                            </div>div>
+                                                                                                                                                                                                                                                                                                            </div>
                                                                                                                                                                                                                                                                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                                                                                                                                                                                                                                                                                                              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#00c48c' }}>{wins}W</span>span>
-                                                                                                                                                                                                                                                                                                              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#ff4d6a' }}>{totalTrades - wins}L</span>span>
-                                                                                                                                                                                                                                                                                                            </div>div>
-                                                                                                                                                                                                                                                                                  </div>div>
+                                                                                                                                                                                                                                                                                                              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#00c48c' }}>{wins}W</span>
+                                                                                                                                                                                                                                                                                                              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#ff4d6a' }}>{totalTrades - wins}L</span>
+                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                  </div>
                                                                                                                                                                                                                                                         )}
                                                                                                                                                                                                                                     
                                                                                                                                                                                                                                                         {/* ── Rules Section ── */}
                                                                                                                                                                                                                                                         <PlaybookRules pb={pb} isDark={isDark} onRulesChange={handleRulesChange} />
-                                                                                                                                                                                                                                                      </div>div>
+                                                                                                                                                                                                                                                      </div>
                                                                                                                                                                                                                                   )
                               })}
-                            </div>div>
+                            </div>
                                       )}
-                            </section>section>
+                            </section>
                     
                       {/* Create New Playbook */}
                             <section>
                                       <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 18, fontWeight: 600, color: textPrimary, margin: '0 0 20px', letterSpacing: '-0.01em' }}>
                                                   Create New Playbook
-                                      </h2>h2>
+                                      </h2>
                                       <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24 }}>
                                                   <form onSubmit={handleAddPlaybook} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 12, alignItems: 'flex-end' }}>
                                                                 <div style={{ flex: 1 }}>
-                                                                                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>NAME</label>label>
+                                                                                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>NAME</label>
                                                                                 <input type='text' value={newName} onChange={e => setNewName(e.target.value)} placeholder='e.g. NQ Opening Drive' required style={inputStyle}
                                                                                                     onFocus={e => { (e.target as HTMLInputElement).style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }}
                                                                                                     onBlur={e => { (e.target as HTMLInputElement).style.boxShadow = 'none' }} />
-                                                                </div>div>
+                                                                </div>
                                                                 <div style={{ flex: 1 }}>
-                                                                                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>DESCRIPTION (OPTIONAL)</label>label>
+                                                                                <label style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>DESCRIPTION (OPTIONAL)</label>
                                                                                 <input type='text' value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder='Short description of this setup' style={inputStyle}
                                                                                                     onFocus={e => { (e.target as HTMLInputElement).style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }}
                                                                                                     onBlur={e => { (e.target as HTMLInputElement).style.boxShadow = 'none' }} />
-                                                                </div>div>
+                                                                </div>
                                                                 <div>
                                                                                 <Button type='submit' disabled={saving || !newName.trim()}>
                                                                                   {saving ? 'Saving...' : '+ Add Playbook'}
                                                                                 </Button>Button>
-                                                                </div>div>
-                                                  </form>form>
-                                        {error && (<p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#ff4d6a', marginTop: 8 }}>{error}</p>p>)}
-                                      </div>div>
-                            </section>section>
+                                                                </div>
+                                                  </form>
+                                        {error && (<p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#ff4d6a', marginTop: 8 }}>{error}</p>)}
+                                      </div>
+                            </section>
                     
-                    </div>div>
-              </div>div>
+                    </div>
+              </div>
             )
 }</button>
