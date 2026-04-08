@@ -60,7 +60,7 @@ function fmt(n: number) {
 }
 
 export default function SettingsPage() {
-    const { isDark, toggleTheme } = useTheme()
+    const { isDark, toggle } = useTheme()
     const { data: session } = useSession()
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
@@ -240,7 +240,7 @@ export default function SettingsPage() {
                                 <h1 style={{ fontSize: 22, fontWeight: 700, color: text, margin: 0 }}>Settings</h1>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <button onClick={toggleTheme} style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted, padding: 6 }}>
+                                <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted, padding: 6 }}>
                                   {isDark ? <Sun size={18} /> : <Moon size={18} />}
                                 </button>
                         {session?.user?.email && (
