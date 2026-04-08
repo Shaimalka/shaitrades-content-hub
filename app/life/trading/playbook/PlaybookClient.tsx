@@ -18,7 +18,7 @@ type Trade = {
     date: string
     pnl: number
     playbookId?: string | null
-    [key: string]: unknow
+    [key: string]: unknown
 }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
