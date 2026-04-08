@@ -600,6 +600,7 @@ function TradingJournalInner() {
   const [coachInsight, setCoachInsight] = useState<CoachInsight>({ text: '', visible: false, fading: false })
   const insightTimerRef = useRef<NodeJS.Timeout | null>(null)
   const fadeTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const formRef = useRef<HTMLDivElement>(null)
   const lastInsightTime = useRef<number>(0)
   const COOLDOWN_MS = 5 * 60 * 1000
 
@@ -664,7 +665,7 @@ function TradingJournalInner() {
       accountType: trade.accountType || 'live',
     })
     setShowForm(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
   function cancelEdit() { setEditingId(null); setForm(emptyForm); setShowForm(false) }
 
@@ -811,7 +812,7 @@ function TradingJournalInner() {
             <Link href='/life/trading/settings' style={{ padding: '7px 12px', borderRadius: 8, background: 'transparent', border: `1px solid ${border}`, color: textMuted, fontFamily: 'Inter, sans-serif', fontSize: 13, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
               <Settings size={12} /> Settings
             </Link>
-            <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true) }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Plus size={14} /> Log Trade
             </Button>
           </div>
@@ -879,7 +880,7 @@ function TradingJournalInner() {
 
         {/* ===== TRADE FORM (always accessible) ===== */}
         {showForm && (
-          <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: editingId ? '0 0 0 2px #2563eb' : isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
+          <div ref={formRef} style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: editingId ? '0 0 0 2px #2563eb' : isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#2563eb', margin: 0, letterSpacing: '0.1em' }}>
                 {editingId ? '// EDIT TRADE' : '// NEW TRADE ENTRY'}
