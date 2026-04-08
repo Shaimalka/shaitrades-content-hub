@@ -17,9 +17,10 @@ export default function StatCard({ label, value, trend, icon, style }: StatCardP
   return React.createElement('div', {
     style: {
       background: isDark ? '#111118' : '#ffffff',
-      border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+      border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.12)'}`,
       borderRadius: '10px',
       padding: '20px 24px',
+      boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06), 0 1px 8px rgba(0,0,0,0.04)',
       ...style,
     }
   },
