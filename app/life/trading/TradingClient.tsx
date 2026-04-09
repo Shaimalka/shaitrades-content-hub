@@ -2,8 +2,9 @@
 // v9 - Professional Trading Journal — Tradezella-style Dashboard
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts'
-import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp, ChevronDown, Building2, ImagePlus } from 'lucide-react'
+import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp, ChevronDown, Building2, ImagePlus, Upload } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
+import CSVImportModal from '@/app/components/trading/CSVImportModal'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
@@ -553,6 +554,7 @@ function TradingJournalInner() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [chatOpen] = useState(searchParams.get('chat') === '1')
+  const [showImportModal, setShowImportModal] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState('all')
   const [coachInsight, setCoachInsight] = useState<CoachInsight>({ text: '', visible: false, fading: false })
   const insightTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -757,9 +759,16 @@ function TradingJournalInner() {
             <Link href='/life/trading/settings' style={{ padding: '7px 12px', borderRadius: 8, background: 'transparent', border: `1px solid ${border}`, color: textMuted, fontFamily: 'Inter, sans-serif', fontSize: 13, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
               <Settings size={12} /> Settings
             </Link>
-            <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Plus size={14} /> Log Trade
-            </Button>
+            <button
+                onClick={() => setShowImportModal(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: 'rgba(0,196,255,0.08)', border: '1px solid rgba(0,196,255,0.25)', color: '#00c4ff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                <Upload size={14} />
+                Import CSV
+              </button>
+              <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={14} /> Log Trade
+              </Button>
           </div>
         </div>
 
@@ -1082,7 +1091,14 @@ function TradingJournalInner() {
           )}
         </div>
       </div>
-      <LifeHubChat section='trading' apiRoute='/api/life/trading/chat' contextData={{ trades: filteredTrades, stats: { totalPnl, winRate, totalTrades: filteredTrades.length } }} systemPrompt='You are a trading AI analyst. Analyze the user trade log and provide insights.' defaultOpen={chatOpen} />
+      {showImportModal && (
+          <CSVImportModal
+            isDark={isDark}
+            onClose={() => setShowImportModal(false)}
+            onImportComplete={loadTrades}
+          />
+        )}
+        <LifeHubChat section='trading' apiRoute='/api/life/trading/chat' contextData={{ trades: filteredTrades, stats: { totalPnl, winRate, totalTrades: filteredTrades.length } }} systemPrompt='You are a trading AI analyst. Analyze the user trade log and provide insights.' defaultOpen={chatOpen} />
     </div>
   )
 }
