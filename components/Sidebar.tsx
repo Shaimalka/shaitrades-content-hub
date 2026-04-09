@@ -27,11 +27,11 @@ import { ADMIN_EMAIL } from '@/lib/isAdmin'
 
 // Platform nav definitions
 const INSTAGRAM_NAV = [
-  { href: '/instagram', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/instagram/competitors', label: 'Competitors', icon: Users },
-  { href: '/instagram/reports', label: 'Weekly Report', icon: FileText },
-  { href: '/instagram/content', label: 'Content Gen', icon: Sparkles },
-  { href: '/instagram/scheduler', label: 'Scheduler', icon: CalendarDays },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/content', label: 'Competitors', icon: Users },
+  { href: '/reports', label: 'Weekly Report', icon: FileText },
+  { href: '/content', label: 'Content Gen', icon: Sparkles },
+  { href: '/content', label: 'Scheduler', icon: CalendarDays },
 ]
 
 const TIKTOK_NAV = [
@@ -76,7 +76,7 @@ export default function Sidebar() {
 
   // Auto-detect platform from pathname
   function detectPlatform(): Platform {
-    if (pathname?.startsWith('/instagram')) return 'instagram'
+    if (pathname?.startsWith('/dashboard')) return 'instagram'
     if (pathname?.startsWith('/tiktok')) return 'tiktok'
     if (pathname?.startsWith('/youtube')) return 'youtube'
     return null
@@ -349,7 +349,7 @@ export default function Sidebar() {
                                 color: 'rgba(0,242,255,0.4)', letterSpacing: '4px',
                                 textTransform: 'uppercase', marginBottom: '8px',
                 }}>// CONTENT</div>
-                              <Link href='/instagram' className={`nav-item-dark ${pathname?.startsWith('/instagram') ? 'active' : ''}`}>
+                              <Link href='/dashboard' className={`nav-item-dark ${pathname?.startsWith('/dashboard') ? 'active' : ''}`}>
                                               <span className='nav-item-icon'><Camera size={13} strokeWidth={2} /></span>
                                             <span>Instagram</span>
                               </Link>
