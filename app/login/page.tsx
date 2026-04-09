@@ -15,7 +15,7 @@ function LoginForm() {
 
   useEffect(() => {
         const msg = searchParams.get('message')
-        if (msg) setMessage(msg
+        if (msg) setMessage(msg)
   }, [searchParams])
 
   const handleLogin = async () => {
