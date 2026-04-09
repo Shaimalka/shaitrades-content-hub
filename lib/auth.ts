@@ -62,5 +62,14 @@ export const authOptions: NextAuthOptions = {
                       maxAge: 30 * 24 * 60 * 60, // 30 days
           },
           pages: { signIn: '/login' },
-          secret: process.env.NEXTAUTH_SECRET,
+          callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow relative URLs (like /dashboard)
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      // Allow URLs on same origin
+      if (new URL(url).origin === baseUrl) return url
+      return baseUrl + '/dashboard'
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 }
