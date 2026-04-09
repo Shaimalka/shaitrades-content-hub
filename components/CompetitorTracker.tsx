@@ -245,7 +245,7 @@ export default function CompetitorTracker() {
  sentAt: new Date().toISOString(),
  }
  localStorage.setItem(storageKey('contentGenContext'), JSON.stringify(payload))
- router.push('/instagram/content')
+ router.push('/content')
  }
 
  const loadRisingAccounts = async () => {
@@ -275,7 +275,7 @@ export default function CompetitorTracker() {
  const existing: any[] = JSON.parse(localStorage.getItem(storageKey('viralScriptsQueue')) || '[]')
  const filtered = existing.filter((s: any) => s.competitorUsername !== competitor.username)
  localStorage.setItem(storageKey('viralScriptsQueue'), JSON.stringify([...data.viralScripts, ...filtered]))
- router.push('/instagram/content')
+ router.push('/content')
  } catch (err: any) {
  alert('Failed to extract viral scripts: ' + (err as Error).message)
  } finally {
