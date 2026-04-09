@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 
 export default function SignupPage() {
@@ -47,7 +48,17 @@ export default function SignupPage() {
           const data = await res.json()
 
           if (res.ok) {
-                        router.push('/login?message=Account+created!+Please+sign+in.')
+                        const loginResult = await signIn('credentials', {
+              email,
+              username: email,
+              password,
+              redirect: false,
+            })
+            if (loginResult?.ok) {
+              router.push('/dashboard')
+            } else {
+              router.push('/login?message=Account+created!+Please+sign+in.')
+            }
           } else {
                         setError((data.error || 'SIGNUP FAILED').toUpperCase())
           }
