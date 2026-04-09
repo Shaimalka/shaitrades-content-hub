@@ -61,17 +61,17 @@ function calculateHabitStreak(habits: Habit[]): number {
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     redirect("/login");
   }
 
-  const userId = session.user.id;
+  const userId = session.user.email as string;
 
   let trades: Trade[] = [];
   let habits: Habit[] = [];
 
   try {
-    const tradesRaw = await redis.get(`user:${userId}:trades`);
+    const tradesRaw = await redis.get('life:trading:logs');
     if (tradesRaw) {
       trades = typeof tradesRaw === "string" ? JSON.parse(tradesRaw) : tradesRaw;
     }
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
   }
 
   try {
-    const habitsRaw = await redis.get(`user:${userId}:habits`);
+    const habitsRaw = await redis.get('life:habits');
     if (habitsRaw) {
       habits = typeof habitsRaw === "string" ? JSON.parse(habitsRaw) : habitsRaw;
     }
