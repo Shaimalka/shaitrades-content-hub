@@ -406,7 +406,7 @@ export default function PlaybookPage() {
                                                                 <div>
                                                                                 <Button type='submit' disabled={saving || !newName.trim()}>
                                                                                   {saving ? 'Saving...' : '+ Add Playbook'}
-                                                                                </Button>Button>
+                                                                                </Button>
                                                                 </div>
                                                   </form>
                                         {error && (<p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#ff4d6a', marginTop: 8 }}>{error}</p>)}
@@ -416,4 +416,4 @@ export default function PlaybookPage() {
                     </div>
               </div>
             )
-}</button>
+}
