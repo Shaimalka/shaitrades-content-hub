@@ -67,7 +67,7 @@ export const authOptions: NextAuthOptions = {
       // Allow relative URLs (like /dashboard)
       if (url.startsWith('/')) return `${baseUrl}${url}`
       // Allow URLs on same origin
-      if (new URL(url).origin === baseUrl) return url
+      if (new URL(url).origin === baseUrl) return url.startsWith(baseUrl + '/') ? url : `${baseUrl}/dashboard`
       return baseUrl + '/dashboard'
     },
   },
