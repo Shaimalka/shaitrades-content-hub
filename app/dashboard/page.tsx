@@ -1,430 +1,236 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { Redis } from '@upstash/redis'
-import { redirect } from "next/navigation";
-const redis = new Redis({
-  url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
-  token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
-})
-
-interface Trade {
-  id: string;
-  symbol: string;
-  side: "long" | "short";
-  entryPrice: number;
-  exitPrice: number;
-  pnl: number;
-  date: string;
-  notes?: string;
-}
-
-interface Habit {
-  id: string;
-  name: string;
-  completedDates: string[];
-}
-
-function calculateHabitStreak(habits: Habit[]): number {
-  if (!habits.length) return 0;
-
-  const allDates = new Set<string>();
-  habits.forEach((habit) => {
-    habit.completedDates?.forEach((date) => allDates.add(date));
-  });
-
-  const sortedDates = Array.from(allDates).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime()
-  );
-
-  if (!sortedDates.length) return 0;
-
-  let streak = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (let i = 0; i < sortedDates.length; i++) {
-    const date = new Date(sortedDates[i]);
-    date.setHours(0, 0, 0, 0);
-    const expected = new Date(today);
-    expected.setDate(today.getDate() - i);
-
-    if (date.getTime() === expected.getTime()) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-}
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
+import { authOptions } from '@/lib/auth'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+      const session = await getServerSession(authOptions)
+      if (!session) redirect('/login')
 
-  if (!session?.user?.email) {
-    redirect("/login");
-  }
-
-  const userId = session.user.email as string;
-
-  let trades: Trade[] = [];
-  let habits: Habit[] = [];
-
-  try {
-    const tradesRaw = await redis.get('life:trading:logs');
-    if (tradesRaw) {
-      trades = typeof tradesRaw === "string" ? JSON.parse(tradesRaw) : tradesRaw;
-    }
-  } catch {
-    trades = [];
-  }
-
-  try {
-    const habitsRaw = await redis.get('life:habits');
-    if (habitsRaw) {
-      habits = typeof habitsRaw === "string" ? JSON.parse(habitsRaw) : habitsRaw;
-    }
-  } catch {
-    habits = [];
-  }
-
-  const totalTrades = trades.length;
-
-  const winningTrades = trades.filter((t) => t.pnl > 0).length;
-  const winRate =
-    totalTrades > 0 ? Math.round((winningTrades / totalTrades) * 100) : 0;
-
-  const totalPnl = trades.reduce((sum, t) => sum + (t.pnl ?? 0), 0);
-
-  const habitStreak = calculateHabitStreak(habits);
-
-  const recentTrades = [...trades]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
-
-  const styles = {
-    page: {
-      minHeight: "100vh",
-      backgroundColor: "#0a0f1a",
-      color: "#e2e8f0",
-      fontFamily: "'Inter', sans-serif",
-      padding: "2rem",
-    } as React.CSSProperties,
-
-    heading: {
-      fontSize: "1.75rem",
-      fontWeight: 700,
-      color: "#00f2ff",
-      marginBottom: "0.25rem",
-      letterSpacing: "-0.02em",
-    } as React.CSSProperties,
-
-    subheading: {
-      fontSize: "0.9rem",
-      color: "#64748b",
-      marginBottom: "2rem",
-    } as React.CSSProperties,
-
-    statsRow: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "1rem",
-      marginBottom: "2.5rem",
-    } as React.CSSProperties,
-
-    statCard: {
-      backgroundColor: "#0d1424",
-      border: "1px solid #1e293b",
-      borderRadius: "12px",
-      padding: "1.25rem 1.5rem",
-    } as React.CSSProperties,
-
-    statLabel: {
-      fontSize: "0.75rem",
-      fontWeight: 600,
-      color: "#64748b",
-      textTransform: "uppercase" as const,
-      letterSpacing: "0.08em",
-      marginBottom: "0.5rem",
-    } as React.CSSProperties,
-
-    statValue: {
-      fontSize: "2rem",
-      fontWeight: 700,
-      color: "#00f2ff",
-      lineHeight: 1,
-    } as React.CSSProperties,
-
-    statValueNeutral: {
-      fontSize: "2rem",
-      fontWeight: 700,
-      color: "#e2e8f0",
-      lineHeight: 1,
-    } as React.CSSProperties,
-
-    sectionTitle: {
-      fontSize: "1.1rem",
-      fontWeight: 600,
-      color: "#e2e8f0",
-      marginBottom: "1rem",
-    } as React.CSSProperties,
-
-    card: {
-      backgroundColor: "#0d1424",
-      border: "1px solid #1e293b",
-      borderRadius: "12px",
-      padding: "1.5rem",
-      marginBottom: "2rem",
-    } as React.CSSProperties,
-
-    table: {
-      width: "100%",
-      borderCollapse: "collapse" as const,
-    } as React.CSSProperties,
-
-    th: {
-      textAlign: "left" as const,
-      fontSize: "0.72rem",
-      fontWeight: 600,
-      color: "#475569",
-      textTransform: "uppercase" as const,
-      letterSpacing: "0.07em",
-      paddingBottom: "0.75rem",
-      borderBottom: "1px solid #1e293b",
-    } as React.CSSProperties,
-
-    td: {
-      padding: "0.85rem 0",
-      fontSize: "0.875rem",
-      color: "#cbd5e1",
-      borderBottom: "1px solid #111827",
-    } as React.CSSProperties,
-
-    tdLast: {
-      padding: "0.85rem 0",
-      fontSize: "0.875rem",
-      color: "#cbd5e1",
-    } as React.CSSProperties,
-
-    badge: (side: string) =>
-      ({
-        display: "inline-block",
-        padding: "2px 10px",
-        borderRadius: "99px",
-        fontSize: "0.72rem",
-        fontWeight: 600,
-        backgroundColor: side === "long" ? "#052e16" : "#2d0a0a",
-        color: side === "long" ? "#4ade80" : "#f87171",
-        border: `1px solid ${side === "long" ? "#166534" : "#991b1b"}`,
-      } as React.CSSProperties),
-
-    pnlPositive: {
-      color: "#4ade80",
-      fontWeight: 600,
-    } as React.CSSProperties,
-
-    pnlNegative: {
-      color: "#f87171",
-      fontWeight: 600,
-    } as React.CSSProperties,
-
-    emptyState: {
-      textAlign: "center" as const,
-      padding: "2.5rem 1rem",
-      color: "#475569",
-      fontSize: "0.9rem",
-    } as React.CSSProperties,
-
-    emptyIcon: {
-      fontSize: "2rem",
-      marginBottom: "0.5rem",
-    } as React.CSSProperties,
-
-    quickLinksGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-      gap: "1rem",
-    } as React.CSSProperties,
-
-    quickLink: {
-      backgroundColor: "#0d1424",
-      border: "1px solid #1e293b",
-      borderRadius: "12px",
-      padding: "1.25rem 1rem",
-      display: "flex",
-      flexDirection: "column" as const,
-      alignItems: "center",
-      gap: "0.5rem",
-      textDecoration: "none",
-      color: "#94a3b8",
-      fontSize: "0.85rem",
-      fontWeight: 500,
-      transition: "border-color 0.2s, color 0.2s",
-      cursor: "pointer",
-    } as React.CSSProperties,
-
-    quickLinkIcon: {
-      fontSize: "1.5rem",
-    } as React.CSSProperties,
-  };
-
-  const totalPnlFormatted =
-    (totalPnl >= 0 ? "+" : "") +
-    totalPnl.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const today = new Date()
+      const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
+      const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
   const quickLinks = [
-    { href: "/dashboard/trades/new", icon: "📈", label: "Log Trade" },
-    { href: "/dashboard/trades", icon: "📋", label: "All Trades" },
-    { href: "/dashboard/habits", icon: "✅", label: "Habits" },
-    { href: "/dashboard/journal", icon: "📓", label: "Journal" },
-    { href: "/dashboard/analytics", icon: "📊", label: "Analytics" },
-    { href: "/dashboard/settings", icon: "⚙️", label: "Settings" },
-  ];
+      { href: '/life/trading', label: 'Trading Journal', color: '#00f2ff', desc: 'Log & review trades' },
+      { href: '/life/habits', label: 'Habits', color: '#00ff88', desc: 'Daily habit tracker' },
+      { href: '/life/goals', label: 'Goals', color: '#ffb400', desc: 'Track your targets' },
+      { href: '/life/journal', label: 'Daily Journal', color: '#c084fc', desc: 'Reflect & write' },
+      { href: '/life/health', label: 'Health', color: '#ff6b6b', desc: 'Wellness check-in' },
+      { href: '/life/finance', label: 'Finance', color: '#00ff88', desc: 'Net worth tracker' },
+      { href: '/life/review', label: 'Weekly Review', color: '#ffb400', desc: 'Sunday debrief' },
+      { href: '/content', label: 'Content Hub', color: '#00f2ff', desc: 'Posts & analytics' },
+      { href: '/reports', label: 'Reports', color: '#c084fc', desc: 'Performance data' },
+      { href: '/life/trading/backtesting', label: 'Backtesting', color: '#ff6b6b', desc: 'Strategy testing' },
+      { href: '/tiktok/analytics', label: 'TikTok', color: '#00f2ff', desc: 'Platform analytics' },
+      { href: '/youtube', label: 'YouTube', color: '#ff6b6b', desc: 'Channel analytics' },
+        ]
+
+  const recentTrades = [
+      { symbol: 'NQ', direction: 'LONG', pnl: +320, date: 'Today', result: 'WIN' },
+      { symbol: 'ES', direction: 'SHORT', pnl: -145, date: 'Yesterday', result: 'LOSS' },
+      { symbol: 'NQ', direction: 'LONG', pnl: +510, date: 'Mon', result: 'WIN' },
+      { symbol: 'CL', direction: 'SHORT', pnl: +200, date: 'Mon', result: 'WIN' },
+      { symbol: 'ES', direction: 'LONG', pnl: -80, date: 'Sun', result: 'LOSS' },
+        ]
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.heading}>Dashboard</h1>
-      <p style={styles.subheading}>
-        Welcome back{session.user.name ? `, ${session.user.name}` : ""}. Here's
-        your trading overview.
-      </p>
+          <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#f0f4ff', fontFamily: 'Inter, sans-serif' }}>
+                    <style dangerouslySetInnerHTML={{ __html: `
+                            .dash-card {
+                                      background: rgba(255,255,255,0.03);
+                                                border: 1px solid rgba(0,242,255,0.08);
+                                                          border-radius: 12px;
+                                                                    padding: 20px;
+                                                                              transition: border-color 0.2s, box-shadow 0.2s;
+                                                                                      }
+                                                                                              .dash-card:hover {
+                                                                                                        border-color: rgba(0,242,255,0.18);
+                                                                                                                  box-shadow: 0 0 20px rgba(0,242,255,0.06);
+                                                                                                                          }
+                                                                                                                                  .quick-link {
+                                                                                                                                            background: rgba(255,255,255,0.03);
+                                                                                                                                                      border: 1px solid rgba(255,255,255,0.07);
+                                                                                                                                                                border-radius: 10px;
+                                                                                                                                                                          padding: 14px 16px;
+                                                                                                                                                                                    text-decoration: none;
+                                                                                                                                                                                              transition: all 0.2s;
+                                                                                                                                                                                                        display: flex;
+                                                                                                                                                                                                                  flex-direction: column;
+                                                                                                                                                                                                                            gap: 4px;
+                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                            .quick-link:hover {
+                                                                                                                                                                                                                                                      background: rgba(255,255,255,0.06);
+                                                                                                                                                                                                                                                                border-color: rgba(0,242,255,0.2);
+                                                                                                                                                                                                                                                                          transform: translateY(-1px);
+                                                                                                                                                                                                                                                                                  }
+                                                                                                                                                                                                                                                                                          .trade-row {
+                                                                                                                                                                                                                                                                                                    display: flex;
+                                                                                                                                                                                                                                                                                                              align-items: center;
+                                                                                                                                                                                                                                                                                                                        gap: 12px;
+                                                                                                                                                                                                                                                                                                                                  padding: 10px 14px;
+                                                                                                                                                                                                                                                                                                                                            border-radius: 8px;
+                                                                                                                                                                                                                                                                                                                                                      transition: background 0.15s;
+                                                                                                                                                                                                                                                                                                                                                              }
+                                                                                                                                                                                                                                                                                                                                                                      .trade-row:hover {
+                                                                                                                                                                                                                                                                                                                                                                                background: rgba(255,255,255,0.03);
+                                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                                                .stat-pill {
+                                                                                                                                                                                                                                                                                                                                                                                                          display: flex;
+                                                                                                                                                                                                                                                                                                                                                                                                                    flex-direction: column;
+                                                                                                                                                                                                                                                                                                                                                                                                                              align-items: center;
+                                                                                                                                                                                                                                                                                                                                                                                                                                        justify-content: center;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  padding: 20px 16px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            border-radius: 12px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                      text-align: center;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                              }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ` }} />
 
-      {/* Stats Row */}
-      <div style={styles.statsRow}>
-        <div style={styles.statCard}>
-          <div style={styles.statLabel}>Total Trades</div>
-          <div style={styles.statValueNeutral}>{totalTrades}</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statLabel}>Win Rate</div>
-          <div style={styles.statValue}>{winRate}%</div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statLabel}>Total P&amp;L</div>
-          <div
-            style={{
-              ...styles.statValue,
-              color:
-                totalPnl > 0
-                  ? "#4ade80"
-                  : totalPnl < 0
-                  ? "#f87171"
-                  : "#00f2ff",
-            }}
-          >
-            {totalTrades > 0 ? totalPnlFormatted : "$0.00"}
-          </div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statLabel}>Habit Streak</div>
-          <div style={styles.statValue}>
-            {habitStreak}
-            <span
-              style={{ fontSize: "1rem", color: "#64748b", marginLeft: "4px" }}
-            >
-              days
-            </span>
-          </div>
-        </div>
-      </div>
+                    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '36px 32px' }}>
 
-      {/* Recent Trades */}
-      <div style={styles.card}>
-        <div style={styles.sectionTitle}>Recent Trades</div>
-        {recentTrades.length === 0 ? (
-          <div style={styles.emptyState}>
-            <div style={styles.emptyIcon}>📭</div>
-            <div>No trades logged yet.</div>
-            <div style={{ marginTop: "0.25rem", fontSize: "0.8rem" }}>
-              Start by logging your first trade above.
-            </div>
+                        {/* Header */}
+                                <div style={{ marginBottom: '32px' }}>
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                                                              <svg width="16" height="16" viewBox="0 0 56 56" fill="none">
+                                                                            <path d="M31 14L21 30h9l-5 12 14-18h-9l4-10z" fill="#00f2ff" />
+                                                              </svg>
+                                                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(0,242,255,0.5)', letterSpacing: '3px', textTransform: 'uppercase' }}>TRABITS</span>
+                                              </div>
+                                          <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f0f4ff', margin: 0, marginBottom: '4px' }}>
+                                                      Good morning{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
+                                          </h1>
+                                          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', margin: 0 }}>
+                                              {dayName.toUpperCase()} &middot; {dateStr}
+                                          </p>
+                                </div>
+                    
+                        {/* Coach Shai Brief */}
+                            <div className="dash-card" style={{ marginBottom: '24px', borderColor: 'rgba(0,242,255,0.15)', background: 'rgba(0,242,255,0.03)' }}>
+                                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                                                  <div style={{
+                            width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+                            background: 'linear-gradient(135deg, #00f2ff22, #0060ff22)',
+                            border: '1px solid rgba(0,242,255,0.25)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontFamily: 'Georgia, serif', fontWeight: 700, color: '#00f2ff', fontSize: '1rem',
+          }}>S</div>
+                                                  <div style={{ flex: 1 }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 700, color: '#00f2ff', letterSpacing: '1px' }}>COACH SHAI</span>
+                                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(0,242,255,0.4)', letterSpacing: '2px', background: 'rgba(0,242,255,0.08)', padding: '2px 6px', borderRadius: '4px' }}>DAILY BRIEF</span>
+                                                                </div>
+                                                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, margin: 0 }}>
+                                                                                Every session is a rep. Your edge is built in the preparation — not the trade itself. Review your plan, respect your stops, and let the market come to you. Small consistent wins compound into something extraordinary.
+                                                                </p>
+                                                                <Link href="/life/trading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#00f2ff', letterSpacing: '1px', textDecoration: 'none', opacity: 0.7 }}>
+                                                                                GO TO JOURNAL &rarr;
+                                                                </Link>
+                                                  </div>
+                                      </div>
+                            </div>
+                    
+                        {/* Stats Row */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                            
+                                      <div className="dash-card stat-pill" style={{ borderColor: 'rgba(0,242,255,0.12)' }}>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Win Rate</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#00f2ff', textShadow: '0 0 16px rgba(0,242,255,0.4)' }}>68%</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>LAST 30 DAYS</div>
+                                      </div>
+                            
+                                      <div className="dash-card stat-pill" style={{ borderColor: 'rgba(0,255,136,0.12)' }}>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Monthly P&L</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#00ff88', textShadow: '0 0 16px rgba(0,255,136,0.4)' }}>+$2.4k</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>NET PROFIT</div>
+                                      </div>
+                            
+                                      <div className="dash-card stat-pill" style={{ borderColor: 'rgba(192,132,252,0.12)' }}>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Trades</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#c084fc', textShadow: '0 0 16px rgba(192,132,252,0.4)' }}>34</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>THIS MONTH</div>
+                                      </div>
+                            
+                                      <div className="dash-card stat-pill" style={{ borderColor: 'rgba(255,180,0,0.12)' }}>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Habit Score</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#ffb400', textShadow: '0 0 16px rgba(255,180,0,0.4)' }}>82</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>/ 100 TODAY</div>
+                                      </div>
+                            
+                            </div>
+                    
+                        {/* Recent Trades + Quick Links */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                            
+                                {/* Recent Trades */}
+                                      <div className="dash-card">
+                                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>Recent Trades</span>
+                                                                <Link href="/life/trading" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#00f2ff', letterSpacing: '1px', textDecoration: 'none', opacity: 0.6 }}>VIEW ALL &rarr;</Link>
+                                                  </div>
+                                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                      {recentTrades.map((trade, i) => (
+                              <div key={i} className="trade-row">
+                                                <div style={{
+                                                      width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
+                                                      background: trade.result === 'WIN' ? '#00ff88' : '#ff4d6d',
+                                                      boxShadow: trade.result === 'WIN' ? '0 0 6px #00ff88' : '0 0 6px #ff4d6d',
+                              }} />
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 600, color: '#f0f4ff', width: '32px' }}>{trade.symbol}</span>
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: trade.direction === 'LONG' ? '#00f2ff' : '#c084fc', letterSpacing: '1px', width: '40px' }}>{trade.direction}</span>
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 600, color: trade.pnl >= 0 ? '#00ff88' : '#ff4d6d', marginLeft: 'auto' }}>
+                                                    {trade.pnl >= 0 ? '+' : ''}{trade.pnl}
+                                                </span>
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', width: '52px', textAlign: 'right' }}>{trade.date}</span>
+                              </div>
+                            ))}
+                                                  </div>
+                                      </div>
+                            
+                                {/* Habit + Goal Summary */}
+                                      <div className="dash-card">
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>Today&apos;s Focus</div>
+                                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                      {[
+              { label: 'Morning routine', done: true, color: '#00ff88' },
+              { label: 'Pre-market analysis', done: true, color: '#00ff88' },
+              { label: 'Trade journal entry', done: false, color: '#ffb400' },
+              { label: 'Exercise 30min', done: false, color: '#ffb400' },
+              { label: 'Evening review', done: false, color: 'rgba(255,255,255,0.2)' },
+                            ].map((item, i) => (
+                                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                  <div style={{
+                                                                        width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+                                                                        border: `1.5px solid ${item.done ? item.color : 'rgba(255,255,255,0.12)'}`,
+                                                                        background: item.done ? `${item.color}22` : 'transparent',
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                }}>
+                                                                      {item.done && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke={item.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                                                  </div>
+                                                                  <span style={{ fontSize: '0.82rem', color: item.done ? '#f0f4ff' : 'rgba(255,255,255,0.35)', textDecoration: item.done ? 'line-through' : 'none' }}>{item.label}</span>
+                                                </div>
+                                              ))}
+                                                  </div>
+                                                  <Link href="/life/habits" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '16px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#ffb400', letterSpacing: '1px', textDecoration: 'none', opacity: 0.7 }}>
+                                                                MANAGE HABITS &rarr;
+                                                  </Link>
+                                      </div>
+                            
+                            </div>
+                    
+                        {/* Quick Links */}
+                            <div>
+                                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '14px' }}>// QUICK LINKS</div>
+                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                                          {quickLinks.map((link) => (
+                            <Link key={link.href} href={link.href} className="quick-link">
+                                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: link.color, letterSpacing: '1px' }}>{link.label}</span>
+                                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{link.desc}</span>
+                            </Link>
+                          ))}
+                                      </div>
+                            </div>
+                    
+                    </div>
           </div>
-        ) : (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Symbol</th>
-                <th style={styles.th}>Side</th>
-                <th style={styles.th}>Entry</th>
-                <th style={styles.th}>Exit</th>
-                <th style={{ ...styles.th, textAlign: "right" }}>P&amp;L</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentTrades.map((trade, index) => {
-                const isLast = index === recentTrades.length - 1;
-                const tdStyle = isLast ? styles.tdLast : styles.td;
-                return (
-                  <tr key={trade.id}>
-                    <td style={tdStyle}>
-                      {new Date(trade.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td
-                      style={{
-                        ...tdStyle,
-                        fontWeight: 600,
-                        color: "#e2e8f0",
-                      }}
-                    >
-                      {trade.symbol}
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={styles.badge(trade.side)}>
-                        {trade.side.toUpperCase()}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>
-                      ${Number(trade.entryPrice).toFixed(2)}
-                    </td>
-                    <td style={tdStyle}>
-                      ${Number(trade.exitPrice).toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        ...tdStyle,
-                        textAlign: "right",
-                        ...(trade.pnl >= 0
-                          ? styles.pnlPositive
-                          : styles.pnlNegative),
-                      }}
-                    >
-                      {trade.pnl >= 0 ? "+" : ""}
-                      {Number(trade.pnl).toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Quick Links */}
-      <div style={styles.card}>
-        <div style={styles.sectionTitle}>Quick Links</div>
-        <div style={styles.quickLinksGrid}>
-          {quickLinks.map((link) => (
-            <a key={link.href} href={link.href} style={styles.quickLink}>
-              <span style={styles.quickLinkIcon}>{link.icon}</span>
-              <span>{link.label}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+        )
 }
