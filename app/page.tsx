@@ -62,8 +62,8 @@ export default function LandingPage() {
           </span>
         </Link>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Link href="/auth/signin" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500 }}>Sign In</Link>
-          <Link href="/auth/signin" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 700 }}>Get Started</Link>
+          <Link href="/login" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500 }}>Sign In</Link>
+          <Link href="/signup" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 700 }}>Get Started</Link>
         </div>
       </nav>
 
@@ -84,8 +84,8 @@ export default function LandingPage() {
             TRABITS is your edge. Track every trade, every habit, every dollar — powered by AI.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
-            <Link href="/auth/signin" style={{ padding: '0.9rem 2rem', borderRadius: '10px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, boxShadow: '0 0 40px rgba(0,242,255,0.28)' }}>Start Free Today →</Link>
-            <Link href="/auth/signin" style={{ padding: '0.9rem 2rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', textDecoration: 'none', fontSize: '1rem', fontWeight: 500, background: 'rgba(255,255,255,0.03)' }}>See How It Works</Link>
+            <Link href="/signup" style={{ padding: '0.9rem 2rem', borderRadius: '10px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, boxShadow: '0 0 40px rgba(0,242,255,0.28)' }}>Start Free Today →</Link>
+            <Link href="/signup" style={{ padding: '0.9rem 2rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', textDecoration: 'none', fontSize: '1rem', fontWeight: 500, background: 'rgba(255,255,255,0.03)' }}>See How It Works</Link>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap', padding: '1.5rem 2rem', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', background: 'rgba(255,255,255,0.025)' }}>
             {[{ value: '2,400+', label: 'Active Traders' }, { value: '$1.2M+', label: 'P&L Tracked' }, { value: '98%', label: 'Satisfaction' }, { value: '4.9★', label: 'Rating' }].map((s, i) => (
@@ -198,7 +198,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/auth/signin" style={{ display: 'block', textAlign: 'center', padding: '0.875rem', borderRadius: '10px', background: plan.hi ? '#00f2ff' : 'rgba(255,255,255,0.06)', color: plan.hi ? '#0a0f1a' : '#e2e8f0', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', border: plan.hi ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>{plan.cta}</Link>
+              <Link href="/signup" style={{ display: 'block', textAlign: 'center', padding: '0.875rem', borderRadius: '10px', background: plan.hi ? '#00f2ff' : 'rgba(255,255,255,0.06)', color: plan.hi ? '#0a0f1a' : '#e2e8f0', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', border: plan.hi ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>{plan.cta}</Link>
             </div>
           ))}
         </div>
@@ -230,7 +230,7 @@ export default function LandingPage() {
           <div style={{ position: 'relative' }}>
             <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '1.25rem' }}>Your competition is<br />already tracking theirs.</h2>
             <p style={{ fontSize: '1.125rem', color: '#94a3b8', maxWidth: '500px', margin: '0 auto 2.5rem', lineHeight: 1.7 }}>Start building your edge today. Free. No credit card. No BS.</p>
-            <Link href="/auth/signin" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2.5rem', borderRadius: '12px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '1.1rem', fontWeight: 800, boxShadow: '0 0 60px rgba(0,242,255,0.32)' }}>Start Free Today →</Link>
+            <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2.5rem', borderRadius: '12px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '1.1rem', fontWeight: 800, boxShadow: '0 0 60px rgba(0,242,255,0.32)' }}>Start Free Today →</Link>
           </div>
         </div>
       </section>
@@ -242,11 +242,11 @@ export default function LandingPage() {
           <p style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.25rem' }}>Trading + Habits. The Personal OS for Serious Traders.</p>
         </div>
         <div style={{ display: 'flex', gap: '2rem' }}>
-          {['Privacy', 'Terms', 'Contact'].map(l => (
-            <Link key={l} href="#" style={{ color: '#475569', textDecoration: 'none', fontSize: '0.875rem' }}>{l}</Link>
-          ))}
+          <Link href="/privacy" style={{ color: '#475569', textDecoration: 'none', fontSize: '0.875rem' }}>Privacy</Link>
+            <Link href="/terms" style={{ color: '#475569', textDecoration: 'none', fontSize: '0.875rem' }}>Terms</Link>
+            <a href="mailto:shai@trabits.co" style={{ color: '#475569', textDecoration: 'none', fontSize: '0.875rem' }}>Contact</a>
         </div>
-        <p style={{ fontSize: '0.78rem', color: '#334155' }}>© 2025 TRABITS. All rights reserved.</p>
+        <p style={{ fontSize: '0.78rem', color: '#334155' }}>© 2026 TRABITS. All rights reserved.</p>
       </footer>
     </div>
   )
