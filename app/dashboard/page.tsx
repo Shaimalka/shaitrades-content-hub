@@ -1,7 +1,11 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import redis from "@/lib/redis";
+import { Redis } from '@upstash/redis'
 import { redirect } from "next/navigation";
+const redis = new Redis({
+  url: (process.env.UPSTASH_REDIS_REST_URL || '').replace(/^"+|"+$/g, ''),
+  token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
+})
 
 interface Trade {
   id: string;
