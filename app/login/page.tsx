@@ -15,7 +15,7 @@ function LoginForm() {
 
   useEffect(() => {
         const msg = searchParams.get('message')
-        if (msg) setMessage(msg)
+        if (msg) setMessage(msg
   }, [searchParams])
 
   const handleLogin = async () => {
@@ -29,7 +29,7 @@ function LoginForm() {
                           redirect: false,
                 })
                 if (res?.ok) {
-                          router.push('/')
+                          router.push('/dashboard')
                           router.refresh()
                 } else {
                           setError('ACCESS DENIED')
