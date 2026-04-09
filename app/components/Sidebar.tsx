@@ -6,7 +6,7 @@ import { useTheme } from '@/app/contexts/ThemeContext'
 import {
     LayoutDashboard, BarChart2, BookOpen, CheckCircle2,
     Target, DollarSign, Heart, NotebookPen, Sun, Moon, Settings,
-    ChevronLeft, ChevronRight,
+    ChevronLeft, ChevronRight, FlaskConical,
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/life', label: 'Dashboard', icon: LayoutDashboard, section: null },
   { href: '/life/trading', label: 'Trading Journal', icon: BarChart2, section: 'TRADING' },
   { href: '/life/trading/playbook', label: 'Playbook', icon: BookOpen, section: null },
+    { href: '/life/trading/backtesting', label: 'Backtesting', icon: FlaskConical, section: null },
   { href: '/life/habits', label: 'Habits', icon: CheckCircle2, section: 'LIFE' },
   { href: '/life/goals', label: 'Goals', icon: Target, section: null },
   { href: '/life/finance', label: 'Finance', icon: DollarSign, section: null },
