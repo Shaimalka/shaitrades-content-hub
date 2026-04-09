@@ -93,16 +93,16 @@ export default async function DashboardPage() {
                                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
                                                               <svg width="16" height="16" viewBox="0 0 56 56" fill="none">
                                                                             <path d="M31 14L21 30h9l-5 12 14-18h-9l4-10z" fill="#00f2ff" />
-                                                              </svg>svg>
-                                                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(0,242,255,0.5)', letterSpacing: '3px', textTransform: 'uppercase' }}>TRABITS</span>span>
-                                              </div>div>
+                                                              </svg>
+                                                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'rgba(0,242,255,0.5)', letterSpacing: '3px', textTransform: 'uppercase' }}>TRABITS</span>
+                                              </div>
                                           <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f0f4ff', margin: 0, marginBottom: '4px' }}>
                                                       Good morning{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
-                                          </h1>h1>
+                                          </h1>
                                           <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', margin: 0 }}>
                                               {dayName.toUpperCase()} &middot; {dateStr}
-                                          </p>p>
-                                </div>div>
+                                          </p>
+                                </div>
                     
                         {/* Coach Shai Brief */}
                             <div className="dash-card" style={{ marginBottom: '24px', borderColor: 'rgba(0,242,255,0.15)', background: 'rgba(0,242,255,0.03)' }}>
@@ -113,50 +113,50 @@ export default async function DashboardPage() {
                             border: '1px solid rgba(0,242,255,0.25)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontFamily: 'Georgia, serif', fontWeight: 700, color: '#00f2ff', fontSize: '1rem',
-          }}>S</div>div>
+          }}>S</div>
                                                   <div style={{ flex: 1 }}>
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 700, color: '#00f2ff', letterSpacing: '1px' }}>COACH SHAI</span>span>
-                                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(0,242,255,0.4)', letterSpacing: '2px', background: 'rgba(0,242,255,0.08)', padding: '2px 6px', borderRadius: '4px' }}>DAILY BRIEF</span>span>
-                                                                </div>div>
+                                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 700, color: '#00f2ff', letterSpacing: '1px' }}>COACH SHAI</span>
+                                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(0,242,255,0.4)', letterSpacing: '2px', background: 'rgba(0,242,255,0.08)', padding: '2px 6px', borderRadius: '4px' }}>DAILY BRIEF</span>
+                                                                </div>
                                                                 <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.75)', lineHeight: 1.6, margin: 0 }}>
                                                                                 Every session is a rep. Your edge is built in the preparation — not the trade itself. Review your plan, respect your stops, and let the market come to you. Small consistent wins compound into something extraordinary.
-                                                                </p>p>
+                                                                </p>
                                                                 <Link href="/life/trading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#00f2ff', letterSpacing: '1px', textDecoration: 'none', opacity: 0.7 }}>
                                                                                 GO TO JOURNAL &rarr;
-                                                                </Link>Link>
-                                                  </div>div>
-                                      </div>div>
-                            </div>div>
+                                                                </Link>
+                                                  </div>
+                                      </div>
+                            </div>
                     
                         {/* Stats Row */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                             
                                       <div className="dash-card stat-pill" style={{ borderColor: 'rgba(0,242,255,0.12)' }}>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Win Rate</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#00f2ff', textShadow: '0 0 16px rgba(0,242,255,0.4)' }}>68%</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>LAST 30 DAYS</div>div>
-                                      </div>div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Win Rate</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#00f2ff', textShadow: '0 0 16px rgba(0,242,255,0.4)' }}>68%</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>LAST 30 DAYS</div>
+                                      </div>
                             
                                       <div className="dash-card stat-pill" style={{ borderColor: 'rgba(0,255,136,0.12)' }}>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Monthly P&L</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#00ff88', textShadow: '0 0 16px rgba(0,255,136,0.4)' }}>+$2.4k</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>NET PROFIT</div>div>
-                                      </div>div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Monthly P&L</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#00ff88', textShadow: '0 0 16px rgba(0,255,136,0.4)' }}>+$2.4k</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>NET PROFIT</div>
+                                      </div>
                             
                                       <div className="dash-card stat-pill" style={{ borderColor: 'rgba(192,132,252,0.12)' }}>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Trades</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#c084fc', textShadow: '0 0 16px rgba(192,132,252,0.4)' }}>34</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>THIS MONTH</div>div>
-                                      </div>div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Trades</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#c084fc', textShadow: '0 0 16px rgba(192,132,252,0.4)' }}>34</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>THIS MONTH</div>
+                                      </div>
                             
                                       <div className="dash-card stat-pill" style={{ borderColor: 'rgba(255,180,0,0.12)' }}>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Habit Score</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#ffb400', textShadow: '0 0 16px rgba(255,180,0,0.4)' }}>82</div>div>
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>/ 100 TODAY</div>div>
-                                      </div>div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>Habit Score</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '2rem', fontWeight: 700, color: '#ffb400', textShadow: '0 0 16px rgba(255,180,0,0.4)' }}>82</div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', marginTop: '4px' }}>/ 100 TODAY</div>
+                                      </div>
                             
-                            </div>div>
+                            </div>
                     
                         {/* Recent Trades + Quick Links */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
@@ -164,9 +164,9 @@ export default async function DashboardPage() {
                                 {/* Recent Trades */}
                                       <div className="dash-card">
                                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>Recent Trades</span>span>
-                                                                <Link href="/life/trading" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#00f2ff', letterSpacing: '1px', textDecoration: 'none', opacity: 0.6 }}>VIEW ALL &rarr;</Link>Link>
-                                                  </div>div>
+                                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>Recent Trades</span>
+                                                                <Link href="/life/trading" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: '#00f2ff', letterSpacing: '1px', textDecoration: 'none', opacity: 0.6 }}>VIEW ALL &rarr;</Link>
+                                                  </div>
                                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                                       {recentTrades.map((trade, i) => (
                               <div key={i} className="trade-row">
@@ -175,20 +175,20 @@ export default async function DashboardPage() {
                                                       background: trade.result === 'WIN' ? '#00ff88' : '#ff4d6d',
                                                       boxShadow: trade.result === 'WIN' ? '0 0 6px #00ff88' : '0 0 6px #ff4d6d',
                               }} />
-                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 600, color: '#f0f4ff', width: '32px' }}>{trade.symbol}</span>span>
-                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: trade.direction === 'LONG' ? '#00f2ff' : '#c084fc', letterSpacing: '1px', width: '40px' }}>{trade.direction}</span>span>
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 600, color: '#f0f4ff', width: '32px' }}>{trade.symbol</span>
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: trade.direction === 'LONG' ? '#00f2ff' : '#c084fc', letterSpacing: '1px', width: '40px' }}>{trade.direction</span>
                                                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', fontWeight: 600, color: trade.pnl >= 0 ? '#00ff88' : '#ff4d6d', marginLeft: 'auto' }}>
                                                     {trade.pnl >= 0 ? '+' : ''}{trade.pnl}
-                                                </span>span>
-                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', width: '52px', textAlign: 'right' }}>{trade.date}</span>span>
-                              </div>div>
+                                                </span>
+                                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px', width: '52px', textAlign: 'right' }}>{trade.date</span>
+                              </div>
                             ))}
-                                                  </div>div>
-                                      </div>div>
+                                                  </div>
+                                      </div>
                             
                                 {/* Habit + Goal Summary */}
                                       <div className="dash-card">
-                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>Today&apos;s Focus</div>div>
+                                                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '16px' }}>Today&apos;s Focus</div>
                                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                                       {[
               { label: 'Morning routine', done: true, color: '#00ff88' },
@@ -204,33 +204,33 @@ export default async function DashboardPage() {
                                                                         background: item.done ? `${item.color}22` : 'transparent',
                                                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 }}>
-                                                                      {item.done && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke={item.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>svg>}
-                                                                  </div>div>
-                                                                  <span style={{ fontSize: '0.82rem', color: item.done ? '#f0f4ff' : 'rgba(255,255,255,0.35)', textDecoration: item.done ? 'line-through' : 'none' }}>{item.label}</span>span>
-                                                </div>div>
+                                                                      {item.done && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke={item.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                                                  </div>
+                                                                  <span style={{ fontSize: '0.82rem', color: item.done ? '#f0f4ff' : 'rgba(255,255,255,0.35)', textDecoration: item.done ? 'line-through' : 'none' }}>{item.label</span>
+                                                </div>
                                               ))}
-                                                  </div>div>
+                                                  </div>
                                                   <Link href="/life/habits" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '16px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#ffb400', letterSpacing: '1px', textDecoration: 'none', opacity: 0.7 }}>
                                                                 MANAGE HABITS &rarr;
-                                                  </Link>Link>
-                                      </div>div>
+                                                  </Link>
+                                      </div>
                             
-                            </div>div>
+                            </div>
                     
                         {/* Quick Links */}
                             <div>
-                                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '14px' }}>// QUICK LINKS</div>div>
+                                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '14px' }}>// QUICK LINKS</div>
                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                                           {quickLinks.map((link) => (
                             <Link key={link.href} href={link.href} className="quick-link">
-                                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: link.color, letterSpacing: '1px' }}>{link.label}</span>span>
-                                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{link.desc}</span>span>
-                            </Link>Link>
+                                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: link.color, letterSpacing: '1px' }}>{link.label</span>
+                                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{link.desc</span>
+                            </Link>
                           ))}
-                                      </div>div>
-                            </div>div>
+                                      </div>
+                            </div>
                     
-                    </div>div>
-          </div>div>
+                    </div>
+          </div>
         )
-}</svg>
+</svg>
