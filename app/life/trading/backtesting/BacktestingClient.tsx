@@ -420,10 +420,10 @@ export default function BacktestingClient() {
                                                             }
                                                         </div>
                                         </div>
-                          </>>
+                          </>
                         )}
                         </div>
                 </div>
           </div>
         )
-}</></div>
+}
