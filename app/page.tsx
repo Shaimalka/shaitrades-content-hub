@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const { data: session } = useSession()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -62,8 +64,8 @@ export default function LandingPage() {
           </span>
         </Link>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Link href="/login" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500 }}>Sign In</Link>
-          <Link href="/signup" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 700 }}>Get Started</Link>
+          <Link href={session ? '/dashboard' : '/login'} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500 }}>{session ? 'Go to Dashboard' : 'Sign In'}</Link>
+          <Link href={session ? '/dashboard' : '/signup'} style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#00f2ff', color: '#0a0f1a', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 700 }}>{session ? 'Go to Dashboard' : 'Get Started'}</Link>
         </div>
       </nav>
 
