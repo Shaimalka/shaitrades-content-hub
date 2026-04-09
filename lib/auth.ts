@@ -65,9 +65,9 @@ export const authOptions: NextAuthOptions = {
           callbacks: {
     async redirect({ url, baseUrl }) {
       // Allow relative URLs (like /dashboard)
-      if (url.startsWith('/')) return `${baseUrl}${url}`
+            if (url.startsWith('/')) return url === '/' ? `${baseUrl}/dashboard` : `${baseUrl}${url}`
       // Allow URLs on same origin
-      if (new URL(url).origin === baseUrl) return url.startsWith(baseUrl + '/') ? url : `${baseUrl}/dashboard`
+            if (new URL(url).origin === baseUrl) return url === baseUrl || url === baseUrl + '/' ? `${baseUrl}/dashboard` : url
       return baseUrl + '/dashboard'
     },
   },
