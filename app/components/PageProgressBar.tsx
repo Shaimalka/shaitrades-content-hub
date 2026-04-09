@@ -82,6 +82,7 @@ export default function PageProgressBar() {
                                   }}
                                 />
               </div>div>
-        </>>
+        </>
       )
-}</>
+}
+

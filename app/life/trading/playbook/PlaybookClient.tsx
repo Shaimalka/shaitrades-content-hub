@@ -10,7 +10,14 @@ type Playbook = {
     name: string
     description: string
     createdAt: string
+    updatedAt?: string
     rules: string[]
+    category?: string
+    tags?: string[]
+    winRate?: number
+    totalTrades?: number
+    isActive?: boolean
+    notes?: string
 }
 
 type Trade = {
