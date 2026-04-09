@@ -259,7 +259,7 @@ export default function PlaybookPage() {
                             <div style={{ marginBottom: 40 }}>
                                       <Link href='/life/trading' style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#2563eb', textDecoration: 'none', display: 'block', marginBottom: 8 }}>
                                                   ← Trading Journal
-                                      </Link>Link>
+                                      </Link>
                                       <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 24 : 28, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em', margin: '0 0 8px' }}>
                                                   Trading Playbook
                                       </h1>
