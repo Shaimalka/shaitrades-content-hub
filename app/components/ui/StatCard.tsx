@@ -30,7 +30,7 @@ export default function StatCard({ label, value, trend, icon, style }: StatCardP
                                                            React.createElement('div', null,
                                                                                        React.createElement('div', {
                                                                                                    style: {
-                                                                                                                 color: isDark ? 'rgba(255,255,255,0.25)' : '#2563eb',
+                                                                                                                 color: '#aaaaaa',
                                                                                                                  fontSize: '11px',
                                                                                                                  fontFamily: 'JetBrains Mono, monospace',
                                                                                                                  letterSpacing: '0.1em',
