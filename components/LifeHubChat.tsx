@@ -212,7 +212,7 @@ export default function LifeHubChat({
                   <span className="whitespace-pre-wrap">{msg.content}</span>
                 </div>
               ) : (
-                <div className="max-w-[90%]">
+                <div className="max-w-[90%]" style={{ backgroundColor: '#0f1117' }}>
                   <span
                     className="block text-[9px] font-mono tracking-widest mb-1 font-semibold"
                     style={{ color: '#00ff88', fontVariant: 'small-caps' }}
