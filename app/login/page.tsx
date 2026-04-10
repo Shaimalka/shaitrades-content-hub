@@ -29,7 +29,7 @@ function LoginForm() {
                           redirect: false,
                 })
                 if (res?.ok) {
-                          router.push('/dashboard')
+                          router.push('/life')
                           router.refresh()
                 } else {
                           setError('ACCESS DENIED')
