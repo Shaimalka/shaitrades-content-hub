@@ -523,7 +523,7 @@ export default function LifeHubPage() {
                                                                                                               fontFamily: 'Inter, sans-serif',
                                                                                                               fontSize: '11px',
                                                                                                               letterSpacing: '0.1em',
-                                                                                                              color: '#2563eb',
+                                                                                                              color: '#60a5fa',
                                                                                                               fontWeight: 700,
                                                                                                               textTransform: 'uppercase',
                                                                                             }}
@@ -531,7 +531,7 @@ export default function LifeHubPage() {
                                                                                         COACH SHAI · DAILY BRIEF
                                                                         </span>
                                                             {brief && (
-                                                                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: textMuted }}>
+                                                                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
                                                                               {formatGeneratedAt(brief.generatedAt)}
                                                                             </span>
                                                                         )}
@@ -543,7 +543,7 @@ export default function LifeHubPage() {
                                                                                           variant="ghost"
                                                                                           onClick={handleRefresh}
                                                                                           disabled={briefLoading}
-                                                                                          style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px' }}
+                                                                                          style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px', color: 'rgba(255,255,255,0.5)' }}
                                                                                         >
                                                                                         <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
                                                                                         Refresh
@@ -562,7 +562,7 @@ export default function LifeHubPage() {
                                                                                                               borderRadius: '6px',
                                                                                                               border: 'none',
                                                                                                               background: 'transparent',
-                                                                                                              color: dismissIconColor,
+                                                                                                              color: 'rgba(255,255,255,0.35)',
                                                                                                               cursor: 'pointer',
                                                                                                               transition: 'opacity 0.15s, color 0.15s',
                                                                                                               flexShrink: 0,
@@ -617,7 +617,7 @@ export default function LifeHubPage() {
                                                                             style={{
                                                                                               fontFamily: 'Inter, sans-serif',
                                                                                               fontSize: isMobile ? '14px' : '15px',
-                                                                                              color: textPrimary,
+                                                                                              color: 'rgba(255,255,255,0.82)',
                                                                                               margin: 0,
                                                                                               lineHeight: 1.7,
                                                                             }}
