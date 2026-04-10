@@ -31,7 +31,7 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      background: isDark ? '#0a0a0f' : '#f8f9fc',
+            background: isDark ? '#0a0a0f' : '#f4f6f9',
     }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
