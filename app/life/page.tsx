@@ -149,8 +149,8 @@ export default function LifeHubPage() {
   const [edgeScore, setEdgeScore] = useState<any>(null)
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
 
-  const cardBg = 'var(--card-bg, ' + (isDark ? '#111118' : '#ffffff') + ')'
-  const cardBorder = '#e8e8e2'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
+  const cardBg = isDark ? '#1a1f2e' : '#ffffff'
   const bg = isDark ? '#0a0a0f' : '#f8f8f6'
   const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
@@ -745,17 +745,21 @@ export default function LifeHubPage() {
               <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '52px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
                 {totalEdgeScore !== null ? totalEdgeScore : '—'}
               </div>
-              <div style={{
-                display: 'inline-block',
-                marginTop: '6px',
-                background: '#dcfce7',
-                color: '#16a34a',
-                fontSize: '10px',
-                fontWeight: 700,
-                borderRadius: '99px',
-                padding: '2px 10px',
-                letterSpacing: '0.04em',
-              }}>Sharp</div>
+              {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
+                <div style={{
+                  display: 'inline-block',
+                  marginTop: '6px',
+                  background: '#dcfce7',
+                  color: '#16a34a',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  borderRadius: '99px',
+                  padding: '2px 10px',
+                  letterSpacing: '0.04em',
+                }}>Sharp</div>
+              ) : (
+                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>—</div>
+              )}
             </div>
             {/* Overall progress bar */}
             <div style={{ height: '5px', background: '#e5e7eb', borderRadius: '3px', marginBottom: '14px', overflow: 'hidden' }}>
@@ -882,7 +886,7 @@ export default function LifeHubPage() {
                     </div>
                     <span style={{
                       fontSize: '12px',
-                      color: checkedItems[i] ? textMuted : textPrimary,
+                      color: checkedItems[i] ? textMuted : (isDark ? 'rgba(255,255,255,0.7)' : '#555555'),
                       textDecoration: checkedItems[i] ? 'line-through' : 'none',
                       transition: 'all 0.15s',
                     }}>{item}</span>
@@ -948,13 +952,13 @@ export default function LifeHubPage() {
                 {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : '—'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <div style={{ background: '#f8f8f6', borderRadius: '6px', padding: '10px 12px' }}>
+                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: tradingIncomePnl >= 0 ? '#16a34a' : '#dc2626' }}>
                     {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : '—'}
                   </div>
                 </div>
-                <div style={{ background: '#f8f8f6', borderRadius: '6px', padding: '10px 12px' }}>
+                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: textPrimary }}>
                     {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : '—'}
