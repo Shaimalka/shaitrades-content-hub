@@ -28,21 +28,43 @@
   --border-panel: rgba(0, 242, 255, 0.12);
   --border-active: rgba(0, 242, 255, 0.5);
   --border-magenta: rgba(255, 0, 229, 0.3);
-  --text-primary: #f0f4ff;
-  --text-secondary: rgba(240, 244, 255, 0.6);
-  --text-muted: rgba(240, 244, 255, 0.35);
+  --text-primary: #0f1117;
+  --text-secondary: #555555;
+  --text-muted: #aaaaaa;
   --text-label: rgba(0, 242, 255, 0.7);
   --glass-blur: blur(16px) saturate(1.4);
   --glass-bg: rgba(14, 14, 20, 0.92);
   --glass-bg-hover: rgba(18, 18, 26, 0.96);
   --sidebar-width: 240px;
-  --sidebar-bg: #08080a;
+  --sidebar-bg: #0f1117;
   --sidebar-border: rgba(0, 242, 255, 0.08);
   --radius-card: 12px;
   --radius-btn: 8px;
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-med: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --brand-blue: #60a5fa;
+  --brand-blue-dark: #2563eb;
+  --brand-blue-bg: #eff6ff;
+  --brand-blue-border: #93c5fd;
+  --page-bg: #f8f8f6;
+  --card-bg: #ffffff;
+  --card-border: #e8e8e2;
+  --text-hint: #bbbbbb;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --font-base: 'Inter', sans-serif;
+  --font-display: 'Syne', sans-serif;
+}
+
+[data-theme="dark"] {
+  --page-bg: #0f1117;
+  --card-bg: #1a1f2e;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --text-hint: rgba(255, 255, 255, 0.2);
 }
 
 /* Light mode — kept for compatibility but minimal */
