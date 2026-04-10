@@ -150,8 +150,8 @@ export default function LifeHubPage() {
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
 
   const cardBg = 'var(--card-bg, ' + (isDark ? '#111118' : '#ffffff') + ')'
-  const cardBorder = 'var(--card-border, ' + (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)') + ')'
-  const bg = isDark ? '#0a0a0f' : '#f5f5f0'
+  const cardBorder = '#e8e8e2'
+  const bg = isDark ? '#0a0a0f' : '#f8f8f6'
   const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
   const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
@@ -568,7 +568,133 @@ export default function LifeHubPage() {
           </div>
         </div>
 
-        {/* ===== ROW 2: 5 Stat Cards ===== */}
+        {/* ===== COACH SHAI CARD (exact as-is, dark bg) ===== */}
+        {newBriefAvailable && !briefVisible && (
+          <button
+            onClick={handleLoadNewBrief}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              padding: '8px 14px',
+              borderRadius: '999px',
+              background: 'rgba(37,99,235,0.12)',
+              border: '1px solid rgba(37,99,235,0.3)',
+              color: '#2563eb',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+            }}
+          >
+            <RefreshCw size={12} />
+            New brief from Coach Shai
+          </button>
+        )}
+
+        <div
+          style={{
+            display: briefVisible || briefFading ? 'block' : 'none',
+            opacity: briefFading ? 0 : 1,
+            transition: 'opacity 0.3s ease',
+            backgroundColor: '#0f1117',
+            color: 'rgba(255,255,255,0.82)',
+            border: '0.5px solid #e8e8e2',
+            borderLeft: '3px solid #2563eb',
+            borderRadius: '10px',
+            padding: isMobile ? '16px' : '24px 28px',
+            marginBottom: '20px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '11px',
+                  letterSpacing: '0.1em',
+                  color: '#60a5fa',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                COACH SHAI · DAILY BRIEF
+              </span>
+              {brief && (
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+                  {formatGeneratedAt(brief.generatedAt)}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Button
+                variant="ghost"
+                onClick={handleRefresh}
+                disabled={briefLoading}
+                style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px', color: 'rgba(255,255,255,0.5)' }}
+              >
+                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
+                Refresh
+              </Button>
+              <button
+                onClick={handleDismiss}
+                aria-label="Dismiss Coach Shai brief"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.35)',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s, color 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ffffff' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+          {briefLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
+            </div>
+          ) : briefNoData ? (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
+              Start logging your data and Coach Shai will brief you every morning.
+            </p>
+          ) : briefError ? (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
+              Failed to load brief. Click Refresh to try again.
+            </p>
+          ) : brief ? (
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7 }}>
+              {brief.text}
+            </p>
+          ) : null}
+        </div>
+
+  
+      {/* ===== ROW 2: 5 Stat Cards ===== */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
@@ -837,131 +963,6 @@ export default function LifeHubPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ===== COACH SHAI CARD (exact as-is, dark bg) ===== */}
-        {newBriefAvailable && !briefVisible && (
-          <button
-            onClick={handleLoadNewBrief}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px',
-              padding: '8px 14px',
-              borderRadius: '999px',
-              background: 'rgba(37,99,235,0.12)',
-              border: '1px solid rgba(37,99,235,0.3)',
-              color: '#2563eb',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              letterSpacing: '0.02em',
-            }}
-          >
-            <RefreshCw size={12} />
-            New brief from Coach Shai
-          </button>
-        )}
-
-        <div
-          style={{
-            display: briefVisible || briefFading ? 'block' : 'none',
-            opacity: briefFading ? 0 : 1,
-            transition: 'opacity 0.3s ease',
-            backgroundColor: '#0f1117',
-            color: 'rgba(255,255,255,0.82)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderLeft: '3px solid #2563eb',
-            borderRadius: '10px',
-            padding: isMobile ? '16px' : '24px 28px',
-            marginBottom: '20px',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '16px',
-              flexWrap: 'wrap',
-              gap: '8px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '11px',
-                  letterSpacing: '0.1em',
-                  color: '#60a5fa',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                }}
-              >
-                COACH SHAI · DAILY BRIEF
-              </span>
-              {brief && (
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
-                  {formatGeneratedAt(brief.generatedAt)}
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Button
-                variant="ghost"
-                onClick={handleRefresh}
-                disabled={briefLoading}
-                style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px', color: 'rgba(255,255,255,0.5)' }}
-              >
-                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
-                Refresh
-              </Button>
-              <button
-                onClick={handleDismiss}
-                aria-label="Dismiss Coach Shai brief"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: 'transparent',
-                  color: 'rgba(255,255,255,0.35)',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.15s, color 0.15s',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ffffff' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)' }}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          </div>
-          {briefLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
-            </div>
-          ) : briefNoData ? (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
-              Start logging your data and Coach Shai will brief you every morning.
-            </p>
-          ) : briefError ? (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
-              Failed to load brief. Click Refresh to try again.
-            </p>
-          ) : brief ? (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7 }}>
-              {brief.text}
-            </p>
-          ) : null}
         </div>
 
         {/* Footer */}
