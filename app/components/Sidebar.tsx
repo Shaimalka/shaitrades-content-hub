@@ -120,8 +120,8 @@ export default function Sidebar() {
                 letterSpacing: '0.08em',
               }
             },
-              React.createElement('span', { style: { color: 'var(--brand-blue)' } }, 'BITS'),
-              'TRADES'
+              React.createElement('span', { style: { color: '#ffffff' } }, 'TRA'),
+              React.createElement('span', { style: { color: '#60a5fa' } }, 'BITS')
             )
       ),
 
