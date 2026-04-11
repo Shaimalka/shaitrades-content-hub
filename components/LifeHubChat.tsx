@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageSquare, X, Send, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
+import { MessageSquare, X, Send, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react' 
 import ReactMarkdown from 'react-markdown'
 
 interface Message {
