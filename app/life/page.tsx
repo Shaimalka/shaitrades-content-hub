@@ -505,6 +505,14 @@ export default function LifeHubPage() {
     .reduce((s: number, e: any) => s + (e.amount || 0), 0)
   const totalMonthIncome = tradingIncomePnl + contentIncome
 
+  const statCardBorderColors: Record<string, string> = {
+    'NET P&L': '#60a5fa',
+    'WIN RATE': '#ef4444',
+    'PROFIT FACTOR': '#22c55e',
+    'AVG R:R': '#a78bfa',
+    'HABIT STREAK': '#60a5fa',
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
@@ -720,14 +728,16 @@ export default function LifeHubPage() {
           ].map((card, i) => (
             <div key={i} style={{
               background: cardBg,
-              border: '0.5px solid ' + cardBorder,
+              border: 'none',
               borderRadius: '8px',
               padding: '20px 16px',
+              borderTop: `3px solid ${statCardBorderColors[card.label] || '#60a5fa'}`,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             }}>
               <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600 }}>
                 {card.label}
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 600, color: card.color, lineHeight: 1 }}>
+              <div style={{ fontSize: card.value === '—' ? '32px' : '24px', fontWeight: 600, color: card.value === '—' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
                 {card.value}
               </div>
             </div>
