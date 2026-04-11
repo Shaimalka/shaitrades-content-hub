@@ -17,7 +17,7 @@ const sections = [
     statusKey: 'trading',
   },
   {
-    key: 'goals'
+    key: 'goals',
     name: 'Goals',
     descriptor: 'Define targets, track progress',
     icon: Target,
