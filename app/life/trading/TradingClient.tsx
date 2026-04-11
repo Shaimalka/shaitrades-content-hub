@@ -1,5 +1,5 @@
 'use client'
-// v9 - Professional Trading Journal — Tradezella-style Dashboard
+// v9 - Professional Trading Journal â Tradezella-style Dashboard
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts'
 import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp, ChevronDown, Building2, ImagePlus, Upload } from 'lucide-react'
@@ -33,7 +33,7 @@ const EMOTION_WORDS = [
   { label: 'FOMO', value: 5, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
   { label: 'Revenge', value: 6, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
 ]
-const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
+const EMOTIONS = ['ð°', 'ð', 'ð', 'ð', 'ð']
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const ACCOUNT_TYPES = [
   { value: 'live', label: 'Live Account (Tradovate)' },
@@ -65,7 +65,7 @@ const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { w
   <div style={{ width, height, borderRadius, background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
 )
 
-// WinRateGauge — semi-circular SVG gauge
+// WinRateGauge â semi-circular SVG gauge
 const WinRateGauge = ({ rate }: { rate: number }) => {
   const pct = Math.min(rate, 100)
   const color = pct > 50 ? '#00c48c' : '#ff4d6a'
@@ -101,7 +101,7 @@ function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boo
   if (!insight.visible) return null
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderLeft: '3px solid #2563eb', borderRadius: 10, padding: '16px 20px 0 20px', marginBottom: 16, boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', opacity: insight.fading ? 0 : 1, transition: 'opacity 2s ease', overflow: 'hidden' }}>
-      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#2563eb', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>⚡ COACH SHAI</p>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#2563eb', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>â¡ COACH SHAI</p>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textPrimary, lineHeight: 1.7, marginBottom: 12 }}>{insight.text}</p>
       <div style={{ height: 2, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 1 }}>
         <div style={{ height: '100%', width: `${progress}%`, background: '#2563eb', borderRadius: 1, transition: 'width 0.1s linear' }} />
@@ -112,6 +112,7 @@ function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boo
 
 function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) {
   const { isDark } = useTheme()
+  const textBody = isDark ? '#ffffff' : '#0f1117'
   const [status, setStatus] = useState<{ connected: boolean; lastSync: string | null } | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
@@ -129,12 +130,12 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
       const res = await fetch('/api/tradovate/sync', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Sync failed')
-      setSyncMsg(`✓ ${data.imported} new trades imported`)
+      setSyncMsg(`â ${data.imported} new trades imported`)
       setStatus({ connected: true, lastSync: new Date().toISOString() })
       onSyncComplete()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Sync failed'
-      setSyncMsg(`⚠ ${msg}`)
+      setSyncMsg(`â  ${msg}`)
     } finally { setSyncing(false) }
   }
   if (!status) return null
@@ -142,8 +143,8 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
         <XCircle size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected — manual logging available for all account types</span>
-        <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#2563eb', textDecoration: 'none' }}>Connect →</Link>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected â manual logging available for all account types</span>
+        <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#2563eb', textDecoration: 'none' }}>Connect â</Link>
       </div>
     )
   }
@@ -151,12 +152,12 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(0,196,140,0.06)', border: '1px solid rgba(0,196,140,0.15)' }}>
       <CheckCircle size={12} style={{ color: '#00c48c', flexShrink: 0 }} />
       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#00c48c' }}>Tradovate Connected</span>
-      {status.lastSync && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>· Last: {new Date(status.lastSync).toLocaleString()}</span>}
-      {syncMsg && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: syncMsg.startsWith('✓') ? '#00c48c' : '#ff4d6a' }}>{syncMsg}</span>}
+      {status.lastSync && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textBody }}>Â· Last: {new Date(status.lastSync).toLocaleString()}</span>}
+      {syncMsg && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: syncMsg.startsWith('â') ? '#00c48c' : '#ff4d6a' }}>{syncMsg}</span>}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
         <button onClick={handleSync} disabled={syncing} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 5, background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, cursor: syncing ? 'not-allowed' : 'pointer', opacity: syncing ? 0.6 : 1 }}>
           {syncing ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={10} />}
-          {syncing ? 'Syncing…' : 'Sync Now'}
+          {syncing ? 'Syncingâ¦' : 'Sync Now'}
         </button>
         <Link href="/life/trading/settings" style={{ color: textMuted, opacity: 0.6 }} title="Settings"><Settings size={12} /></Link>
       </div>
@@ -221,7 +222,7 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
     </div>
   )
 }
-// Trading Heatmap — GitHub-style contribution grid
+// Trading Heatmap â GitHub-style contribution grid
 function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
@@ -336,13 +337,13 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
           <div key={week.weekNum} style={{ padding: '12px 14px', borderRadius: 8, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', border: `1px solid ${border}` }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, color: textPrimary }}>Week {week.weekNum}</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: week.pnl > 0 ? '#00c48c' : week.pnl < 0 ? '#ff4d6a' : textMuted }}>
-                {week.pnl !== 0 ? (week.pnl > 0 ? '+' : '') + '$' + week.pnl.toFixed(2) : '—'}
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: week.pnl > 0 ? '#00c48c' : week.pnl < 0 ? '#ff4d6a' : textPrimary }}>
+                {week.pnl !== 0 ? (week.pnl > 0 ? '+' : '') + '$' + week.pnl.toFixed(2) : 'â'}
               </span>
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textSecondary }}>{week.trades} trades</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>{week.winRate.toFixed(0)}% WR</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary }}>{week.winRate.toFixed(0)}% WR</span>
             </div>
             {week.trades > 0 && (
               <div style={{ marginTop: 8, height: 3, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 2 }}>
@@ -353,7 +354,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
         ))}
         {weeks.every(w => w.trades === 0) && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted }}>No trades this month</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textPrimary }}>No trades this month</p>
           </div>
         )}
       </div>
@@ -472,8 +473,8 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
             {MONTH_NAMES[currentMonth]} {currentYear}
           </h3>
           <div style={{ display: 'flex', gap: 8 }}>
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>{monthTrades.length} trades</span>
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted }}>{monthWinRate}% WR</span>
+            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary }}>{monthTrades.length} trades</span>
+            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary }}>{monthWinRate}% WR</span>
             {monthPnl !== 0 && (
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 700, color: monthPnl > 0 ? '#00c48c' : '#ff4d6a' }}>
                 {monthPnl > 0 ? '+' : ''}${monthPnl.toFixed(0)}
@@ -526,14 +527,14 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
       </div>
       {selectedDay && selectedTrades.length > 0 && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${border}` }}>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Trades — {selectedDay}</p>
+          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Trades â {selectedDay}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {selectedTrades.map(trade => (
               <div key={trade.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 6, background: trade.pnl >= 0 ? 'rgba(0,196,140,0.06)' : 'rgba(255,77,106,0.06)', border: `1px solid ${trade.pnl >= 0 ? 'rgba(0,196,140,0.2)' : 'rgba(255,77,106,0.2)'}` }}>
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 5px', borderRadius: 3, color: trade.direction === 'Long' ? '#2563eb' : '#ff4d6a', background: trade.direction === 'Long' ? 'rgba(37,99,235,0.1)' : 'rgba(255,77,106,0.1)', flexShrink: 0 }}>{trade.direction}</span>
                 {trade.symbol && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, color: textPrimary, flexShrink: 0 }}>{trade.symbol}</span>}
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, flexShrink: 0 }}>{trade.time || '--:--'}</span>
-                {trade.notes && <span style={{ fontSize: 11, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textMuted }}>{trade.notes}</span>}
+                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary, flexShrink: 0 }}>{trade.time || '--:--'}</span>
+                {trade.notes && <span style={{ fontSize: 11, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textPrimary }}>{trade.notes}</span>}
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, marginLeft: 'auto', flexShrink: 0, color: trade.pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>{trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}</span>
                 <span style={{ fontSize: 13, flexShrink: 0 }}>{EMOTIONS[(trade.emotion || 3) - 1]}</span>
               </div>
@@ -687,8 +688,8 @@ function TradingJournalInner() {
   const winRate = filteredTrades.length > 0 ? ((wins.length / filteredTrades.length) * 100).toFixed(1) : '0'
   const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
   const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0
-  const profitFactor = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
-  const avgRR = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
+  const profitFactor = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : 'â'
+  const avgRR = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : 'â'
   const sortedDates = Array.from(new Set(filteredTrades.map(t => t.date))).sort().reverse()
   let streak = 0
   for (const d of sortedDates) {
@@ -699,7 +700,7 @@ function TradingJournalInner() {
   const todayTrades = filteredTrades.filter(t => t.date === todayStr)
   const todayPnl = todayTrades.reduce((s, t) => s + t.pnl, 0)
   const todayWins = todayTrades.filter(t => t.pnl > 0)
-  const todayWR = todayTrades.length > 0 ? ((todayWins.length / todayTrades.length) * 100).toFixed(0) : '—'
+  const todayWR = todayTrades.length > 0 ? ((todayWins.length / todayTrades.length) * 100).toFixed(0) : 'â'
   const winRateNum = parseFloat(winRate)
   const winRateColor = winRateNum > 50 ? '#00c48c' : winRateNum < 50 ? '#ff4d6a' : textPrimary
   const pnlColor = totalPnl > 0 ? '#00c48c' : totalPnl < 0 ? '#ff4d6a' : textPrimary
@@ -735,7 +736,7 @@ function TradingJournalInner() {
         {/* ===== PAGE HEADER ===== */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <Link href='/life' style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#2563eb', textDecoration: 'none', display: 'block', marginBottom: 2 }}>← Life Hub</Link>
+            <Link href='/life' style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#2563eb', textDecoration: 'none', display: 'block', marginBottom: 2 }}>â Life Hub</Link>
             <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 20 : 24, fontWeight: 700, color: textPrimary, margin: '0 0 2px', letterSpacing: '-0.02em' }}>Trading Journal</h1>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, margin: 0 }}>Track, analyze, and improve your trading edge.</p>
           </div>
@@ -776,8 +777,8 @@ function TradingJournalInner() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 16px', borderRadius: 8, background: surface, border: `1px solid ${border}`, marginBottom: 16, flexWrap: 'wrap', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today</span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayTrades.length} trades</span>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayWR !== '—' ? todayWR + '% WR' : '—'}</span>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: todayPnl > 0 ? '#00c48c' : todayPnl < 0 ? '#ff4d6a' : textMuted }}>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayWR !== 'â' ? todayWR + '% WR' : 'â'}</span>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: todayPnl > 0 ? '#00c48c' : todayPnl < 0 ? '#ff4d6a' : textPrimary }}>
             {todayTrades.length > 0 ? (todayPnl > 0 ? '+' : '') + '$' + todayPnl.toFixed(2) : 'No trades today'}
           </span>
         </div>
@@ -837,7 +838,7 @@ function TradingJournalInner() {
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Building2 size={12} style={{ color: textMuted }} />
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted }}>Manual logging — all account types supported</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textPrimary }}>Manual logging â all account types supported</span>
               </div>
             </div>
 
@@ -929,7 +930,7 @@ function TradingJournalInner() {
                         ? (parseFloat(form.exitPrice) - parseFloat(form.entryPrice)) * parseFloat(form.contracts)
                         : (parseFloat(form.entryPrice) - parseFloat(form.exitPrice)) * parseFloat(form.contracts)
                       return <span style={{ color: pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>${pnl.toFixed(2)}</span>
-                    })() : <span style={{ color: textMuted }}>—</span>}
+                    })() : <span style={{ color: textMuted }}>â</span>}
                   </div>
                 </div>
                 <div>
@@ -939,7 +940,7 @@ function TradingJournalInner() {
                     {formRR ? (
                       <span style={{ color: parseFloat(formRR) >= 1 ? '#00c48c' : '#f59e0b', fontWeight: 700 }}>1:{formRR}</span>
                     ) : (
-                      <span style={{ color: textMuted }}>—</span>
+                      <span style={{ color: textMuted }}>â</span>
                     )}
                   </div>
                 </div>
@@ -982,12 +983,12 @@ function TradingJournalInner() {
               {/* Chart Screenshot Upload */}
               <div style={{ marginBottom: 20 }}>
                 <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted, display: 'block', marginBottom: 4, fontWeight: 500 }}>Chart Screenshot</label>
-                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, opacity: 0.7, marginBottom: 8 }}>optional · PNG, JPG up to 5MB</span>
+                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, opacity: 0.7, marginBottom: 8 }}>optional Â· PNG, JPG up to 5MB</span>
                 {form.tradeImage ? (
                   <div style={{ position: 'relative', display: 'inline-block' }}>
                     <img src={form.tradeImage} alt='Trade screenshot' style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: `1px solid ${border}` }} />
                     <button type='button' onClick={() => setForm(f => ({ ...f, tradeImage: '' }))} style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', background: '#ff4d6a', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                      <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>×</span>
+                      <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>Ã</span>
                     </button>
                   </div>
                 ) : (
@@ -1006,14 +1007,14 @@ function TradingJournalInner() {
                 )}
               </div>
 
-              {/* Action buttons — ADD TRADE full width */}
+              {/* Action buttons â ADD TRADE full width */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button type='submit' style={{ width: '100%', height: 48, background: '#60a5fa', border: 'none', borderRadius: '6px', color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em', transition: 'background 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#1d4ed8')}
                   onMouseLeave={e => (e.currentTarget.style.background = '#2563eb')}>
                   {editingId ? 'UPDATE TRADE' : 'ADD TRADE'}
                 </button>
-                <button type='button' onClick={cancelEdit} style={{ width: '100%', height: 36, background: 'transparent', border: `1px solid ${border}`, borderRadius: 8, color: textMuted, fontFamily: 'Inter, sans-serif', fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' }}>
+                <button type='button' onClick={cancelEdit} style={{ width: '100%', height: 36, background: 'transparent', border: `1px solid ${border}`, borderRadius: 8, color: textPrimary, fontFamily: 'Inter, sans-serif', fontSize: 13, cursor: 'pointer', transition: 'all 0.15s' }}>
                   Cancel
                 </button>
               </div>
@@ -1028,7 +1029,7 @@ function TradingJournalInner() {
         <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, overflow: 'hidden', marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)' }}>
           <div style={{ padding: '14px 20px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
-              TRADE LOG · {filteredTrades.length} ENTRIES
+              TRADE LOG Â· {filteredTrades.length} ENTRIES
             </h3>
           </div>
           {loading ? (
@@ -1036,7 +1037,7 @@ function TradingJournalInner() {
               <Skeleton height='40px' /><Skeleton height='40px' /><Skeleton height='40px' />
             </div>
           ) : filteredTrades.length === 0 ? (
-            <EmptyState icon={BarChart2} heading='NO TRADES LOGGED YET' subtext='Click "Log Trade" above to log your first trade — works for all account types.' />
+            <EmptyState icon={BarChart2} heading='NO TRADES LOGGED YET' subtext='Click "Log Trade" above to log your first trade â works for all account types.' />
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
@@ -1051,25 +1052,25 @@ function TradingJournalInner() {
                   {[...filteredTrades].reverse().map(trade => {
                     const tradePnl = trade.pnl
                     const tradeAvgLoss = avgLoss
-                    const rr = tradeAvgLoss > 0 ? (tradePnl / tradeAvgLoss).toFixed(1) : '—'
+                    const rr = tradeAvgLoss > 0 ? (tradePnl / tradeAvgLoss).toFixed(1) : 'â'
                     const emotionWord = EMOTION_WORDS.find(e => e.value === trade.emotion)
                     return (
                       <tr key={trade.id} className='trade-row' style={{ borderBottom: `1px solid ${border}`, height: 40 }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary, whiteSpace: 'nowrap' }}>{trade.date}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textMuted, whiteSpace: 'nowrap' }}>{trade.time || '—'}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, whiteSpace: 'nowrap' }}>{trade.time || 'â'}</td>
                         <td style={{ padding: '6px 14px' }}>
                           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, color: trade.direction === 'Long' ? '#2563eb' : '#ff4d6a', background: trade.direction === 'Long' ? 'rgba(37,99,235,0.1)' : 'rgba(255,77,106,0.1)' }}>{trade.direction}</span>
                         </td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, fontWeight: 600 }}>{trade.symbol || '—'}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, fontWeight: 600 }}>{trade.symbol || 'â'}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.entryPrice}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.exitPrice}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.contracts}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#16a34a' : '#dc2626' }}>${trade.pnl.toFixed(2)}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textMuted }}>{rr}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'Inter, sans-serif', fontSize: 11, color: emotionWord ? emotionWord.color : textMuted }}>{emotionWord ? emotionWord.label : EMOTIONS[(trade.emotion || 3) - 1]}</td>
-                        <td style={{ padding: '6px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textMuted }}>{trade.notes}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textPrimary }}>{rr}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'Inter, sans-serif', fontSize: 11, color: emotionWord ? emotionWord.color : textPrimary }}>{emotionWord ? emotionWord.label : EMOTIONS[(trade.emotion || 3) - 1]}</td>
+                        <td style={{ padding: '6px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textPrimary }}>{trade.notes}</td>
                         <td style={{ padding: '6px 14px' }}>
                           {trade.tradeImage && (
                             <img src={trade.tradeImage} alt='Trade screenshot' title='Click to open full image' style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, cursor: 'pointer', border: '1px solid rgba(37,99,235,0.3)' }}
