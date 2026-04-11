@@ -476,8 +476,8 @@ export default function LifeHubPage() {
   }
 
   function heatmapColor(cell: { pnl: number | null; hasTrade: boolean }) {
-    if (!cell.hasTrade) return '#f0f0eb'
-    if (cell.pnl === null) return '#f0f0eb'
+    if (!cell.hasTrade) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
+    if (cell.pnl === null) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
     if (cell.pnl > 500) return '#16a34a'
     if (cell.pnl > 0) return '#4ade80'
     if (cell.pnl > -500) return '#f87171'
@@ -550,11 +550,12 @@ export default function LifeHubPage() {
               {dateRangeStr}
             </button>
             <Link href="/life/trading?new=1" style={{
-              background: '#60a5fa',
+              backgroundColor: '#60a5fa',
               color: '#ffffff',
-              fontWeight: 700,
+              border: 'none',
               borderRadius: '6px',
-              padding: '7px 14px',
+              fontWeight: 700,
+              padding: '7px 15px',
               fontSize: '12px',
               textDecoration: 'none',
               display: 'flex',
@@ -829,7 +830,7 @@ export default function LifeHubPage() {
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '12px', marginTop: '8px', justifyContent: 'flex-end' }}>
-                {[['Win', '#4ade80'], ['Loss', '#f87171'], ['No trade', '#f0f0eb']].map(([label, color]) => (
+                {[['Win', '#4ade80'], ['Loss', '#f87171'], ['No trade', isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb']].map(([label, color]) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, border: '0.5px solid ' + cardBorder }} />
                     <span style={{ fontSize: '9px', color: '#aaaaaa' }}>{label}</span>
