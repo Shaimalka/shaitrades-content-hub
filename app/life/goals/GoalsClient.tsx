@@ -78,7 +78,7 @@ function GoalsInner() {
 
   const inputStyle = {
     background: isDark ? '#1a1a24' : '#f1f4f9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e8e8e2'}`,
     borderRadius: '8px',
     color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif',
@@ -90,7 +90,7 @@ function GoalsInner() {
   } as React.CSSProperties
 
   const cardStyle = {
-    background: isDark ? '#111118' : '#ffffff',
+    background: isDark ? '#1a1f2e' : '#ffffff',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px',
     padding: '20px',
@@ -190,7 +190,7 @@ function GoalsInner() {
   const typeToggleBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
 
   return (
-    <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
+    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
@@ -201,7 +201,7 @@ function GoalsInner() {
             <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: 0 }}>Goals</h1>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 2 }}>Track your goals across all horizons</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} style={{ background: '#00f2ff', border: 'none', borderRadius: 8, color: '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => setShowForm(!showForm)} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={14} /> Add Goal
           </button>
         </div>
@@ -300,7 +300,7 @@ function GoalsInner() {
                 <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Why this goal matters to you" />
               </div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
-                <button type="submit" style={{ background: '#00f2ff', border: 'none', borderRadius: 8, color: '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 20px', cursor: 'pointer' }}>Save Goal</button>
+                <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 20px', cursor: 'pointer' }}>Save Goal</button>
                 <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.12)'}`, borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
@@ -398,7 +398,7 @@ function GoalsInner() {
                               onKeyDown={e => { if (e.key === 'Enter') { const v = parseFloat(progressInput); if (!isNaN(v)) addProgress(goal, v) } if (e.key === 'Escape') { setProgressGoalId(null); setProgressInput('') } }}
                               style={{ ...inputStyle, fontSize: '13px', paddingLeft: 28 }} onFocus={e => Object.assign(e.target.style, focusStyle)} placeholder="amount to add" />
                           </div>
-                          <button onClick={() => { const v = parseFloat(progressInput); if (!isNaN(v)) addProgress(goal, v) }} style={{ background: '#00f2ff', border: 'none', borderRadius: 8, color: '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px 14px', cursor: 'pointer', flexShrink: 0 }}>Add</button>
+                          <button onClick={() => { const v = parseFloat(progressInput); if (!isNaN(v)) addProgress(goal, v) }} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px 14px', cursor: 'pointer', flexShrink: 0 }}>Add</button>
                           <button onClick={() => { setProgressGoalId(null); setProgressInput('') }} style={{ background: 'transparent', border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 12px', cursor: 'pointer', flexShrink: 0 }}>✕</button>
                         </div>
                       ) : (
