@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation'
 type HealthLog = { id: string; date: string; weight?: number; sleep?: number; sleepQuality?: number; gym: boolean; energy?: number; notes?: string }
 type CorrelationInsight = { text: string; icon: string; color: string }
 
-const SLEEP_QUALITY_EMOJI = ['','😴','😪','😐','😊','🌟']
+const SLEEP_QUALITY_EMOJI = ['','ð´','ðª','ð','ð','ð']
 
 function getWeekStart(offsetWeeks = 0) {
   const d = new Date()
@@ -29,7 +29,7 @@ function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: Re
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
       <Icon size={48} style={{ color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), marginBottom: 16 }} />
       <p style={{ fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: ('#aaaaaa'), fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
+      <p style={{ color: (isDark ? '#aaaaaa' : '#0f1117'), fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
     </div>
   )
 }
@@ -64,7 +64,7 @@ function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
         const greenSleep = sorted.filter(l => greenDays.includes(l.date) && l.sleep)
         if (greenSleep.length >= 3) {
           const avgSleep = greenSleep.reduce((s,l) => s+(l.sleep||0),0)/greenSleep.length
-          result.push({ text: 'Your last '+greenSleep.length+' green trading days had '+avgSleep.toFixed(1)+'h sleep avg — rest fuels performance.', icon: '🟢', color: '#00c48c' })
+          result.push({ text: 'Your last '+greenSleep.length+' green trading days had '+avgSleep.toFixed(1)+'h sleep avg â rest fuels performance.', icon: 'ð¢', color: '#00c48c' })
         }
       }
       const gymDays = sorted.filter(l => l.gym && l.energy); const noGymDays = sorted.filter(l => !l.gym && l.energy)
@@ -72,16 +72,16 @@ function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
         const gymEnergy = gymDays.reduce((s,l)=>s+(l.energy||0),0)/gymDays.length
         const noGymEnergy = noGymDays.reduce((s,l)=>s+(l.energy||0),0)/noGymDays.length
         const diff = (gymEnergy - noGymEnergy).toFixed(1)
-        if (parseFloat(diff) > 0.5) result.push({ text: 'On gym days your energy is +'+diff+' pts higher on avg. Movement is your edge.', icon: '🏋️', color: '#2563eb' })
+        if (parseFloat(diff) > 0.5) result.push({ text: 'On gym days your energy is +'+diff+' pts higher on avg. Movement is your edge.', icon: 'ðï¸', color: '#2563eb' })
       }
       const last7 = sorted.slice(-7).filter(l => l.sleep); const prev7 = sorted.slice(-14,-7).filter(l => l.sleep)
       if (last7.length >= 4 && prev7.length >= 4) {
         const avg7 = last7.reduce((s,l)=>s+(l.sleep||0),0)/last7.length
         const avgp7 = prev7.reduce((s,l)=>s+(l.sleep||0),0)/prev7.length
         const trend = avg7 > avgp7 ? 'improving' : 'declining'
-        result.push({ text: 'Sleep is '+trend+' — last 7 days avg '+avg7.toFixed(1)+'h vs prior week '+avgp7.toFixed(1)+'h.', icon: trend==='improving'?'📈':'📉', color: trend==='improving'?'#00c48c':'#ff4d6a' })
+        result.push({ text: 'Sleep is '+trend+' â last 7 days avg '+avg7.toFixed(1)+'h vs prior week '+avgp7.toFixed(1)+'h.', icon: trend==='improving'?'ð':'ð', color: trend==='improving'?'#00c48c':'#ff4d6a' })
       }
-      if (result.length === 0) result.push({ text: 'Keep logging! Patterns need more data to surface — aim for 14+ consistent days.', icon: '🔍', color: '#f59e0b' })
+      if (result.length === 0) result.push({ text: 'Keep logging! Patterns need more data to surface â aim for 14+ consistent days.', icon: 'ð', color: '#f59e0b' })
       setInsights(result); setAnalyzed(true)
     } catch(e) { console.error('Correlation error:',e) }
     setLoading(false)
@@ -93,7 +93,7 @@ function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
     return (
       <div style={{ ...cardStyle, marginBottom: 24 }}>
         <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 8 }}>COACH SHAI CORRELATIONS</p>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: ('#aaaaaa') }}>Log at least 7 days of health data to unlock pattern analysis</p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117') }}>Log at least 7 days of health data to unlock pattern analysis</p>
       </div>
     )
   }
@@ -106,7 +106,7 @@ function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
           <RefreshCw size={10} className={loading?'animate-spin':''} /> {loading?'Analyzing...':'Re-analyze'}
         </button>
       </div>
-      {loading && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: ('#aaaaaa') }}>Analyzing patterns...</p>}
+      {loading && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117') }}>Analyzing patterns...</p>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {insights.map((ins,i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px', borderRadius: 8, borderLeft: `3px solid ${ins.color}`, background: (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
@@ -195,9 +195,9 @@ function HealthInner() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
+            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>â LIFE HUB</Link>
             <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Health</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: ('#aaaaaa'), marginTop: 2 }}>Track sleep, energy, gym and wellbeing</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117'), marginTop: 2 }}>Track sleep, energy, gym and wellbeing</p>
           </div>
           <Heart size={32} style={{ color: '#ff4d6a', opacity: 0.4 }} />
         </div>
@@ -222,13 +222,13 @@ function HealthInner() {
         {/* Log Form */}
         <div style={{ ...cardStyle, marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Today's Log — {today}</h2>
-            {saved && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(0,196,140,0.1)', color: '#00c48c' }}>✓ SAVED</span>}
+            <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Today's Log â {today}</h2>
+            {saved && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(0,196,140,0.1)', color: '#00c48c' }}>â SAVED</span>}
           </div>
           <form onSubmit={submitLog}>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>⚖️ WEIGHT (lbs) <span style={{ opacity: 0.5, fontSize: 10 }}>optional</span></label>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>âï¸ WEIGHT (lbs) <span style={{ opacity: 0.5, fontSize: 10 }}>optional</span></label>
                 <input type="number" step="0.1" value={form.weight} onChange={e=>setForm(f=>({...f,weight:e.target.value}))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="175.0" />
               </div>
               <div>
@@ -238,12 +238,12 @@ function HealthInner() {
               <div>
                 <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}><Dumbbell size={11}/> GYM TODAY?</label>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={()=>setForm(f=>({...f,gym:true}))} style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: form.gym ? 'rgba(0,196,140,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.gym ? '#00c48c' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}`, color: form.gym ? '#00c48c' : ('#aaaaaa') }}>✓ YES</button>
-                  <button type="button" onClick={()=>setForm(f=>({...f,gym:false}))} style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: !form.gym ? 'rgba(255,77,106,0.1)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${!form.gym ? '#ff4d6a' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}`, color: !form.gym ? '#ff4d6a' : ('#aaaaaa') }}>✗ NO</button>
+                  <button type="button" onClick={()=>setForm(f=>({...f,gym:true}))} style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: form.gym ? 'rgba(0,196,140,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.gym ? '#00c48c' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}`, color: form.gym ? '#00c48c' : ('#aaaaaa') }}>â YES</button>
+                  <button type="button" onClick={()=>setForm(f=>({...f,gym:false}))} style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: !form.gym ? 'rgba(255,77,106,0.1)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${!form.gym ? '#ff4d6a' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}`, color: !form.gym ? '#ff4d6a' : ('#aaaaaa') }}>â NO</button>
                 </div>
               </div>
               <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'block', marginBottom: 6 }}>😴 SLEEP QUALITY</label>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'block', marginBottom: 6 }}>ð´ SLEEP QUALITY</label>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {[1,2,3,4,5].map(q=>(
                     <button key={q} type="button" onClick={()=>setForm(f=>({...f,sleepQuality:q}))} style={{ flex: 1, padding: '6px', borderRadius: 8, fontSize: 16, cursor: 'pointer', background: form.sleepQuality===q ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.sleepQuality===q ? 'rgba(37,99,235,0.4)' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}` }}>
@@ -251,11 +251,11 @@ function HealthInner() {
                     </button>
                   ))}
                 </div>
-                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4, textAlign: 'center' }}>{form.sleepQuality}/5 — {['','Poor','Fair','Good','Great','Perfect'][form.sleepQuality]}</p>
+                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4, textAlign: 'center' }}>{form.sleepQuality}/5 â {['','Poor','Fair','Good','Great','Perfect'][form.sleepQuality]}</p>
               </div>
               <div>
                 <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span>⚡ ENERGY LEVEL</span>
+                  <span>â¡ ENERGY LEVEL</span>
                   <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#f59e0b' }}>{form.energy}/10</span>
                 </label>
                 <input type="range" min="1" max="10" value={form.energy} onChange={e=>setForm(f=>({...f,energy:parseInt(e.target.value)}))} style={{ width: '100%', accentColor: '#2563eb' }} />
@@ -264,7 +264,7 @@ function HealthInner() {
                 </div>
               </div>
               <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>📝 NOTE <span style={{ opacity: 0.5, fontSize: 10 }}>optional</span></label>
+                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>ð NOTE <span style={{ opacity: 0.5, fontSize: 10 }}>optional</span></label>
                 <input value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="How are you feeling?" />
               </div>
             </div>
@@ -285,8 +285,8 @@ function HealthInner() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
             <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
               <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>SLEEP THIS WEEK</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#a78bfa', margin: 0 }}>{sleepAvgThis?sleepAvgThis+'h avg':'—'}</p>
-              {sleepAvgLast && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>Last week: {sleepAvgLast}h <span style={{ color: parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'#00c48c':'#ff4d6a' }}>{parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'↑':'↓'}</span></p>}
+              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#a78bfa', margin: 0 }}>{sleepAvgThis?sleepAvgThis+'h avg':'â'}</p>
+              {sleepAvgLast && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>Last week: {sleepAvgLast}h <span style={{ color: parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'#00c48c':'#ff4d6a' }}>{parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'â':'â'}</span></p>}
             </div>
             <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
               <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>GYM THIS WEEK</p>
@@ -297,12 +297,12 @@ function HealthInner() {
             </div>
             <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
               <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>AVG ENERGY (30d)</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{energyAvg?energyAvg+'/10':'—'}</p>
-              {energyAvg && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>{parseFloat(energyAvg)>=7?'🌟 High performer':parseFloat(energyAvg)>=5?'⚡ Decent':'😴 Low — rest up'}</p>}
+              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{energyAvg?energyAvg+'/10':'â'}</p>
+              {energyAvg && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>{parseFloat(energyAvg)>=7?'ð High performer':parseFloat(energyAvg)>=5?'â¡ Decent':'ð´ Low â rest up'}</p>}
             </div>
             <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
               <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>BEST GYM STREAK</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#2563eb', margin: 0 }}>{longestStreak>0?longestStreak+' days':'—'}</p>
+              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#2563eb', margin: 0 }}>{longestStreak>0?longestStreak+' days':'â'}</p>
               {bestSleepWeek.avg>0 && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>Best sleep wk: {bestSleepWeek.avg.toFixed(1)}h</p>}
             </div>
           </div>
@@ -345,9 +345,9 @@ function HealthInner() {
                   <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#fff' }}>AI</span>
                 </div>
                 <div>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#2563eb', letterSpacing: '0.15em', marginBottom: 6 }}>COACH SHAI — ENERGY x TRADING</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#2563eb', letterSpacing: '0.15em', marginBottom: 6 }}>COACH SHAI â ENERGY x TRADING</p>
                   <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'), lineHeight: 1.6 }}>
-                    {parseFloat(energyAvg)>=7?'Your 30-day energy average is '+energyAvg+'/10 — elite territory. High-energy days correlate strongly with disciplined trade execution.':parseFloat(energyAvg)>=5?'Your 30-day energy average is '+energyAvg+'/10 — middle of the pack. Watch for your lowest-energy days: those are when emotional trading decisions sneak in.':'Your 30-day energy average is '+energyAvg+'/10 — below optimal. Low energy and poor trading decisions are deeply linked. Prioritize 7+ hours sleep.'}
+                    {parseFloat(energyAvg)>=7?'Your 30-day energy average is '+energyAvg+'/10 â elite territory. High-energy days correlate strongly with disciplined trade execution.':parseFloat(energyAvg)>=5?'Your 30-day energy average is '+energyAvg+'/10 â middle of the pack. Watch for your lowest-energy days: those are when emotional trading decisions sneak in.':'Your 30-day energy average is '+energyAvg+'/10 â below optimal. Low energy and poor trading decisions are deeply linked. Prioritize 7+ hours sleep.'}
                   </p>
                 </div>
               </div>
@@ -362,8 +362,8 @@ function HealthInner() {
                 <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>PERSONAL BESTS</h3>
               </div>
               <div style={{ display: 'flex', gap: 24 }}>
-                {longestStreak>0 && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>LONGEST GYM STREAK</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#00c48c' }}>{longestStreak} days 🔥</p></div>}
-                {bestSleepWeek.avg>0 && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>BEST SLEEP WEEK</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#a78bfa' }}>{bestSleepWeek.avg.toFixed(1)}h avg 🌙</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>w/o {bestSleepWeek.week}</p></div>}
+                {longestStreak>0 && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>LONGEST GYM STREAK</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#00c48c' }}>{longestStreak} days ð¥</p></div>}
+                {bestSleepWeek.avg>0 && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>BEST SLEEP WEEK</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#a78bfa' }}>{bestSleepWeek.avg.toFixed(1)}h avg ð</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>w/o {bestSleepWeek.week}</p></div>}
               </div>
             </div>
           )}
@@ -372,12 +372,12 @@ function HealthInner() {
           {logs.length>0 && (
             <div style={{ ...cardStyle, marginBottom: 24, padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}` }}>
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>HEALTH LOG · {logs.length} ENTRIES</h3>
+                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>HEALTH LOG Â· {logs.length} ENTRIES</h3>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                   <thead><tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}` }}>{['DATE','WEIGHT','SLEEP','QUALITY','GYM','ENERGY','NOTES'].map(h=>(<th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>))}</tr></thead>
-                  <tbody>{[...logs].reverse().map(log=>(<tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: ('#aaaaaa') }}>{log.date}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#2563eb' }}>{log.weight||'—'}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#a78bfa' }}>{log.sleep?log.sleep+'h':'—'}</td><td style={{ padding: '10px 16px' }}>{log.sleepQuality?SLEEP_QUALITY_EMOJI[log.sleepQuality]:'—'}</td><td style={{ padding: '10px 16px' }}>{log.gym?<span style={{color:'#00c48c'}}>✓</span>:<span style={{color:(isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')}}>✗</span>}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#f59e0b' }}>{log.energy||'—'}/10</td><td style={{ padding: '10px 16px', fontFamily: 'Inter, sans-serif', color: ('#aaaaaa'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.notes||'—'}</td></tr>))}</tbody>
+                  <tbody>{[...logs].reverse().map(log=>(<tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? '#aaaaaa' : '#0f1117') }}>{log.date}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#2563eb' }}>{log.weight||'â'}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#a78bfa' }}>{log.sleep?log.sleep+'h':'â'}</td><td style={{ padding: '10px 16px' }}>{log.sleepQuality?SLEEP_QUALITY_EMOJI[log.sleepQuality]:'â'}</td><td style={{ padding: '10px 16px' }}>{log.gym?<span style={{color:'#00c48c'}}>â</span>:<span style={{color:(isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')}}>â</span>}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#f59e0b' }}>{log.energy||'â'}/10</td><td style={{ padding: '10px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? '#aaaaaa' : '#0f1117'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.notes||'â'}</td></tr>))}</tbody>
                 </table>
               </div>
             </div>
