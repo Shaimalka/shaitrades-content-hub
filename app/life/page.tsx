@@ -412,7 +412,7 @@ export default function LifeHubPage() {
       const d = new Date(iso)
       return (
         d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-        ' Â· ' +
+        ' · ' +
         d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       )
     } catch {
@@ -427,7 +427,7 @@ export default function LifeHubPage() {
 
   // Date range string
   const now = new Date()
-  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' +
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' +
     new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   // Stats for 5 stat cards
@@ -633,7 +633,7 @@ export default function LifeHubPage() {
                   textTransform: 'uppercase',
                 }}
               >
-                COACH SHAI Â· DAILY BRIEF
+                COACH SHAI · DAILY BRIEF
               </span>
               {brief && (
                 <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
@@ -981,7 +981,7 @@ export default function LifeHubPage() {
 
         {/* Footer */}
         <p style={{ marginTop: '24px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', letterSpacing: '0.1em', color: textMuted }}>
-          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
+          {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
         </p>
       </div>
 
