@@ -134,10 +134,10 @@ export default function LifeHubChat({
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-xs font-mono tracking-wide shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
           style={{
-            background: 'linear-gradient(135deg, rgba(0,255,136,0.25), rgba(0,242,255,0.15))',
-            border: '1px solid rgba(0,255,136,0.5)',
-            color: '#00ff88',
-            boxShadow: '0 0 12px rgba(0,255,136,0.6)',
+            background: '#60a5fa',
+            border: 'none',
+            color: '#ffffff',
+            boxShadow: 'none',
           }}
         >
           <MessageSquare size={15} />
@@ -299,15 +299,15 @@ export default function LifeHubChat({
         onClick={() => setIsOpen(!isOpen)}
         className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-1.5 px-1.5 py-4 text-[10px] font-mono font-bold tracking-widest transition-all duration-200"
         style={{
-          background: 'linear-gradient(180deg, rgba(0,255,136,0.18) 0%, rgba(10,10,14,0.97) 100%)',
-          borderLeft: '2px solid rgba(0,255,136,0.7)',
-          borderTop: '2px solid rgba(0,255,136,0.7)',
-          borderBottom: '2px solid rgba(0,255,136,0.7)',
+          background: '#60a5fa',
+          borderLeft: 'none',
+          borderTop: 'none',
+          borderBottom: 'none',
           borderRadius: '8px 0 0 8px',
-          color: '#00ff88',
+          color: '#ffffff',
           right: isOpen ? '360px' : '0px',
-          boxShadow: '0 0 12px rgba(0,255,136,0.6), inset 0 0 8px rgba(0,255,136,0.08)',
-          textShadow: '0 0 8px rgba(0,255,136,0.8)',
+          boxShadow: 'none',
+          textShadow: 'none',
         }}
       >
         {isOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
