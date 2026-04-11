@@ -17,7 +17,7 @@ const sections = [
     statusKey: 'trading',
   },
   {
-    key: 'goals',
+    key: 'goals'
     name: 'Goals',
     descriptor: 'Define targets, track progress',
     icon: Target,
@@ -767,7 +767,7 @@ export default function LifeHubPage() {
                   style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
                 >i</button>
                 {activeTooltip === card.label && (
-                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)', pointerEvents: 'none' }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
                     {tooltipContent[card.label]}
                   </div>
                 )}
