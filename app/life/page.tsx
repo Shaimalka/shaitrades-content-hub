@@ -722,7 +722,7 @@ export default function LifeHubPage() {
               background: cardBg,
               border: '0.5px solid ' + cardBorder,
               borderRadius: '8px',
-              padding: '11px 13px',
+              padding: '18px 13px',
             }}>
               <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600 }}>
                 {card.label}
