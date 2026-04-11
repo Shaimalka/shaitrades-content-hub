@@ -722,12 +722,12 @@ export default function LifeHubPage() {
               background: cardBg,
               border: '0.5px solid ' + cardBorder,
               borderRadius: '8px',
-              padding: '18px 13px',
+              padding: '20px 16px',
             }}>
-              <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600 }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600 }}>
                 {card.label}
               </div>
-              <div style={{ fontSize: '19px', fontWeight: 600, color: card.color, lineHeight: 1 }}>
+              <div style={{ fontSize: '24px', fontWeight: 600, color: card.color, lineHeight: 1 }}>
                 {card.value}
               </div>
             </div>
@@ -750,9 +750,9 @@ export default function LifeHubPage() {
             borderRadius: '10px',
             padding: '16px',
           }}>
-            <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600 }}>Edge Score</div>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600 }}>Edge Score</div>
             <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-              <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '52px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
+              <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
                 {totalEdgeScore !== null ? totalEdgeScore : '—'}
               </div>
               {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
@@ -818,7 +818,7 @@ export default function LifeHubPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const).map((dayLabel, dayIdx) => (
                   <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '24px repeat(6, 1fr)', gap: '2px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '9px', color: '#aaaaaa' }}>{dayLabel}</span>
+                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{dayLabel}</span>
                     {heatmapWeeks.map((week, wi) => {
                         const cell = week[dayIdx]
                         if (!cell) return null
@@ -842,7 +842,7 @@ export default function LifeHubPage() {
                 {[['Win', '#4ade80'], ['Loss', '#f87171'], ['No trade', isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb']].map(([label, color]) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, border: '0.5px solid ' + cardBorder }} />
-                    <span style={{ fontSize: '9px', color: '#aaaaaa' }}>{label}</span>
+                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{label}</span>
                   </div>
                 ))}
               </div>
@@ -857,7 +857,7 @@ export default function LifeHubPage() {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600 }}>Daily Checklist</div>
-                <span style={{ fontSize: '11px', color: textSecondary }}>{checkedCount}/{checklistItems.length}</span>
+                <span style={{ fontSize: '14px', color: textSecondary }}>{checkedCount}/{checklistItems.length}</span>
               </div>
               {/* Progress bar */}
               <div style={{ height: '3px', background: '#e5e7eb', borderRadius: '2px', marginBottom: '10px', overflow: 'hidden' }}>
@@ -895,7 +895,7 @@ export default function LifeHubPage() {
                       {checkedItems[i] && <Check size={9} color="#ffffff" strokeWidth={3} />}
                     </div>
                     <span style={{
-                      fontSize: '12px',
+                      fontSize: '13px',
                       color: checkedItems[i] ? textMuted : (isDark ? 'rgba(255,255,255,0.7)' : '#0f1117'),
                       textDecoration: checkedItems[i] ? 'line-through' : 'none',
                       transition: 'all 0.15s',
@@ -921,11 +921,11 @@ export default function LifeHubPage() {
               </div>
               {recentTrades.length > 0 ? (
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr>
                         {['Date', 'Symbol', 'Side', 'P&L'].map(h => (
-                          <th key={h} style={{ textAlign: 'left', color: '#aaaaaa', fontWeight: 600, paddingBottom: '6px', borderBottom: '0.5px solid ' + cardBorder, paddingRight: '8px', whiteSpace: 'nowrap' }}>{h}</th>
+                          <th key={h} style={{ textAlign: 'left', color: '#aaaaaa', fontWeight: 600, paddingBottom: '6px', borderBottom: '0.5px solid ' + cardBorder, paddingRight: '8px', whiteSpace: 'nowrap', fontSize: '11px' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -958,19 +958,19 @@ export default function LifeHubPage() {
               padding: '16px',
             }}>
               <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Income This Month</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
+              <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
                 {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : '—'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
-                  <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: tradingIncomePnl >= 0 ? '#16a34a' : '#dc2626' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? '#16a34a' : '#dc2626' }}>
                     {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : '—'}
                   </div>
                 </div>
                 <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
-                  <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: textPrimary }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary }}>
                     {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : '—'}
                   </div>
                 </div>
