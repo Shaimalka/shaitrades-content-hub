@@ -149,6 +149,13 @@ export default function LifeHubPage() {
   const [edgeScore, setEdgeScore] = useState<any>(null)
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
   const [isExpanded, setIsExpanded] = useState(false)
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveTooltip(null)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
   const cardBg = isDark ? '#1a1f2e' : '#ffffff'
@@ -734,8 +741,17 @@ export default function LifeHubPage() {
               borderTop: `3px solid ${statCardBorderColors[card.label] || '#60a5fa'}`,
               boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             }}>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600 }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: isDark ? '#ffffff' : '#111111', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
                 {card.label}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === card.label ? null : card.label) }}
+                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                >i</button>
+                {activeTooltip === card.label && (
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                    {({'NET P&L': 'Total profit or loss for the selected period after all fees.', 'WIN RATE': 'Percentage of trades that closed in profit. Above 50% means more wins than losses.', 'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.', 'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make $2 for every $1 risked.', 'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.'})[card.label]}
+                  </div>
+                )}
               </div>
               <div style={{ fontSize: card.value === '—' ? '32px' : '24px', fontWeight: 600, color: card.value === '—' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
                 {card.value}
@@ -760,7 +776,18 @@ export default function LifeHubPage() {
             borderRadius: '10px',
             padding: '16px',
           }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600 }}>Edge Score</div>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+              Edge Score
+              <button
+                onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'EDGE SCORE' ? null : 'EDGE SCORE') }}
+                style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+              >i</button>
+              {activeTooltip === 'EDGE SCORE' && (
+                <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                  Your trading edge from 0–100 based on Discipline, Consistency, Execution and Risk Control.
+                </div>
+              )}
+            </div>
             <div style={{ textAlign: 'center', marginBottom: '10px' }}>
               <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
                 {totalEdgeScore !== null ? totalEdgeScore : '—'}
@@ -824,7 +851,18 @@ export default function LifeHubPage() {
               borderRadius: '10px',
               padding: '16px',
             }}>
-              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Trading Activity</div>
+              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                Trading Activity
+                <button
+                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'TRADING ACTIVITY' ? null : 'TRADING ACTIVITY') }}
+                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                >i</button>
+                {activeTooltip === 'TRADING ACTIVITY' && (
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                    Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.
+                  </div>
+                )}
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const).map((dayLabel, dayIdx) => (
                   <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '24px repeat(6, 1fr)', gap: '2px', alignItems: 'center' }}>
@@ -926,7 +964,18 @@ export default function LifeHubPage() {
               padding: '16px',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600 }}>Recent Trades</div>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                  Recent Trades
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'RECENT TRADES' ? null : 'RECENT TRADES') }}
+                    style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                  >i</button>
+                  {activeTooltip === 'RECENT TRADES' && (
+                    <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                      Your last logged trades. Click View all to open the full Trading Journal.
+                    </div>
+                  )}
+                </div>
                 <Link href="/life/trading" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'none' }}>View all</Link>
               </div>
               {recentTrades.length > 0 ? (
