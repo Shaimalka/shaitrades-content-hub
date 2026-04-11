@@ -767,7 +767,7 @@ export default function LifeHubPage() {
                   style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
                 >i</button>
                 {activeTooltip === card.label && (
-                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)', pointerEvents: 'none' }}>
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)', pointerEvents: 'none' }} onClick={(e) => e.stopPropagation()}>
                     {tooltipContent[card.label]}
                   </div>
                 )}
@@ -802,7 +802,7 @@ export default function LifeHubPage() {
                 style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
               >i</button>
               {activeTooltip === 'EDGE SCORE' && (
-                <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
                   Your trading edge from 0–100 based on Discipline, Consistency, Execution and Risk Control.
                 </div>
               )}
@@ -877,7 +877,7 @@ export default function LifeHubPage() {
                   style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
                 >i</button>
                 {activeTooltip === 'TRADING ACTIVITY' && (
-                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
                     Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.
                   </div>
                 )}
@@ -990,7 +990,7 @@ export default function LifeHubPage() {
                     style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
                   >i</button>
                   {activeTooltip === 'RECENT TRADES' && (
-                    <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
                       Your last logged trades. Click View all to open the full Trading Journal.
                     </div>
                   )}
