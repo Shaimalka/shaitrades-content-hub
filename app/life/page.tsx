@@ -707,8 +707,8 @@ export default function LifeHubPage() {
       {/* ===== ROW 2: 5 Stat Cards ===== */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
-          gap: '10px',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, minmax(0, 1fr))',
+          gap: '12px',
           marginBottom: '16px',
         }}>
           {[
@@ -723,13 +723,28 @@ export default function LifeHubPage() {
               border: '0.5px solid ' + cardBorder,
               borderRadius: '8px',
               padding: '20px 16px',
+              minWidth: 0,
+              overflow: 'hidden',
             }}>
               <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600 }}>
                 {card.label}
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 600, color: card.color, lineHeight: 1 }}>
-                {card.value}
-              </div>
+              {card.label === 'WIN RATE' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '4px' }}>
+                  <svg width="60" height="34" viewBox="0 0 60 34">
+                    <path d="M 5 30 A 25 25 0 0 1 55 30" fill="none" stroke="#e8e8e2" strokeWidth="5" strokeLinecap="round"/>
+                    <path d="M 5 30 A 25 25 0 0 1 55 30" fill="none" stroke="#60a5fa" strokeWidth="5" strokeLinecap="round"
+                      strokeDasharray={`${winRate ? (winRate / 100) * 78.5 : 0} 78.5`}/>
+                  </svg>
+                  <div style={{ fontSize: '20px', fontWeight: 600, color: winRate ? card.color : '#dc2626', lineHeight: 1, marginTop: '2px' }}>
+                    {winRate !== null ? winRate + '%' : '0%'}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '24px', fontWeight: 600, color: card.color, lineHeight: 1 }}>
+                  {card.value}
+                </div>
+              )}
             </div>
           ))}
         </div>
