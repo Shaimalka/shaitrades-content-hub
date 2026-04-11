@@ -84,7 +84,7 @@ function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boo
   const [progress, setProgress] = useState(100)
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
+  const textPrimary = isDark ? '#ffffff' : '#0f1117'
   useEffect(() => {
     if (!insight.visible) return
     setProgress(100)
@@ -116,7 +116,7 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const textMuted = '#aaaaaa'
   useEffect(() => {
     fetch('/api/tradovate/status')
       .then(r => r.json())
@@ -193,7 +193,7 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
   ]
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const textMuted = '#aaaaaa'
   if (trades.length === 0) return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' }}>
       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>PERFORMANCE SCORE</p>
@@ -225,7 +225,7 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
 function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const textMuted = '#aaaaaa'
   const today = new Date()
   const weeks: { date: string; pnl: number }[][] = []
   let week: { date: string; pnl: number }[] = []
@@ -295,8 +295,8 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
 function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const textPrimary = isDark ? '#ffffff' : '#0f1117'
+  const textMuted = '#aaaaaa'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
   const today = new Date()
   const year = today.getFullYear()
@@ -364,8 +364,8 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
 function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
+  const textMuted = '#aaaaaa'
+  const textPrimary = isDark ? '#ffffff' : '#0f1117'
   const sortedTrades = [...trades].sort((a, b) => {
     const dateCompare = a.date.localeCompare(b.date)
     if (dateCompare !== 0) return dateCompare
@@ -419,8 +419,8 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
   const todayStr = today.toISOString().split('T')[0]
   const surface = isDark ? '#111118' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
+  const textPrimary = isDark ? '#ffffff' : '#0f1117'
+  const textMuted = '#aaaaaa'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
   const dayMap = useMemo(() => {
     const map: Record<string, { pnl: number; trades: Trade[]; tradeCount: number; wins: number; winRate: number }> = {}
@@ -563,13 +563,13 @@ function TradingJournalInner() {
   const lastInsightTime = useRef<number>(0)
   const COOLDOWN_MS = 5 * 60 * 1000
 
-  const bg = isDark ? '#0a0a0f' : '#f8f9fc'
-  const surface = isDark ? '#111118' : '#ffffff'
-  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
+  const bg = isDark ? '#0f1117' : '#f8f8f6'
+  const surface = isDark ? '#1a1f2e' : '#ffffff'
+  const border = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
+  const textPrimary = isDark ? '#ffffff' : '#0f1117'
   const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
-  const inputBg = isDark ? '#1a1a24' : '#f8f9fc'
+  const textMuted = '#aaaaaa'
+  const inputBg = isDark ? '#1a1f2e' : '#ffffff'
 
   const emptyForm = {
     date: new Date().toISOString().split('T')[0],
@@ -1008,7 +1008,7 @@ function TradingJournalInner() {
 
               {/* Action buttons — ADD TRADE full width */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <button type='submit' style={{ width: '100%', height: 48, background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em', transition: 'background 0.15s' }}
+                <button type='submit' style={{ width: '100%', height: 48, background: '#60a5fa', border: 'none', borderRadius: '6px', color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em', transition: 'background 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#1d4ed8')}
                   onMouseLeave={e => (e.currentTarget.style.background = '#2563eb')}>
                   {editingId ? 'UPDATE TRADE' : 'ADD TRADE'}
@@ -1066,7 +1066,7 @@ function TradingJournalInner() {
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.entryPrice}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.exitPrice}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.contracts}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>${trade.pnl.toFixed(2)}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#16a34a' : '#dc2626' }}>${trade.pnl.toFixed(2)}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textMuted }}>{rr}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'Inter, sans-serif', fontSize: 11, color: emotionWord ? emotionWord.color : textMuted }}>{emotionWord ? emotionWord.label : EMOTIONS[(trade.emotion || 3) - 1]}</td>
                         <td style={{ padding: '6px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textMuted }}>{trade.notes}</td>
