@@ -148,6 +148,7 @@ export default function LifeHubPage() {
   })
   const [edgeScore, setEdgeScore] = useState<any>(null)
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
   const cardBg = isDark ? '#1a1f2e' : '#ffffff'
@@ -688,9 +689,17 @@ export default function LifeHubPage() {
               Failed to load brief. Click Refresh to try again.
             </p>
           ) : brief ? (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7 }}>
-              {brief.text}
-            </p>
+            <div>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>
+                {brief.text}
+              </p>
+              <span
+                onClick={() => setIsExpanded(prev => !prev)}
+                style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', cursor: 'pointer', display: 'inline-block', marginTop: '4px' }}
+              >
+                {isExpanded ? 'Show less ←' : 'Read more →'}
+              </span>
+            </div>
           ) : null}
         </div>
 
