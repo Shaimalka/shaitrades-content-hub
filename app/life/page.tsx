@@ -719,8 +719,10 @@ export default function LifeHubPage() {
             { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : '—', color: '#60a5fa' },
           ].map((card, i) => (
             <div key={i} style={{
-              background: cardBg,
-              border: '0.5px solid ' + cardBorder,
+              background: isDark ? '#1a1f2e' : '#ffffff',
+              border: 'none',
+              borderTop: card.label === 'NET P&L' ? '3px solid #60a5fa' : card.label === 'WIN RATE' ? '3px solid #ef4444' : card.label === 'PROFIT FACTOR' ? '3px solid #22c55e' : card.label === 'AVG R:R' ? '3px solid #a78bfa' : '3px solid #60a5fa',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
               borderRadius: '8px',
               padding: '20px 16px',
               minWidth: 0,
@@ -752,9 +754,7 @@ export default function LifeHubPage() {
         {/* ===== ROW 3: 3 Columns ===== */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 1.4fr 1.4fr',
-          gap: '12px',
-          marginBottom: '16px',
+          gridTemplatfontSize: card.value === '—' ? '32px' : '24px', fontWeight: 600, color: card.value === '—' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>          marginBottom: '16px',
           alignItems: 'start',
         }}>
 
