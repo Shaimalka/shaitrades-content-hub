@@ -77,7 +77,7 @@ export default function SettingsPage() {
     const card = isDark ? '#1a1f2e' : '#ffffff'
     const border = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
     const text = isDark ? '#ffffff' : '#0f1117'
-    const muted = '#aaaaaa'
+    const muted = isDark ? '#aaaaaa' : '#0f1117'
     const inputBg = isDark ? '#1a1f2e' : '#ffffff'
     const blue = '#60a5fa'
 
@@ -173,7 +173,7 @@ export default function SettingsPage() {
         fontSize: 10,
         fontWeight: 700,
         letterSpacing: '0.12em',
-        color: muted,
+        color: '#aaaaaa',
         textTransform: 'uppercase',
         marginBottom: 12,
   }
@@ -229,7 +229,7 @@ export default function SettingsPage() {
                                     onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
                                     onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
                                     >
-                                    ← Dashboard
+                                    â Dashboard
                           </Link>
                 </div>
         
@@ -399,7 +399,7 @@ export default function SettingsPage() {
                                                     <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: blue, margin: '0 0 6px' }}>TOTAL CAPITAL</p>
                                                     <p style={{ fontSize: 28, fontWeight: 700, color: blue, fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(totalCapital)}</p>
                                                     <p style={{ fontSize: 11, color: isDark ? '#93bbfc' : '#3b82f6', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
-                                                      {accounts.length} account{accounts.length !== 1 ? 's' : ''} — {propCount} prop firm, {liveCount} live
+                                                      {accounts.length} account{accounts.length !== 1 ? 's' : ''} â {propCount} prop firm, {liveCount} live
                                                     </p>
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -425,7 +425,7 @@ export default function SettingsPage() {
                                 <div style={{ display: 'flex', gap: 10 }}>
                                             <button onClick={() => { setPwMsg(true); setTimeout(() => setPwMsg(false), 3000) }} style={{
                         padding: '8px 16px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '6px',
-                        fontSize: 13, color: '#555555', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                        fontSize: 13, color: '#0f1117', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           Change Password
                                             </button>
