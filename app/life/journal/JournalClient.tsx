@@ -67,22 +67,22 @@ function JournalInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const inputStyle = {
-    background: isDark ? '#1a1a24' : '#f1f4f9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f',
+    background: isDark ? '#1a1f2e' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}`,
+    borderRadius: '8px', color: isDark ? '#ffffff' : '#0f1117',
     fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
     boxSizing: 'border-box' as const,
   }
   const cardStyle = {
-    background: isDark ? '#111118' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    background: isDark ? '#1a1f2e' : '#ffffff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}`,
     borderRadius: '12px', padding: '20px',
   }
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
+  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2', boxShadow: 'none' }
   const labelStyle = {
     fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 500 as const,
-    color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+    color: '#aaaaaa',
     textTransform: 'uppercase' as const, letterSpacing: '0.1em',
     display: 'block' as const, marginBottom: '6px',
   }
@@ -171,7 +171,7 @@ function JournalInner() {
 
   if (!authChecked || loading) {
     return (
-      <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
+      <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
         <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
         <div className="max-w-[900px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
           <div style={{ marginBottom: 32 }}><Skeleton height="40px" width="200px" /></div>
@@ -183,7 +183,7 @@ function JournalInner() {
   }
 
   return (
-    <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
+    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[900px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
@@ -240,7 +240,7 @@ function JournalInner() {
               <input value={morning.intention} onChange={(e) => setMorning((m) => ({ ...m, intention: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. Stay patient. Only A+ setups." />
             </div>
             <button type="submit" disabled={saving === 'morning'}
-              style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, padding: '10px', cursor: saving === 'morning' ? 'not-allowed' : 'pointer', opacity: saving === 'morning' ? 0.6 : 1, transition: 'all 0.2s' }}>
+              style={{ background: '#60a5fa', border: 'none', borderRadius: '6px', color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, padding: '10px', cursor: saving === 'morning' ? 'not-allowed' : 'pointer', opacity: saving === 'morning' ? 0.6 : 1, transition: 'all 0.2s' }}>
               {saving === 'morning' ? 'Saving...' : 'Save Morning Entry'}
             </button>
           </form>
@@ -308,7 +308,7 @@ function JournalInner() {
               </div>
             </div>
             <button type="submit" disabled={saving === 'evening'}
-              style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, padding: '10px', cursor: saving === 'evening' ? 'not-allowed' : 'pointer', opacity: saving === 'evening' ? 0.6 : 1, transition: 'all 0.2s' }}>
+              style={{ background: '#60a5fa', border: 'none', borderRadius: '6px', color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, padding: '10px', cursor: saving === 'evening' ? 'not-allowed' : 'pointer', opacity: saving === 'evening' ? 0.6 : 1, transition: 'all 0.2s' }}>
               {saving === 'evening' ? 'Saving...' : 'Save Evening Entry'}
             </button>
           </form>
@@ -364,7 +364,7 @@ function JournalInner() {
                 const isExpanded = expandedId === entry.id
                 const moodColor = primaryMood ? MOOD_COLORS[primaryMood] : 'rgba(37,99,235,0.4)'
                 return (
-                  <div key={entry.id} style={{ background: (isDark ? '#111118' : '#ffffff'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` , borderLeft: `3px solid ${moodColor}`, borderRadius: 10, overflow: 'hidden' }}>
+                  <div key={entry.id} style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` , borderLeft: `3px solid ${moodColor}`, borderRadius: 10, overflow: 'hidden' }}>
                     <button onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                       style={{ width: '100%', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                       <div style={{ minWidth: 150 }}>
