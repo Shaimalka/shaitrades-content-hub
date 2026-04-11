@@ -455,15 +455,15 @@ export default function LifeHubPage() {
   ]
   const totalEdgeScore = edgeScore?.total ?? null
 
-  // Heatmap: last 12 weeks Mon-Fri
+  // Heatmap: last 6 weeks Mon-Fri
   const today2 = new Date()
   const heatmapWeeks: Array<Array<{ date: string; pnl: number | null; hasTrade: boolean }>> = []
   const startDay = new Date(today2)
-  // Go back to Monday 12 weeks ago
+  // Go back to Monday 6 weeks ago
   const dayOfWeek = startDay.getDay() // 0=Sun
   const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-  startDay.setDate(startDay.getDate() - daysToMonday - 11 * 7)
-  for (let w = 0; w < 12; w++) {
+  startDay.setDate(startDay.getDate() - daysToMonday - 5 * 7)
+  for (let w = 0; w < 6; w++) {
     const week: Array<{ date: string; pnl: number | null; hasTrade: boolean }> = []
     for (let d = 0; d < 5; d++) {
       const cellDate = new Date(startDay)
@@ -817,10 +817,9 @@ export default function LifeHubPage() {
               <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Trading Activity</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const).map((dayLabel, dayIdx) => (
-                  <div key={dayLabel} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ fontSize: '9px', color: '#aaaaaa', width: '22px', flexShrink: 0 }}>{dayLabel}</span>
-                    <div style={{ display: 'flex', gap: '2px', flex: 1 }}>
-                      {heatmapWeeks.map((week, wi) => {
+                  <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '24px repeat(6, 1fr)', gap: '2px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '9px', color: '#aaaaaa' }}>{dayLabel}</span>
+                    {heatmapWeeks.map((week, wi) => {
                         const cell = week[dayIdx]
                         if (!cell) return null
                         return (
@@ -836,7 +835,6 @@ export default function LifeHubPage() {
                           />
                         )
                       })}
-                    </div>
                   </div>
                 ))}
               </div>
