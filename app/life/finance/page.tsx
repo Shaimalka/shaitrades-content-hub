@@ -77,8 +77,8 @@ function useWindowWidth() {
 }
 function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id'>) => void; onCancel: () => void }) {
   const { isDark } = useTheme()
-  const inputStyle = { background: isDark ? '#1a1a24' : '#f1f4f9', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%' } as React.CSSProperties
-  const cardStyle = { background: isDark ? '#111118' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '12px', padding: '20px' } as React.CSSProperties
+  const inputStyle = { background: isDark ? '#1a1a24' : '#f1f4f9', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e8e8e2'}`, borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%' } as React.CSSProperties
+  const cardStyle = { background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '12px', padding: '20px' } as React.CSSProperties
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
   const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const [name, setName] = useState('')
@@ -105,7 +105,7 @@ function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => name.trim() && onSave({ name: name.trim(), color, emoji })} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
+          <button onClick={() => name.trim() && onSave({ name: name.trim(), color, emoji })} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
           <button onClick={onCancel} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
         </div>
       </div>
@@ -266,7 +266,7 @@ function FinancePage() {
   const netWorth = totalAssets - totalLiabilities
   const netWorthPositive = netWorth >= 0
   return (
-    <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
+    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
         {/* Header */}
@@ -295,7 +295,7 @@ function FinancePage() {
           {/* Hero stat */}
           <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, marginBottom: 24 }}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), marginBottom: 12 }}>NET WORTH</p>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 40 : 56, fontWeight: 800, color: netWorthPositive ? '#00c48c' : '#ff4d6a', margin: 0, letterSpacing: '-0.02em', lineHeight: 1 }}>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 40 : 56, fontWeight: 800, color: netWorthPositive ? '#16a34a' : '#dc2626', margin: 0, letterSpacing: '-0.02em', lineHeight: 1 }}>
               {netWorthPositive ? '' : '−'}{fmt(Math.abs(netWorth))}
             </p>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'), marginTop: 8 }}>
@@ -359,7 +359,7 @@ function FinancePage() {
               {assets.length > 0 && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), textTransform: 'uppercase' }}>TOTAL ASSETS</span>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#00c48c' }}>{fmt(totalAssets)}</span>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#16a34a' }}>{fmt(totalAssets)}</span>
                 </div>
               )}
             </div>
@@ -417,7 +417,7 @@ function FinancePage() {
               {liabilities.length > 0 && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), textTransform: 'uppercase' }}>TOTAL LIABILITIES</span>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#ff4d6a' }}>{fmt(totalLiabilities)}</span>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#dc2626' }}>{fmt(totalLiabilities)}</span>
                 </div>
               )}
             </div>
@@ -428,15 +428,15 @@ function FinancePage() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
           <div style={statCardStyle}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TOTAL IN (YTD)</p>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#00c48c', margin: 0 }}>{fmt(totalIn)}</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#16a34a', margin: 0 }}>{fmt(totalIn)}</p>
           </div>
           <div style={statCardStyle}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TOTAL OUT (YTD)</p>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#ff4d6a', margin: 0 }}>{fmt(totalOut)}</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#dc2626', margin: 0 }}>{fmt(totalOut)}</p>
           </div>
           <div style={statCardStyle}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>NET PROFIT (YTD)</p>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: netProfit >= 0 ? '#00c48c' : '#ff4d6a', margin: 0 }}>{netProfit >= 0 ? '+' : ''}{fmt(netProfit)}</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: netProfit >= 0 ? '#16a34a' : '#dc2626', margin: 0 }}>{netProfit >= 0 ? '+' : ''}{fmt(netProfit)}</p>
           </div>
           <div style={statCardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -482,11 +482,11 @@ function FinancePage() {
                 {editingGoal ? (
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <input type="number" value={goalInput} onChange={e => setGoalInput(e.target.value)} style={{ ...inputStyle, width: 120 }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} />
-                    <button onClick={saveGoal} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
+                    <button onClick={saveGoal} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#00c48c', margin: 0 }}>
+                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#16a34a', margin: 0 }}>
                       {fmt(thisMonthTrading)} <span style={{ fontSize: 12, fontWeight: 400, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>/ {fmt(monthlyGoal)}</span>
                     </p>
                     <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: goalPct >= 100 ? '#00c48c' : '#f59e0b' }}>{goalPct}%</span>
@@ -564,7 +564,7 @@ function FinancePage() {
           <button onClick={() => setShowNewStream(!showNewStream)} style={{ padding: '8px 14px', fontFamily: 'Inter, sans-serif', fontSize: 12, borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px dashed rgba(37,99,235,0.3)', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Plus size={10} /> New Stream
           </button>
-          <button onClick={() => setShowForm(!showForm)} style={{ marginLeft: 'auto', background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, minHeight: 44 }}>
+          <button onClick={() => setShowForm(!showForm)} style={{ marginLeft: 'auto', background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, minHeight: 44 }}>
             <Plus size={12} /> Add Entry
           </button>
         </div>
@@ -581,7 +581,7 @@ function FinancePage() {
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>ACCOUNT / SOURCE</label><input value={incomeForm.account} onChange={e => setIncomeForm(f => ({ ...f, account: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. TopStep, Brand Deal" /></div>
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={incomeForm.notes} onChange={e => setIncomeForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
+                <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
                 <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
@@ -598,7 +598,7 @@ function FinancePage() {
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>AMOUNT ($)</label><input type="number" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm(f => ({ ...f, amount: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="99.00" required /></div>
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={expenseForm.notes} onChange={e => setExpenseForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
+                <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
                 <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
