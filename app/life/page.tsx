@@ -150,6 +150,8 @@ export default function LifeHubPage() {
   const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
   const [isExpanded, setIsExpanded] = useState(false)
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [selectedPeriod, setSelectedPeriod] = useState('This week')
 
   useEffect(() => {
     const handleClickOutside = () => setActiveTooltip(null)
@@ -520,6 +522,14 @@ export default function LifeHubPage() {
     'HABIT STREAK': '#60a5fa',
   }
 
+  const tooltipContent: Record<string, string> = {
+    'NET P&L': 'Total profit or loss for the selected period after all fees.',
+    'WIN RATE': 'Percentage of trades that closed in profit. Above 50% means more wins than losses.',
+    'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.',
+    'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make $2 for every $1 risked.',
+    'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.',
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
@@ -549,22 +559,31 @@ export default function LifeHubPage() {
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            <button style={{
-              background: '#eff6ff',
-              border: '1.5px solid #93c5fd',
-              color: '#60a5fa',
-              borderRadius: '6px',
-              padding: '7px 13px',
-              fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}>
-              <Calendar size={12} />
-              {dateRangeStr}
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowCalendar(prev => !prev)} style={{
+                background: '#eff6ff',
+                border: '1.5px solid #93c5fd',
+                color: '#60a5fa',
+                borderRadius: '6px',
+                padding: '7px 13px',
+                fontSize: '12px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <Calendar size={12} />
+                {selectedPeriod === 'This week' ? dateRangeStr : selectedPeriod}
+              </button>
+              {showCalendar && (
+                <div style={{ position: 'absolute', top: '44px', right: '0', background: isDark ? '#1a1f2e' : '#fff', border: '1px solid #e8e8e2', borderRadius: '10px', padding: '12px', zIndex: 300, width: '180px' }}>
+                  {['Today', 'This week', 'This month', 'All time'].map(p => (
+                    <button key={p} onClick={() => { setSelectedPeriod(p); setShowCalendar(false); }} style={{ display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', background: selectedPeriod === p ? '#eff6ff' : 'none', color: selectedPeriod === p ? '#60a5fa' : isDark ? '#fff' : '#111', fontWeight: selectedPeriod === p ? 600 : 400, border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>{p}</button>
+                  ))}
+                </div>
+              )}
+            </div>
             <Link href="/life/trading?new=1" style={{
               backgroundColor: '#60a5fa',
               color: '#ffffff',
@@ -748,8 +767,8 @@ export default function LifeHubPage() {
                   style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
                 >i</button>
                 {activeTooltip === card.label && (
-                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }}>
-                    {({'NET P&L': 'Total profit or loss for the selected period after all fees.', 'WIN RATE': 'Percentage of trades that closed in profit. Above 50% means more wins than losses.', 'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.', 'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make $2 for every $1 risked.', 'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.'})[card.label]}
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)', pointerEvents: 'none' }}>
+                    {tooltipContent[card.label]}
                   </div>
                 )}
               </div>
