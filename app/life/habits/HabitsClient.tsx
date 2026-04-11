@@ -131,7 +131,7 @@ function HabitsInner() {
 
   const inputStyle = {
     background: isDark ? '#1a1a24' : '#f1f4f9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e8e8e2'}`,
     borderRadius: '8px',
     color: isDark ? '#ffffff' : '#0a0a0f',
     fontFamily: 'Inter, sans-serif',
@@ -145,7 +145,7 @@ function HabitsInner() {
   const selectStyle = { ...inputStyle, cursor: 'pointer' } as React.CSSProperties
 
   const cardStyle = {
-    background: isDark ? '#111118' : '#ffffff',
+    background: isDark ? '#1a1f2e' : '#ffffff',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
     borderRadius: '12px',
     padding: '20px',
@@ -325,7 +325,7 @@ function HabitsInner() {
   const stackHabits = (stack: Stack) => validHabits.filter(h => (h.stack || 'Morning') === stack)
 
   return (
-    <div style={{ background: (isDark ? '#0a0a0f' : '#f8f9fc'), minHeight: '100vh' }}>
+    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
@@ -360,7 +360,7 @@ function HabitsInner() {
             <button onClick={() => setShowWeeklyReview(!showWeeklyReview)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 14px', cursor: 'pointer' }}>
               Weekly Review
             </button>
-            <button onClick={() => setShowForm(!showForm)} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => setShowForm(!showForm)} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Plus size={14} /> New Habit
             </button>
           </div>
@@ -487,7 +487,7 @@ function HabitsInner() {
                 <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'); e.target.style.boxShadow = 'none' }} placeholder="One line — why does this habit matter?" />
               </div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
-                <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 20px', cursor: 'pointer' }}>Add Habit</button>
+                <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 20px', cursor: 'pointer' }}>Add Habit</button>
                 <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
@@ -506,7 +506,7 @@ function HabitsInner() {
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveMissReason} disabled={!missReason} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: (isDark ? '#ffffff' : '#0a0a0f'), fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 0', cursor: missReason ? 'pointer' : 'not-allowed', flex: 1, opacity: missReason ? 1 : 0.4 }}>Log It</button>
+                <button onClick={saveMissReason} disabled={!missReason} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 0', cursor: missReason ? 'pointer' : 'not-allowed', flex: 1, opacity: missReason ? 1 : 0.4 }}>Log It</button>
                 <button onClick={() => setMissPrompt(null)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 0', cursor: 'pointer', flex: 1 }}>Skip</button>
               </div>
             </div>
