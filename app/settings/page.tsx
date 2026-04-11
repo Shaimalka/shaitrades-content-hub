@@ -73,13 +73,13 @@ export default function SettingsPage() {
     const [newAccount, setNewAccount] = useState(DEFAULT_ACCOUNT)
     const [accountsLoading, setAccountsLoading] = useState(true)
 
-  const bg = isDark ? '#0a0a0f' : '#f8f9fc'
-    const card = isDark ? '#111118' : '#ffffff'
-    const border = isDark ? '#1e1e2e' : '#e2e8f0'
-    const text = isDark ? '#e2e8f0' : '#1a202c'
-    const muted = isDark ? '#64748b' : '#94a3b8'
-    const inputBg = isDark ? '#0d0d14' : '#f8fafc'
-    const blue = '#2563eb'
+  const bg = isDark ? '#0f1117' : '#f8f8f6'
+    const card = isDark ? '#1a1f2e' : '#ffffff'
+    const border = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
+    const text = isDark ? '#ffffff' : '#0f1117'
+    const muted = '#aaaaaa'
+    const inputBg = isDark ? '#1a1f2e' : '#ffffff'
+    const blue = '#60a5fa'
 
   useEffect(() => {
         async function load() {
@@ -192,7 +192,7 @@ export default function SettingsPage() {
   }
 
   const labelStyle: React.CSSProperties = {
-        fontSize: 12,
+        fontSize: 11,
         color: muted,
         fontFamily: 'Inter, sans-serif',
         marginBottom: 6,
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                                             <div style={{ gridColumn: '1 / -1' }}>
                                                           <label style={labelStyle}>Email</label>
                                                           <input
-                                                            style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed', background: isDark ? '#0a0a0f' : '#f1f5f9' }}
+                                                            style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed', background: isDark ? '#0f1117' : '#f1f5f9' }}
                                                             value={session?.user?.email || ''}
                                                             readOnly
                                                             disabled
@@ -352,7 +352,7 @@ export default function SettingsPage() {
                                 )}
                       
                         {/* Add account form */}
-                                <div style={{ background: isDark ? '#0a0a0f' : '#f1f5f9', border: `1px solid ${border}`, borderRadius: 8, padding: 16 }}>
+                                <div style={{ background: isDark ? '#0f1117' : '#f1f5f9', border: `1px solid ${border}`, borderRadius: 8, padding: 16 }}>
                                             <p style={{ ...sectionLabel, marginBottom: 14 }}>ADD ACCOUNT</p>
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                                                           <div>
@@ -385,8 +385,8 @@ export default function SettingsPage() {
                                                           </div>
                                             </div>
                                             <button onClick={addAccount} style={{
-                        marginTop: 12, padding: '8px 18px', background: blue, color: '#fff', border: 'none', borderRadius: 8,
-                        fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                        marginTop: 12, padding: '8px 18px', background: blue, color: '#ffffff', border: 'none', borderRadius: '6px',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           + Add Account
                                             </button>
@@ -424,13 +424,13 @@ export default function SettingsPage() {
                                 )}
                                 <div style={{ display: 'flex', gap: 10 }}>
                                             <button onClick={() => { setPwMsg(true); setTimeout(() => setPwMsg(false), 3000) }} style={{
-                        padding: '8px 16px', background: 'transparent', border: `1px solid ${border}`, borderRadius: 8,
-                        fontSize: 13, color: text, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                        padding: '8px 16px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '6px',
+                        fontSize: 13, color: '#555555', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           Change Password
                                             </button>
                                             <button onClick={() => signOut({ callbackUrl: '/login' })} style={{
-                        padding: '8px 16px', background: 'transparent', border: '1px solid #ef4444', borderRadius: 8,
+                        padding: '8px 16px', background: 'transparent', border: '1px solid #ef4444', borderRadius: '6px',
                         fontSize: 13, color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
         }}>
                                                           Sign Out
@@ -442,8 +442,8 @@ export default function SettingsPage() {
                 {/* Save */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 <button onClick={save} disabled={saving} style={{
-                      padding: '10px 28px', background: blue, color: '#fff', border: 'none', borderRadius: 8,
-                      fontSize: 14, fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
+                      padding: '10px 28px', background: blue, color: '#ffffff', border: 'none', borderRadius: '6px',
+                      fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
                       fontFamily: 'Inter, sans-serif',
         }}>
                                   {saving ? 'Saving...' : 'Save Settings'}
