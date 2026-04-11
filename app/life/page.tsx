@@ -772,15 +772,17 @@ export default function LifeHubPage() {
               )}
             </div>
             {/* Overall progress bar */}
-            <div style={{ height: '5px', background: '#e5e7eb', borderRadius: '3px', marginBottom: '14px', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%',
-                width: totalEdgeScore !== null ? totalEdgeScore + '%' : '0%',
-                background: '#60a5fa',
-                borderRadius: '3px',
-                transition: 'width 0.5s ease',
-              }} />
-            </div>
+            {(totalEdgeScore !== null && totalEdgeScore !== 0) && (
+              <div style={{ height: '5px', background: '#e5e7eb', borderRadius: '3px', marginBottom: '14px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: totalEdgeScore + '%',
+                  background: '#60a5fa',
+                  borderRadius: '3px',
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+            )}
             {/* Pillar bars */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {pillars.map((p, i) => (
