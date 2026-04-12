@@ -421,7 +421,7 @@ export default function LifeHubPage() {
       const d = new Date(iso)
       return (
         d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-        ' Â· ' +
+        ' · ' +
         d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       )
     } catch {
@@ -436,7 +436,7 @@ export default function LifeHubPage() {
 
   // Date range string
   const now = new Date()
-  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' +
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' +
     new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   // Stats for 5 stat cards
@@ -667,7 +667,7 @@ export default function LifeHubPage() {
                   textTransform: 'uppercase',
                 }}
               >
-                COACH SHAI Â· DAILY BRIEF
+                COACH SHAI · DAILY BRIEF
               </span>
               {brief && (
                 <span style={{ fontFamily: 'var(--font)', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
@@ -731,7 +731,7 @@ export default function LifeHubPage() {
                 onClick={() => setIsExpanded(prev => !prev)}
                 style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', cursor: 'pointer', display: 'inline-block', marginTop: '4px' }}
               >
-                {isExpanded ? 'Show less â' : 'Read more â'}
+                {isExpanded ? 'Show less ←' : 'Read more →'}
               </span>
             </div>
           ) : null}
@@ -746,11 +746,11 @@ export default function LifeHubPage() {
           marginBottom: '16px',
         }}>
           {[
-            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : 'â', color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : textPrimary },
-            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : 'â', color: textPrimary },
-            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : 'â', color: textPrimary },
-            { label: 'AVG R:R', value: avgRR !== null ? avgRR : 'â', color: textPrimary },
-            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : 'â', color: 'var(--brand)' },
+            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : '—', color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : textPrimary },
+            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : '—', color: textPrimary },
+            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : '—', color: textPrimary },
+            { label: 'AVG R:R', value: avgRR !== null ? avgRR : '—', color: textPrimary },
+            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : '—', color: 'var(--brand)' },
           ].map((card, i) => (
             <div key={i} style={{
               background: cardBg,
@@ -772,7 +772,7 @@ export default function LifeHubPage() {
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: card.value === 'â' ? '32px' : '24px', fontWeight: 600, color: card.value === 'â' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
+              <div style={{ fontSize: card.value === '—' ? '32px' : '24px', fontWeight: 600, color: card.value === '—' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
                 {card.value}
               </div>
             </div>
@@ -809,7 +809,7 @@ export default function LifeHubPage() {
             </div>
             <div style={{ textAlign: 'center', marginBottom: '10px' }}>
               <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
-                {totalEdgeScore !== null ? totalEdgeScore : 'â'}
+                {totalEdgeScore !== null ? totalEdgeScore : '—'}
               </div>
               {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
                 <div style={{
@@ -824,7 +824,7 @@ export default function LifeHubPage() {
                   letterSpacing: '0.04em',
                 }}>Sharp</div>
               ) : (
-                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>â</div>
+                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>—</div>
               )}
             </div>
             {/* Overall progress bar */}
@@ -845,7 +845,7 @@ export default function LifeHubPage() {
                 <div key={i}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                     <span style={{ fontSize: '11px', color: textSecondary }}>{p.label}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : 'â'}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : '—'}</span>
                   </div>
                   <div style={{ height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
@@ -1014,9 +1014,9 @@ export default function LifeHubPage() {
                         return (
                           <tr key={i}>
                             <td style={{ padding: '5px 8px 5px 0', color: textSecondary, whiteSpace: 'nowrap' }}>{t.date}</td>
-                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || 'â'}</td>
-                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || 'â'}</td>
-                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'â'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || '—'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || '—'}</td>
+                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : '—'}</td>
                           </tr>
                         )
                       })}
@@ -1037,19 +1037,19 @@ export default function LifeHubPage() {
             }}>
               <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Income This Month</div>
               <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
-                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'â'}
+                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : '—'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
                   <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'â'}
+                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : '—'}
                   </div>
                 </div>
                 <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
                   <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary }}>
-                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'â'}
+                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : '—'}
                   </div>
                 </div>
               </div>
@@ -1059,7 +1059,7 @@ export default function LifeHubPage() {
 
         {/* Footer */}
         <p style={{ marginTop: '24px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', letterSpacing: '0.1em', color: textMuted }}>
-          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
+          {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
         </p>
       </div>
 
