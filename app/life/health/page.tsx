@@ -1,399 +1,1079 @@
 'use client'
-import { useState, useEffect, useCallback, Suspense } from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { Heart, AlertTriangle, Trophy, Zap, Moon, Dumbbell, RefreshCw } from 'lucide-react'
-import LifeHubChat from '@/components/LifeHubChat'
-import { useTheme } from '@/app/contexts/ThemeContext'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Calendar, Plus, Check } from 'lucide-react'
+import Onboarding from '@/app/components/Onboarding'
+import { useTheme } from '@/app/contexts/ThemeContext'
+import Button from '@/app/components/ui/Button'
 
-type HealthLog = { id: string; date: string; weight?: number; sleep?: number; sleepQuality?: number; gym: boolean; energy?: number; notes?: string }
-type CorrelationInsight = { text: string; icon: string; color: string }
+const sections = [
+  {
+    key: 'trading',
+    name: 'Trading Journal',
+    descriptor: 'Track trades, P&L, and patterns',
+    icon: LineChart,
+    href: '/life/trading',
+    statusBadge: 'NO TRADES',
+    statusKey: 'trading',
+  },
+  {
+    key: 'goals',
+    name: 'Goals',
+    descriptor: 'Define targets, track progress',
+    icon: Target,
+    href: '/life/goals',
+    statusBadge: '0 GOALS',
+    statusKey: 'goals',
+  },
+  {
+    key: 'habits',
+    name: 'Habits',
+    descriptor: 'Build streaks, stay consistent',
+    icon: Flame,
+    href: '/life/habits',
+    statusBadge: '0 STREAK',
+    statusKey: 'habits',
+  },
+  {
+    key: 'health',
+    name: 'Health',
+    descriptor: 'Log wellness, track vitals',
+    icon: Heart,
+    href: '/life/health',
+    statusBadge: 'NO LOGS',
+    statusKey: 'health',
+  },
+  {
+    key: 'journal',
+    name: 'Daily Journal',
+    descriptor: 'Reflect, plan, and capture ideas',
+    icon: BookOpen,
+    href: '/life/journal',
+    statusBadge: 'NO ENTRY',
+    statusKey: 'journal',
+  },
+  {
+    key: 'finance',
+    name: 'Finance',
+    descriptor: 'Income, expenses, net worth',
+    icon: DollarSign,
+    href: '/life/finance',
+    statusBadge: '$0 THIS MONTH',
+    statusKey: 'finance',
+  },
+]
 
-const SLEEP_QUALITY_EMOJI = ['','ð´','ðª','ð','ð','ð']
+type SectionStats = {
+  trading: string
+  goals: string
+  habits: string
+  health: string
+  journal: string
+  finance: string
+}
 
-function getWeekStart(offsetWeeks = 0) {
+type LiveMetrics = {
+  pnlWeek: string
+  habitStreak: string
+  weekScore: string
+  incomeMonth: string
+}
+
+type DailyBrief = {
+  text: string
+  generatedAt: string
+  date: string
+}
+
+/** Returns today's date as YYYY-MM-DD in the user's local timezone */
+function getLocalDateString(): string {
   const d = new Date()
-  d.setDate(d.getDate() - 7*offsetWeeks - ((d.getDay()+6)%7))
-  d.setHours(0,0,0,0)
-  return d
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
-
-const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{ width, height, borderRadius, background: 'rgba(128,128,128,0.12)', animation: 'shimmer 1.5s infinite' }} />
-)
-
-function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: React.ElementType; heading: string; subtext: string; isDark?: boolean }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: (isDark ? '#aaaaaa' : '#0f1117'), fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
-    </div>
-  )
-}
+const DISMISS_KEY_PREFIX = 'coachBriefDismissed:'
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  useEffect(() => { const h = () => setWidth(window.innerWidth); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h) }, [])
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
   return width
 }
-
-function CorrelationEngine({ logs }: { logs: HealthLog[] }) {
+export default function LifeHubPage() {
   const { isDark } = useTheme()
-  const cardStyle = {
-    background: isDark ? '#1a1f2e' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}`,
-    borderRadius: '12px', padding: '20px',
-  } as React.CSSProperties
-  const [insights, setInsights] = useState<CorrelationInsight[]>([])
-  const [loading, setLoading] = useState(false)
-  const [analyzed, setAnalyzed] = useState(false)
+  const width = useWindowWidth()
+  const isMobile = width < 768
 
-  const analyze = useCallback(async () => {
-    if (logs.length < 7) return
-    setLoading(true)
-    try {
-      let tradingLogs: any[] = []
-      try { const tr = await fetch('/api/life/trading'); if (tr.ok) { const td = await tr.json(); tradingLogs = td.logs || [] } } catch {}
-      const result: CorrelationInsight[] = []
-      const sorted = [...logs].sort((a,b) => a.date.localeCompare(b.date))
-      if (tradingLogs.length > 0) {
-        const greenDays = tradingLogs.filter((t:any) => t.pnl > 0).map((t:any) => t.date)
-        const greenSleep = sorted.filter(l => greenDays.includes(l.date) && l.sleep)
-        if (greenSleep.length >= 3) {
-          const avgSleep = greenSleep.reduce((s,l) => s+(l.sleep||0),0)/greenSleep.length
-          result.push({ text: 'Your last '+greenSleep.length+' green trading days had '+avgSleep.toFixed(1)+'h sleep avg â rest fuels performance.', icon: 'ð¢', color: '#00c48c' })
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingChecked, setOnboardingChecked] = useState(false)
+
+  const [stats, setStats] = useState<SectionStats>({
+    trading: 'No trades logged',
+    goals: 'No goals set',
+    habits: 'No habits created',
+    health: 'No entries yet',
+    journal: 'No entries yet',
+    finance: 'No entries yet',
+  })
+
+  const [metrics, setMetrics] = useState<LiveMetrics>({
+    pnlWeek: '$0',
+    habitStreak: '0d',
+    weekScore: 'N/A',
+    incomeMonth: '$0',
+  })
+
+  const [journalTodaySaved, setJournalTodaySaved] = useState(false)
+  const [brief, setBrief] = useState<DailyBrief | null>(null)
+  const [briefLoading, setBriefLoading] = useState(true)
+  const [briefNoData, setBriefNoData] = useState(false)
+  const [briefError, setBriefError] = useState(false)
+  const [briefVisible, setBriefVisible] = useState(true)
+  const [briefFading, setBriefFading] = useState(false)
+  const [newBriefAvailable, setNewBriefAvailable] = useState(false)
+  const [tradingData, setTradingData] = useState<any[]>([])
+  const [habitsData, setHabitsData] = useState<{ habits: any[]; completions: any }>({
+    habits: [],
+    completions: {},
+  })
+  const [financeData, setFinanceData] = useState<{ income: any[]; trading: any[] }>({
+    income: [],
+    trading: [],
+  })
+  const [edgeScore, setEdgeScore] = useState<any>(null)
+  const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [selectedPeriod, setSelectedPeriod] = useState('This week')
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveTooltip(null)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
+  const cardBorder = 'var(--border)'
+  const cardBg = 'var(--bg-card)'
+  const bg = 'var(--bg-page)'
+  const textPrimary = 'var(--text-primary)'
+  const textSecondary = 'var(--text-secondary)'
+  const textMuted = 'var(--text-muted)'
+  const dismissIconColor = 'var(--text-muted)'
+  const border = 'var(--border)'
+  useEffect(() => {
+    const today = getLocalDateString()
+    const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
+    if (dismissedDate === today) {
+      setBriefVisible(false)
+      setBriefFading(false)
+    } else if (dismissedDate && dismissedDate !== today) {
+      setNewBriefAvailable(true)
+      setBriefVisible(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    async function checkOnboarding() {
+      try {
+        const res = await fetch('/api/onboarding')
+        const data = await res.json()
+        if (data.complete === false) {
+          setShowOnboarding(true)
         }
+      } catch (e) {
+        // if fails, don't show onboarding
+      } finally {
+        setOnboardingChecked(true)
       }
-      const gymDays = sorted.filter(l => l.gym && l.energy); const noGymDays = sorted.filter(l => !l.gym && l.energy)
-      if (gymDays.length >= 3 && noGymDays.length >= 3) {
-        const gymEnergy = gymDays.reduce((s,l)=>s+(l.energy||0),0)/gymDays.length
-        const noGymEnergy = noGymDays.reduce((s,l)=>s+(l.energy||0),0)/noGymDays.length
-        const diff = (gymEnergy - noGymEnergy).toFixed(1)
-        if (parseFloat(diff) > 0.5) result.push({ text: 'On gym days your energy is +'+diff+' pts higher on avg. Movement is your edge.', icon: 'ðï¸', color: '#2563eb' })
-      }
-      const last7 = sorted.slice(-7).filter(l => l.sleep); const prev7 = sorted.slice(-14,-7).filter(l => l.sleep)
-      if (last7.length >= 4 && prev7.length >= 4) {
-        const avg7 = last7.reduce((s,l)=>s+(l.sleep||0),0)/last7.length
-        const avgp7 = prev7.reduce((s,l)=>s+(l.sleep||0),0)/prev7.length
-        const trend = avg7 > avgp7 ? 'improving' : 'declining'
-        result.push({ text: 'Sleep is '+trend+' â last 7 days avg '+avg7.toFixed(1)+'h vs prior week '+avgp7.toFixed(1)+'h.', icon: trend==='improving'?'ð':'ð', color: trend==='improving'?'#00c48c':'#ff4d6a' })
-      }
-      if (result.length === 0) result.push({ text: 'Keep logging! Patterns need more data to surface â aim for 14+ consistent days.', icon: 'ð', color: '#f59e0b' })
-      setInsights(result); setAnalyzed(true)
-    } catch(e) { console.error('Correlation error:',e) }
-    setLoading(false)
-  }, [logs])
+    }
+    checkOnboarding()
+  }, [])
 
-  useEffect(() => { if (logs.length >= 7 && !analyzed) analyze() }, [logs, analyzed, analyze])
+  const fetchBrief = useCallback(async (refresh = false) => {
+    setBriefLoading(true)
+    setBriefError(false)
+    try {
+      const localDate = getLocalDateString()
+      const res = await fetch('/api/life/daily-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh, localDate }),
+      })
+      const data = await res.json()
+      if (data.noData) {
+        setBriefNoData(true)
+        setBrief(null)
+      } else if (data.brief) {
+        if (typeof data.brief === 'string') {
+          setBrief({ text: data.brief, generatedAt: new Date().toISOString(), date: localDate })
+        } else {
+          setBrief(data.brief as DailyBrief)
+        }
+        setBriefNoData(false)
+      } else {
+        setBriefError(true)
+      }
+    } catch {
+      setBriefError(true)
+    } finally {
+      setBriefLoading(false)
+    }
+  }, [])
 
-  if (logs.length < 7) {
+  useEffect(() => {
+    if (onboardingChecked && !showOnboarding) {
+      const today = getLocalDateString()
+      const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
+      if (dismissedDate !== today) {
+        fetchBrief(false)
+      } else {
+        setBriefLoading(false)
+      }
+    }
+  }, [fetchBrief, onboardingChecked, showOnboarding])
+
+  const handleDismiss = () => {
+    setBriefFading(true)
+    setTimeout(() => {
+      setBriefVisible(false)
+      setBriefFading(false)
+    }, 300)
+    const today = getLocalDateString()
+    localStorage.setItem(DISMISS_KEY_PREFIX + 'date', today)
+    setNewBriefAvailable(false)
+  }
+
+  const handleLoadNewBrief = () => {
+    localStorage.removeItem(DISMISS_KEY_PREFIX + 'date')
+    setNewBriefAvailable(false)
+    setBriefVisible(true)
+    fetchBrief(false)
+  }
+
+  const handleRefresh = () => {
+    localStorage.removeItem(DISMISS_KEY_PREFIX + 'date')
+    setBriefVisible(true)
+    setBriefFading(false)
+    setNewBriefAvailable(false)
+    fetchBrief(true)
+  }
+
+  useEffect(() => {
+    if (!onboardingChecked || showOnboarding) return
+    async function loadStats() {
+      try {
+        const results = await Promise.allSettled([
+          fetch('/api/life/trading').then(r => r.json()),
+          fetch('/api/life/goals').then(r => r.json()),
+          fetch('/api/life/habits').then(r => r.json()),
+          fetch('/api/life/health').then(r => r.json()),
+          fetch('/api/life/journal').then(r => r.json()),
+          fetch('/api/life/finance').then(r => r.json()),
+          fetch('/api/life/review').then(r => r.json()),
+        ])
+
+        const [tradingRes, goalsRes, habitsRes, healthRes, journalRes, financeRes, reviewRes] = results
+
+        const trading = tradingRes.status === 'fulfilled' ? tradingRes.value : {}
+        const goals = goalsRes.status === 'fulfilled' ? goalsRes.value : {}
+        const habits = habitsRes.status === 'fulfilled' ? habitsRes.value : {}
+        const health = healthRes.status === 'fulfilled' ? healthRes.value : {}
+        const journal = journalRes.status === 'fulfilled' ? journalRes.value : {}
+        const finance = financeRes.status === 'fulfilled' ? financeRes.value : {}
+        const review = reviewRes.status === 'fulfilled' ? reviewRes.value : {}
+
+        const tradingLogs = trading.logs || []
+        setTradingData(tradingLogs)
+        const today = getLocalDateString()
+        const todayTrades = tradingLogs.filter((t: any) => t.date === today).length
+        const goalsList = goals.goals || []
+        const activeGoals = goalsList.length
+        const habitsList = habits.habits || []
+        const completions = habits.completions || {}
+        setHabitsData({ habits: habitsList, completions })
+        const todayCompletions = habitsList.filter((h: any) => completions[today]?.[h.id]).length
+        const healthLogs = health.logs || []
+        const lastHealth = healthLogs[healthLogs.length - 1]
+        const healthStatus = lastHealth
+          ? 'Last: ' + new Date(lastHealth.date).toLocaleDateString()
+          : 'No entries yet'
+
+        const journalEntries: any[] = Array.isArray(journal.data)
+          ? journal.data
+          : Array.isArray(journal.entries)
+          ? journal.entries
+          : []
+        const todayJournalEntry = journalEntries.find((e: any) => e.date === today)
+        const hasTodayJournal = !!todayJournalEntry
+        setJournalTodaySaved(hasTodayJournal)
+        const journalStatus = hasTodayJournal
+          ? "Today's entry saved"
+          : journalEntries.length > 0
+          ? 'Last: ' + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
+          : 'No entries yet'
+
+        const incomeEntries = finance.income || []
+        const tradingIncomeEntries = finance.trading || []
+        setFinanceData({ income: incomeEntries, trading: tradingIncomeEntries })
+        const currentMonth = new Date().toISOString().slice(0, 7)
+        const monthlyIncome = incomeEntries
+          .filter((e: any) => e.date?.startsWith(currentMonth))
+          .reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
+
+        const weekStart = new Date()
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+        const weekStartStr = weekStart.toISOString().split('T')[0]
+        const weekPnl = tradingLogs
+          .filter((t: any) => t.date >= weekStartStr)
+          .reduce((sum: number, t: any) => sum + (t.pnl || 0), 0)
+
+        let maxStreak = 0
+        if (habitsList.length > 0) {
+          let streak = 0
+          const d = new Date()
+          for (let i = 0; i < 60; i++) {
+            const ds = d.toISOString().split('T')[0]
+            const done = habitsList.filter((h: any) => completions[ds]?.[h.id]).length
+            if (done > 0) {
+              streak++
+              maxStreak = Math.max(maxStreak, streak)
+            } else {
+              streak = 0
+            }
+            d.setDate(d.getDate() - 1)
+          }
+        }
+
+        const reviews = review.reviews || []
+        const latestReview = reviews[reviews.length - 1]
+        const weekScore = latestReview?.score ?? null
+        if (latestReview?.edgeScore) setEdgeScore(latestReview.edgeScore)
+
+        setStats({
+          trading:
+            todayTrades > 0
+              ? todayTrades + ' trade' + (todayTrades !== 1 ? 's' : '') + ' today'
+              : tradingLogs.length > 0
+              ? tradingLogs.length + ' total trades'
+              : 'No trades logged',
+          goals: activeGoals > 0 ? activeGoals + ' active goal' + (activeGoals !== 1 ? 's' : '') : 'No goals set',
+          habits:
+            habitsList.length > 0
+              ? todayCompletions + '/' + habitsList.length + ' habits done today'
+              : 'No habits created',
+          health: healthStatus,
+          journal: journalStatus,
+          finance: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() + ' income this month' : 'No entries yet',
+        })
+
+        setMetrics({
+          pnlWeek:
+            weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + '$' + Math.abs(weekPnl).toLocaleString() : '$0',
+          habitStreak: maxStreak > 0 ? maxStreak + 'd' : '0d',
+          weekScore: weekScore !== null ? weekScore + '/10' : 'N/A',
+          incomeMonth: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() : '$0',
+        })
+      } catch {
+        // keep defaults
+      }
+    }
+    loadStats()
+  }, [onboardingChecked, showOnboarding])
+
+  if (!onboardingChecked) {
     return (
-      <div style={{ ...cardStyle, marginBottom: 24 }}>
-        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 8 }}>COACH SHAI CORRELATIONS</p>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117') }}>Log at least 7 days of health data to unlock pattern analysis</p>
+      <div
+        style={{
+          minHeight: '100vh',
+          background: bg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '11px',
+            color: textMuted,
+            letterSpacing: '2px',
+          }}
+        >
+          LOADING...
+        </div>
       </div>
     )
   }
 
-  return (
-    <div style={{ ...cardStyle, marginBottom: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>COACH SHAI CORRELATIONS</p>
-        <button onClick={analyze} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', cursor: loading ? 'not-allowed' : 'pointer' }}>
-          <RefreshCw size={10} className={loading?'animate-spin':''} /> {loading?'Analyzing...':'Re-analyze'}
-        </button>
-      </div>
-      {loading && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117') }}>Analyzing patterns...</p>}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {insights.map((ins,i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px', borderRadius: 8, borderLeft: `3px solid ${ins.color}`, background: (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
-            <span style={{ fontSize: 16, flexShrink: 0 }}>{ins.icon}</span>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'), lineHeight: 1.6, margin: 0 }}>{ins.text}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function HealthInner() {
-  const { isDark } = useTheme()
-  const isMobile = useWindowWidth() < 768
-  const searchParams = useSearchParams()
-  const inputStyle = {
-    background: isDark ? '#1a1f2e' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}`,
-    borderRadius: '8px', color: isDark ? '#ffffff' : '#0f1117',
-    fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%',
-  } as React.CSSProperties
-  const cardStyle = {
-    background: isDark ? '#1a1f2e' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}`,
-    borderRadius: '12px', padding: '20px',
-  } as React.CSSProperties
-  const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
-  const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2', boxShadow: 'none' }
-  const tooltipStyle = {
-    background: isDark ? '#1a1f2e' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}`,
-    borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11,
-    color: isDark ? '#ffffff' : '#0f1117'
-  }
-  const axisTickStyle = { fill: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
-  const [logs, setLogs] = useState<HealthLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [chatOpen] = useState(searchParams.get('chat')==='1')
-  const today = new Date().toISOString().split('T')[0]
-  const todayLog = logs.find(l => l.date===today)
-  const [form, setForm] = useState({ weight:'',sleep:'',sleepQuality:3,gym:false,energy:5,notes:'' })
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => { fetch('/api/life/health').then(r=>r.json()).then(d=>{setLogs(d.logs||[]);setLoading(false)}).catch(()=>setLoading(false)) },[])
-  useEffect(() => { if (todayLog) setForm({ weight:todayLog.weight?.toString()||'',sleep:todayLog.sleep?.toString()||'',sleepQuality:todayLog.sleepQuality||3,gym:todayLog.gym,energy:todayLog.energy||5,notes:todayLog.notes||'' }) },[todayLog])
-
-  async function submitLog(e: React.FormEvent) {
-    e.preventDefault(); setSaving(true)
-    const entry: any = {date:today,gym:form.gym,sleepQuality:form.sleepQuality,energy:form.energy,notes:form.notes}
-    if(form.weight) entry.weight=parseFloat(form.weight)
-    if(form.sleep) entry.sleep=parseFloat(form.sleep)
-    const payload = todayLog ? {action:'update',entry:{...entry,id:todayLog.id}} : {entry}
-    const res = await fetch('/api/life/health',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-    const data = await res.json(); setLogs(data.logs||[]); setSaving(false); setSaved(true); setTimeout(()=>setSaved(false),2000)
+  if (showOnboarding) {
+    return <Onboarding onComplete={() => setShowOnboarding(false)} />
   }
 
-  const sorted = [...logs].sort((a,b)=>a.date.localeCompare(b.date))
-  const last30Start = new Date(Date.now()-30*86400000).toISOString().split('T')[0]
-  const last30 = sorted.filter(l=>l.date>=last30Start)
-  const weightData = last30.filter(l=>l.weight).map(l=>({date:l.date.slice(5),weight:l.weight}))
-  const energyData = last30.filter(l=>l.energy).map(l=>({date:l.date.slice(5),energy:l.energy}))
-  const thisWeekStart=getWeekStart(0), lastWeekStart=getWeekStart(1)
-  const thisWeekLogs=logs.filter(l=>new Date(l.date)>=thisWeekStart)
-  const lastWeekLogs=logs.filter(l=>new Date(l.date)>=lastWeekStart&&new Date(l.date)<thisWeekStart)
-  const sleepThis=thisWeekLogs.filter(l=>l.sleep); const sleepLast=lastWeekLogs.filter(l=>l.sleep)
-  const sleepAvgThis=sleepThis.length?(sleepThis.reduce((s,l)=>s+(l.sleep||0),0)/sleepThis.length).toFixed(1):null
-  const sleepAvgLast=sleepLast.length?(sleepLast.reduce((s,l)=>s+(l.sleep||0),0)/sleepLast.length).toFixed(1):null
-  const gymThisWeek=thisWeekLogs.filter(l=>l.gym).length
-  let longestStreak=0,currentStreak=0,prevGymDate:string|null=null
-  for(const l of sorted){ if(l.gym){if(prevGymDate){const diff=(new Date(l.date).getTime()-new Date(prevGymDate).getTime())/86400000;currentStreak=diff===1?currentStreak+1:1}else{currentStreak=1};longestStreak=Math.max(longestStreak,currentStreak);prevGymDate=l.date}else{prevGymDate=null;currentStreak=0} }
-  const sleepWeeks:Record<string,number[]>={}
-  for(const l of logs){if(!l.sleep)continue;const d=new Date(l.date);const wk=new Date(d);wk.setDate(d.getDate()-((d.getDay()+6)%7));const key=wk.toISOString().split('T')[0];if(!sleepWeeks[key])sleepWeeks[key]=[];sleepWeeks[key].push(l.sleep)}
-  const bestSleepWeek=Object.entries(sleepWeeks).reduce((best,[k,arr])=>{const avg=arr.reduce((s,v)=>s+v,0)/arr.length;return avg>best.avg?{week:k,avg}:best},{week:'',avg:0})
-  const recentSorted=sorted.slice(-2)
-  const lowSleepWarning=recentSorted.length===2&&recentSorted.every(l=>l.sleep&&l.sleep<6)
-  const gymStreakBroke=sorted.length>=2&&sorted[sorted.length-2].gym&&!sorted[sorted.length-1].gym
-  const energyAvg=energyData.length?(energyData.reduce((s,l)=>s+(l.energy||0),0)/energyData.length).toFixed(1):null
+  const formatGeneratedAt = (iso: string) => {
+    try {
+      const d = new Date(iso)
+      return (
+        d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+        ' Â· ' +
+        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      )
+    } catch {
+      return iso
+    }
+  }
+
+  const pnlValue = metrics.pnlWeek
+  const pnlColor = pnlValue.startsWith('+') ? 'var(--green)' : pnlValue === '$0' ? textPrimary : 'var(--red)'
+
+  // ---- Derived data for new layout ----
+
+  // Date range string
+  const now = new Date()
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' +
+    new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
+  // Stats for 5 stat cards
+  const allTrades = tradingData
+  const currentMonth2 = new Date().toISOString().slice(0, 7)
+  const monthTrades = allTrades.filter((t: any) => t.date?.startsWith(currentMonth2))
+  const wins = monthTrades.filter((t: any) => (t.pnl || 0) > 0)
+  const losses = monthTrades.filter((t: any) => (t.pnl || 0) < 0)
+  const netPnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
+  const winRate = monthTrades.length > 0 ? Math.round((wins.length / monthTrades.length) * 100) : null
+  const grossWin = wins.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
+  const grossLoss = Math.abs(losses.reduce((s: number, t: any) => s + (t.pnl || 0), 0))
+  const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : wins.length > 0 ? '\u221e' : null
+  const avgRR = wins.length > 0 && losses.length > 0
+    ? ((grossWin / wins.length) / (grossLoss / losses.length)).toFixed(2)
+    : null
+  const habitStreakNum = parseInt(metrics.habitStreak) || 0
+
+  // Edge score pillars
+  const pillars = [
+    { label: 'Discipline', color: 'var(--brand)', score: edgeScore?.discipline ?? null },
+    { label: 'Consistency', color: '#22c55e', score: edgeScore?.consistency ?? null },
+    { label: 'Execution', color: '#c026d3', score: edgeScore?.execution ?? null },
+    { label: 'Risk Control', gradient: 'linear-gradient(to right, #ef4444 0%, #22c55e 100%)', score: edgeScore?.riskControl ?? null },
+  ]
+  const totalEdgeScore = edgeScore?.total ?? null
+
+  // Heatmap: last 6 weeks Mon-Fri
+  const today2 = new Date()
+  const heatmapWeeks: Array<Array<{ date: string; pnl: number | null; hasTrade: boolean }>> = []
+  const startDay = new Date(today2)
+  // Go back to Monday 6 weeks ago
+  const dayOfWeek = startDay.getDay() // 0=Sun
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  startDay.setDate(startDay.getDate() - daysToMonday - 5 * 7)
+  for (let w = 0; w < 6; w++) {
+    const week: Array<{ date: string; pnl: number | null; hasTrade: boolean }> = []
+    for (let d = 0; d < 5; d++) {
+      const cellDate = new Date(startDay)
+      cellDate.setDate(startDay.getDate() + w * 7 + d)
+      const ds = cellDate.toISOString().split('T')[0]
+      const dayTrades = allTrades.filter((t: any) => t.date === ds)
+      const dayPnl = dayTrades.length > 0 ? dayTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0) : null
+      week.push({ date: ds, pnl: dayPnl, hasTrade: dayTrades.length > 0 })
+    }
+    heatmapWeeks.push(week)
+  }
+
+  function heatmapColor(cell: { pnl: number | null; hasTrade: boolean }) {
+    if (!cell.hasTrade) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
+    if (cell.pnl === null) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
+    if (cell.pnl > 500) return 'var(--green)'
+    if (cell.pnl > 0) return '#4ade80'
+    if (cell.pnl > -500) return '#f87171'
+    return 'var(--red)'
+  }
+
+  // Daily checklist items
+  const checklistItems = [
+    'Review trading plan',
+    'Log morning routine',
+    'Check positions',
+    'Journal entry',
+    'Evening review',
+  ]
+  const checkedCount = checkedItems.filter(Boolean).length
+
+  // Recent trades
+  const recentTrades = [...allTrades].sort((a: any, b: any) => (b.date > a.date ? 1 : -1)).slice(0, 5)
+
+  // Income this month
+  const tradingIncomePnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
+  const contentIncome = financeData.income
+    .filter((e: any) => e.date?.startsWith(currentMonth2))
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0)
+  const totalMonthIncome = tradingIncomePnl + contentIncome
+
+  const statCardBorderColors: Record<string, string> = {
+    'NET P&L': 'var(--brand)',
+    'WIN RATE': '#ef4444',
+    'PROFIT FACTOR': '#22c55e',
+    'AVG R:R': '#a78bfa',
+    'HABIT STREAK': 'var(--brand)',
+  }
+
+  const tooltipContent: Record<string, string> = {
+    'NET P&L': 'Total profit or loss for the selected period after all fees.',
+    'WIN RATE': 'Percentage of trades that closed in profit. Above 50% means more wins than losses.',
+    'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.',
+    'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make $2 for every $1 risked.',
+    'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.',
+  }
 
   return (
-    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
-      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+    <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'var(--font)' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+        {/* ===== TOPBAR ROW 1: Title + Buttons ===== */}
+        <div style={{
+          display: 'flex',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: '12px',
+          marginBottom: '16px',
+        }}>
           <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>â LIFE HUB</Link>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Health</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117'), marginTop: 2 }}>Track sleep, energy, gym and wellbeing</p>
+            <h1 style={{
+              fontFamily: 'var(--font-display, Syne, Inter, sans-serif)',
+              fontWeight: 700,
+              fontSize: isMobile ? '22px' : '26px',
+              color: textPrimary,
+              margin: '0 0 3px',
+              letterSpacing: '-0.01em',
+            }}>
+              Personal Command Center
+            </h1>
+            <p style={{ margin: 0, fontSize: '12px', color: textSecondary }}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
           </div>
-          <Heart size={32} style={{ color: '#ff4d6a', opacity: 0.4 }} />
-        </div>
-
-        {/* Alerts */}
-        {lowSleepWarning && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, marginBottom: 24, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
-            <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0 }} />
-            <div>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', marginBottom: 2 }}>COACH SHAI ALERT</p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)') }}>You have had under 6 hours sleep 2 days in a row. Prioritize rest tonight.</p>
-            </div>
-          </div>
-        )}
-        {gymStreakBroke && !lowSleepWarning && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 10, marginBottom: 24, background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.25)' }}>
-            <Zap size={16} style={{ color: '#2563eb', flexShrink: 0 }} />
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)') }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb' }}>COACH SHAI: </span>Gym streak just broke. Get back in tomorrow.</p>
-          </div>
-        )}
-
-        {/* Log Form */}
-        <div style={{ ...cardStyle, marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Today's Log â {today}</h2>
-            {saved && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(0,196,140,0.1)', color: '#00c48c' }}>â SAVED</span>}
-          </div>
-          <form onSubmit={submitLog}>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>âï¸ WEIGHT (lbs) <span style={{ opacity: 0.5, fontSize: 10 }}>optional</span></label>
-                <input type="number" step="0.1" value={form.weight} onChange={e=>setForm(f=>({...f,weight:e.target.value}))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="175.0" />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}><Moon size={11}/> SLEEP HOURS</label>
-                <input type="number" step="0.5" min="0" max="24" value={form.sleep} onChange={e=>setForm(f=>({...f,sleep:e.target.value}))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="7.5" />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}><Dumbbell size={11}/> GYM TODAY?</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" onClick={()=>setForm(f=>({...f,gym:true}))} style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: form.gym ? 'rgba(0,196,140,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.gym ? '#00c48c' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}`, color: form.gym ? '#00c48c' : ('#aaaaaa') }}>â YES</button>
-                  <button type="button" onClick={()=>setForm(f=>({...f,gym:false}))} style={{ flex: 1, padding: '8px', borderRadius: 8, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: !form.gym ? 'rgba(255,77,106,0.1)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${!form.gym ? '#ff4d6a' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}`, color: !form.gym ? '#ff4d6a' : ('#aaaaaa') }}>â NO</button>
-                </div>
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'block', marginBottom: 6 }}>ð´ SLEEP QUALITY</label>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {[1,2,3,4,5].map(q=>(
-                    <button key={q} type="button" onClick={()=>setForm(f=>({...f,sleepQuality:q}))} style={{ flex: 1, padding: '6px', borderRadius: 8, fontSize: 16, cursor: 'pointer', background: form.sleepQuality===q ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.sleepQuality===q ? 'rgba(37,99,235,0.4)' : (isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2')}` }}>
-                      {SLEEP_QUALITY_EMOJI[q]}
-                    </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowCalendar(prev => !prev)} style={{
+                background: 'var(--brand-bg)',
+                border: '1.5px solid #93c5fd',
+                color: 'var(--brand)',
+                borderRadius: '6px',
+                padding: '7px 13px',
+                fontSize: '12px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <Calendar size={12} />
+                {selectedPeriod === 'This week' ? dateRangeStr : selectedPeriod}
+              </button>
+              {showCalendar && (
+                <div style={{ position: 'absolute', top: '44px', right: '0', background: isDark ? '#1a1f2e' : '#fff', border: '1px solid #e8e8e2', borderRadius: '10px', padding: '12px', zIndex: 300, width: '180px' }}>
+                  {['Today', 'This week', 'This month', 'All time'].map(p => (
+                    <button key={p} onClick={() => { setSelectedPeriod(p); setShowCalendar(false); }} style={{ display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', background: selectedPeriod === p ? 'var(--brand-bg)' : 'none', color: selectedPeriod === p ? 'var(--brand)' : isDark ? '#fff' : '#111', fontWeight: selectedPeriod === p ? 600 : 400, border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>{p}</button>
                   ))}
                 </div>
-                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4, textAlign: 'center' }}>{form.sleepQuality}/5 â {['','Poor','Fair','Good','Great','Perfect'][form.sleepQuality]}</p>
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span>â¡ ENERGY LEVEL</span>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#f59e0b' }}>{form.energy}/10</span>
-                </label>
-                <input type="range" min="1" max="10" value={form.energy} onChange={e=>setForm(f=>({...f,energy:parseInt(e.target.value)}))} style={{ width: '100%', accentColor: '#2563eb' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 2 }}>
-                  <span>Dead</span><span>Wired</span>
-                </div>
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: ('#aaaaaa'), display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6 }}>ð NOTE <span style={{ opacity: 0.5, fontSize: 10 }}>optional</span></label>
-                <input value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="How are you feeling?" />
-              </div>
+              )}
             </div>
-            <button type="submit" disabled={saving} style={{ background: saving ? (isDark ? '#1a1f2e' : '#f8f8f6') : '#60a5fa', border: 'none', borderRadius: '6px', color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, padding: '12px', width: '100%', cursor: saving ? 'not-allowed' : 'pointer', minHeight: 44 }}>
-              {saving?'Saving...':todayLog?"Update Today's Log":'Log Today'}
-            </button>
-          </form>
+            <Link href="/life/trading?new=1" style={{
+              backgroundColor: 'var(--brand)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 700,
+              padding: '7px 15px',
+              fontSize: '12px',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              flexShrink: 0,
+            }}>
+              <Plus size={13} />
+              Log Trade
+            </Link>
+          </div>
         </div>
 
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12 }}>
-              <Skeleton height="70px" /><Skeleton height="70px" /><Skeleton height="70px" /><Skeleton height="70px" />
+        {/* ===== COACH SHAI CARD (exact as-is, dark bg) ===== */}
+        {newBriefAvailable && !briefVisible && (
+          <button
+            onClick={handleLoadNewBrief}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              padding: '8px 14px',
+              borderRadius: '999px',
+              background: 'rgba(37,99,235,0.12)',
+              border: '1px solid rgba(37,99,235,0.3)',
+              color: '#2563eb',
+              fontFamily: 'var(--font)',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+            }}
+          >
+            <RefreshCw size={12} />
+            New brief from Coach Shai
+          </button>
+        )}
+
+        <div
+          style={{
+            display: briefVisible || briefFading ? 'block' : 'none',
+            opacity: briefFading ? 0 : 1,
+            transition: 'opacity 0.3s ease',
+            backgroundColor: '#0f1117',
+            color: 'rgba(255,255,255,0.82)',
+            border: '0.5px solid #e8e8e2',
+            borderLeft: '3px solid #2563eb',
+            borderRadius: '10px',
+            padding: isMobile ? '16px' : '24px 28px',
+            marginBottom: '20px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font)',
+                  fontSize: '11px',
+                  letterSpacing: '0.1em',
+                  color: 'var(--brand)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                COACH SHAI Â· DAILY BRIEF
+              </span>
+              {brief && (
+                <span style={{ fontFamily: 'var(--font)', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+                  {formatGeneratedAt(brief.generatedAt)}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Button
+                variant="ghost"
+                onClick={handleRefresh}
+                disabled={briefLoading}
+                style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px', color: 'rgba(255,255,255,0.5)' }}
+              >
+                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
+                Refresh
+              </Button>
+              <button
+                onClick={handleDismiss}
+                aria-label="Dismiss Coach Shai brief"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.35)',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s, color 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ffffff' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)' }}
+              >
+                <X size={14} />
+              </button>
             </div>
           </div>
-        ) : (<>
-          {/* Metric Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
-            <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>SLEEP THIS WEEK</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#a78bfa', margin: 0 }}>{sleepAvgThis?sleepAvgThis+'h avg':'â'}</p>
-              {sleepAvgLast && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>Last week: {sleepAvgLast}h <span style={{ color: parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'#00c48c':'#ff4d6a' }}>{parseFloat(sleepAvgThis||'0')>=parseFloat(sleepAvgLast)?'â':'â'}</span></p>}
+          {briefLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <span style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
             </div>
-            <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>GYM THIS WEEK</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#00c48c', margin: 0 }}>{gymThisWeek}/7</p>
-              <div style={{ display: 'flex', gap: 2, marginTop: 8 }}>
-                {Array.from({length:7},(_,i)=>{const d=new Date(thisWeekStart);d.setDate(d.getDate()+i);const ds=d.toISOString().split('T')[0];const hit=logs.find(l=>l.date===ds)?.gym;return <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: hit?'#00c48c':(isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2') }}/>})}
+          ) : briefNoData ? (
+            <p style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
+              Start logging your data and Coach Shai will brief you every morning.
+            </p>
+          ) : briefError ? (
+            <p style={{ fontFamily: 'var(--font)', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
+              Failed to load brief. Click Refresh to try again.
+            </p>
+          ) : brief ? (
+            <div>
+              <p style={{ fontFamily: 'var(--font)', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>
+                {brief.text}
+              </p>
+              <span
+                onClick={() => setIsExpanded(prev => !prev)}
+                style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', cursor: 'pointer', display: 'inline-block', marginTop: '4px' }}
+              >
+                {isExpanded ? 'Show less â' : 'Read more â'}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+  
+      {/* ===== ROW 2: 5 Stat Cards ===== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+          gap: '10px',
+          marginBottom: '16px',
+        }}>
+          {[
+            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : 'â', color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : textPrimary },
+            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : 'â', color: textPrimary },
+            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : 'â', color: textPrimary },
+            { label: 'AVG R:R', value: avgRR !== null ? avgRR : 'â', color: textPrimary },
+            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : 'â', color: 'var(--brand)' },
+          ].map((card, i) => (
+            <div key={i} style={{
+              background: cardBg,
+              border: 'none',
+              borderRadius: '8px',
+              padding: '20px 16px',
+              borderTop: `3px solid ${statCardBorderColors[card.label] || 'var(--brand)'}`,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: isDark ? '#ffffff' : '#111111', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                {card.label}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === card.label ? null : card.label) }}
+                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                >i</button>
+                {activeTooltip === card.label && (
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                    {tooltipContent[card.label]}
+                  </div>
+                )}
+              </div>
+              <div style={{ fontSize: card.value === 'â' ? '32px' : '24px', fontWeight: 600, color: card.value === 'â' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
+                {card.value}
               </div>
             </div>
-            <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>AVG ENERGY (30d)</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{energyAvg?energyAvg+'/10':'â'}</p>
-              {energyAvg && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>{parseFloat(energyAvg)>=7?'ð High performer':parseFloat(energyAvg)>=5?'â¡ Decent':'ð´ Low â rest up'}</p>}
+          ))}
+        </div>
+
+        {/* ===== ROW 3: 3 Columns ===== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1.4fr 1.4fr',
+          gap: '12px',
+          marginBottom: '16px',
+          alignItems: 'start',
+        }}>
+
+          {/* === COLUMN 1: Edge Score === */}
+          <div style={{
+            background: cardBg,
+            border: '0.5px solid ' + cardBorder,
+            borderRadius: '10px',
+            padding: '16px',
+          }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+              Edge Score
+              <button
+                onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'EDGE SCORE' ? null : 'EDGE SCORE') }}
+                style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+              >i</button>
+              {activeTooltip === 'EDGE SCORE' && (
+                <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                  Your trading edge from 0â100 based on Discipline, Consistency, Execution and Risk Control.
+                </div>
+              )}
             </div>
-            <div style={{ background: (isDark ? '#1a1f2e' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>BEST GYM STREAK</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#2563eb', margin: 0 }}>{longestStreak>0?longestStreak+' days':'â'}</p>
-              {bestSleepWeek.avg>0 && <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 4 }}>Best sleep wk: {bestSleepWeek.avg.toFixed(1)}h</p>}
+            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+              <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
+                {totalEdgeScore !== null ? totalEdgeScore : 'â'}
+              </div>
+              {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
+                <div style={{
+                  display: 'inline-block',
+                  marginTop: '6px',
+                  background: '#dcfce7',
+                  color: 'var(--green)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  borderRadius: '99px',
+                  padding: '2px 10px',
+                  letterSpacing: '0.04em',
+                }}>Sharp</div>
+              ) : (
+                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>â</div>
+              )}
+            </div>
+            {/* Overall progress bar */}
+            {(totalEdgeScore !== null && totalEdgeScore !== 0) && (
+              <div style={{ height: '5px', background: '#e5e7eb', borderRadius: '3px', marginBottom: '14px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: totalEdgeScore + '%',
+                  background: 'var(--brand)',
+                  borderRadius: '3px',
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+            )}
+            {/* Pillar bars */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {pillars.map((p, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                    <span style={{ fontSize: '11px', color: textSecondary }}>{p.label}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : 'â'}</span>
+                  </div>
+                  <div style={{ height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      width: p.score !== null ? p.score + '%' : '0%',
+                      background: p.gradient || p.color,
+                      borderRadius: '2px',
+                      transition: 'width 0.5s ease',
+                    }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Charts */}
-          {weightData.length>1 && (
-            <div style={{ ...cardStyle, marginBottom: 24 }}>
-              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16 }}>30-DAY WEIGHT TREND</h3>
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={weightData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'} />
-                  <XAxis dataKey="date" tick={axisTickStyle}/>
-                  <YAxis domain={['auto','auto']} tick={axisTickStyle}/>
-                  <Tooltip contentStyle={tooltipStyle}/>
-                  <Line type="monotone" dataKey="weight" stroke="#2563eb" strokeWidth={2} dot={{fill:'#2563eb',r:3}}/>
-                </LineChart>
-              </ResponsiveContainer>
+          {/* === COLUMN 2: Heatmap + Checklist === */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Heatmap */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                Trading Activity
+                <button
+                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'TRADING ACTIVITY' ? null : 'TRADING ACTIVITY') }}
+                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                >i</button>
+                {activeTooltip === 'TRADING ACTIVITY' && (
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                    Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const).map((dayLabel, dayIdx) => (
+                  <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '24px repeat(6, 1fr)', gap: '2px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{dayLabel}</span>
+                    {heatmapWeeks.map((week, wi) => {
+                        const cell = week[dayIdx]
+                        if (!cell) return null
+                        return (
+                          <div
+                            key={wi}
+                            title={cell.date + (cell.pnl !== null ? ': $' + cell.pnl.toFixed(0) : '')}
+                            style={{
+                              flex: 1,
+                              height: '11px',
+                              borderRadius: '2px',
+                              background: heatmapColor(cell),
+                            }}
+                          />
+                        )
+                      })}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px', justifyContent: 'flex-end' }}>
+                {[['Win', '#4ade80'], ['Loss', '#f87171'], ['No trade', isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb']].map(([label, color]) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, border: '0.5px solid ' + cardBorder }} />
+                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
-          {energyData.length>2 && (
-            <div style={{ ...cardStyle, marginBottom: 24 }}>
-              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16 }}>ENERGY TREND (30 DAYS)</h3>
-              <ResponsiveContainer width="100%" height={140}>
-                <LineChart data={energyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'} />
-                  <XAxis dataKey="date" tick={axisTickStyle}/>
-                  <YAxis domain={[0,10]} tick={axisTickStyle}/>
-                  <Tooltip contentStyle={tooltipStyle}/>
-                  <Line type="monotone" dataKey="energy" stroke="#f59e0b" strokeWidth={2} dot={{fill:'#f59e0b',r:3}}/>
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
 
-          {/* Energy x Trading insight */}
-          {energyAvg && (
-            <div style={{ ...cardStyle, marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#fff' }}>AI</span>
+            {/* Daily Checklist */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600 }}>Daily Checklist</div>
+                <span style={{ fontSize: '14px', color: textSecondary }}>{checkedCount}/{checklistItems.length}</span>
+              </div>
+              {/* Progress bar */}
+              <div style={{ height: '3px', background: '#e5e7eb', borderRadius: '2px', marginBottom: '10px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: (checkedCount / checklistItems.length * 100) + '%',
+                  background: 'var(--brand)',
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {checklistItems.map((item, i) => (
+                  <div
+                    key={i}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                    onClick={() => {
+                      const next = [...checkedItems]
+                      next[i] = !next[i]
+                      setCheckedItems(next)
+                    }}
+                  >
+                    <div style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '3px',
+                      border: '1.5px solid ' + (checkedItems[i] ? 'var(--brand)' : '#d1d5db'),
+                      background: checkedItems[i] ? 'var(--brand)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 0.15s',
+                    }}>
+                      {checkedItems[i] && <Check size={9} color="#ffffff" strokeWidth={3} />}
+                    </div>
+                    <span style={{
+                      fontSize: '13px',
+                      color: checkedItems[i] ? textMuted : (isDark ? 'rgba(255,255,255,0.7)' : '#0f1117'),
+                      textDecoration: checkedItems[i] ? 'line-through' : 'none',
+                      transition: 'all 0.15s',
+                    }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* === COLUMN 3: Recent Trades + Income === */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Recent Trades */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                  Recent Trades
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'RECENT TRADES' ? null : 'RECENT TRADES') }}
+                    style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                  >i</button>
+                  {activeTooltip === 'RECENT TRADES' && (
+                    <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                      Your last logged trades. Click View all to open the full Trading Journal.
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: '#2563eb', letterSpacing: '0.15em', marginBottom: 6 }}>COACH SHAI â ENERGY x TRADING</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'), lineHeight: 1.6 }}>
-                    {parseFloat(energyAvg)>=7?'Your 30-day energy average is '+energyAvg+'/10 â elite territory. High-energy days correlate strongly with disciplined trade execution.':parseFloat(energyAvg)>=5?'Your 30-day energy average is '+energyAvg+'/10 â middle of the pack. Watch for your lowest-energy days: those are when emotional trading decisions sneak in.':'Your 30-day energy average is '+energyAvg+'/10 â below optimal. Low energy and poor trading decisions are deeply linked. Prioritize 7+ hours sleep.'}
-                  </p>
+                <Link href="/life/trading" style={{ fontSize: '11px', color: 'var(--brand)', textDecoration: 'none' }}>View all</Link>
+              </div>
+              {recentTrades.length > 0 ? (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead>
+                      <tr>
+                        {['Date', 'Symbol', 'Side', 'P&L'].map(h => (
+                          <th key={h} style={{ textAlign: 'left', color: '#aaaaaa', fontWeight: 600, paddingBottom: '6px', borderBottom: '0.5px solid ' + cardBorder, paddingRight: '8px', whiteSpace: 'nowrap', fontSize: '11px' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentTrades.map((t: any, i: number) => {
+                        const tp = t.pnl || 0
+                        const pnlColor2 = tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : textPrimary
+                        return (
+                          <tr key={i}>
+                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, whiteSpace: 'nowrap' }}>{t.date}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || 'â'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || 'â'}</td>
+                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'â'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: textMuted, textAlign: 'center', padding: '16px 0' }}>No trades logged yet</div>
+              )}
+            </div>
+
+            {/* Income This Month */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Income This Month</div>
+              <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
+                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'â'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'â'}
+                  </div>
+                </div>
+                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary }}>
+                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'â'}
+                  </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        </div>
 
-          {/* Personal Bests */}
-          {(longestStreak>0||bestSleepWeek.avg>0) && (
-            <div style={{ ...cardStyle, marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Trophy size={14} style={{ color: '#f59e0b' }} />
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>PERSONAL BESTS</h3>
-              </div>
-              <div style={{ display: 'flex', gap: 24 }}>
-                {longestStreak>0 && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>LONGEST GYM STREAK</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#00c48c' }}>{longestStreak} days ð¥</p></div>}
-                {bestSleepWeek.avg>0 && <div><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>BEST SLEEP WEEK</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#a78bfa' }}>{bestSleepWeek.avg.toFixed(1)}h avg ð</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>w/o {bestSleepWeek.week}</p></div>}
-              </div>
-            </div>
-          )}
-
-          {logs.length===0 && !loading && <EmptyState icon={Heart} heading="NO HEALTH DATA YET" isDark={isDark} subtext="Start logging your sleep, nutrition and energy to see correlations." />}
-          {logs.length>0 && (
-            <div style={{ ...cardStyle, marginBottom: 24, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}` }}>
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>HEALTH LOG Â· {logs.length} ENTRIES</h3>
-              </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-                  <thead><tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'}` }}>{['DATE','WEIGHT','SLEEP','QUALITY','GYM','ENERGY','NOTES'].map(h=>(<th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>))}</tr></thead>
-                  <tbody>{[...logs].reverse().map(log=>(<tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? '#aaaaaa' : '#0f1117') }}>{log.date}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#2563eb' }}>{log.weight||'â'}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#a78bfa' }}>{log.sleep?log.sleep+'h':'â'}</td><td style={{ padding: '10px 16px' }}>{log.sleepQuality?SLEEP_QUALITY_EMOJI[log.sleepQuality]:'â'}</td><td style={{ padding: '10px 16px' }}>{log.gym?<span style={{color:'#00c48c'}}>â</span>:<span style={{color:(isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)')}}>â</span>}</td><td style={{ padding: '10px 16px', fontFamily: 'JetBrains Mono, monospace', color: '#f59e0b' }}>{log.energy||'â'}/10</td><td style={{ padding: '10px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? '#aaaaaa' : '#0f1117'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.notes||'â'}</td></tr>))}</tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </>)}
-        <CorrelationEngine logs={logs} />
+        {/* Footer */}
+        <p style={{ marginTop: '24px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', letterSpacing: '0.1em', color: textMuted }}>
+          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
+        </p>
       </div>
-      <LifeHubChat section="health" apiRoute="/api/life/health/chat" contextData={{logs}} systemPrompt="You are Coach Shai, a health AI. Analyze weight, sleep, gym, and energy trends. Be direct and motivating." defaultOpen={chatOpen} />
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
     </div>
   )
 }
 
-export default function HealthPage() {
-  return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(128,128,128,0.5)' }}>Loading...</div></div>}>
-      <HealthInner />
-    </Suspense>
-  )
-}
