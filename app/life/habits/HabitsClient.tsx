@@ -1,42 +1,100 @@
 'use client'
-import { useState, useEffect, useCallback, Suspense } from 'react'
-import { Plus, Trash2, Flame, CheckSquare, CheckCircle2, X } from 'lucide-react'
-import LifeHubChat from '@/components/LifeHubChat'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Calendar, Plus, Check } from 'lucide-react'
+import Onboarding from '@/app/components/Onboarding'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import Button from '@/app/components/ui/Button'
 
-type Stack = 'Morning' | 'Trading' | 'Evening'
-type Frequency = 'Daily' | 'Weekdays' | 'Custom'
-type Habit = {
-  id: string
-  name: string
-  stack: Stack
-  intention: string
-  twoMinute: string
-  whyMatters: string
-  frequency: Frequency
-  customDays: number[]
-  createdAt: string
-}
-type Completions = Record<string, Record<string, boolean>>
-type MissLog = Record<string, Record<string, string>>
-type MilestoneCard = {
-  habitId: string
-  message: string
-  milestone: number
-}
-
-const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
-  { key: 'Morning', label: 'MORNING STACK', icon: '🌅', color: '#f59e0b' },
-  { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#2563eb' },
-  { key: 'Evening', label: 'EVENING STACK', icon: '🌙', color: '#a78bfa' },
+const sections = [
+  {
+    key: 'trading',
+    name: 'Trading Journal',
+    descriptor: 'Track trades, P&L, and patterns',
+    icon: LineChart,
+    href: '/life/trading',
+    statusBadge: 'NO TRADES',
+    statusKey: 'trading',
+  },
+  {
+    key: 'goals',
+    name: 'Goals',
+    descriptor: 'Define targets, track progress',
+    icon: Target,
+    href: '/life/goals',
+    statusBadge: '0 GOALS',
+    statusKey: 'goals',
+  },
+  {
+    key: 'habits',
+    name: 'Habits',
+    descriptor: 'Build streaks, stay consistent',
+    icon: Flame,
+    href: '/life/habits',
+    statusBadge: '0 STREAK',
+    statusKey: 'habits',
+  },
+  {
+    key: 'health',
+    name: 'Health',
+    descriptor: 'Log wellness, track vitals',
+    icon: Heart,
+    href: '/life/health',
+    statusBadge: 'NO LOGS',
+    statusKey: 'health',
+  },
+  {
+    key: 'journal',
+    name: 'Daily Journal',
+    descriptor: 'Reflect, plan, and capture ideas',
+    icon: BookOpen,
+    href: '/life/journal',
+    statusBadge: 'NO ENTRY',
+    statusKey: 'journal',
+  },
+  {
+    key: 'finance',
+    name: 'Finance',
+    descriptor: 'Income, expenses, net worth',
+    icon: DollarSign,
+    href: '/life/finance',
+    statusBadge: '$0 THIS MONTH',
+    statusKey: 'finance',
+  },
 ]
-const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MISS_KEY = 'life:habits:misslog'
-const MILESTONE_DISMISS_KEY = 'life:habits:milestones:dismissed'
-const MILESTONES = [1, 3, 7, 14, 21, 30, 50, 66, 100]
+
+type SectionStats = {
+  trading: string
+  goals: string
+  habits: string
+  health: string
+  journal: string
+  finance: string
+}
+
+type LiveMetrics = {
+  pnlWeek: string
+  habitStreak: string
+  weekScore: string
+  incomeMonth: string
+}
+
+type DailyBrief = {
+  text: string
+  generatedAt: string
+  date: string
+}
+
+/** Returns today's date as YYYY-MM-DD in the user's local timezone */
+function getLocalDateString(): string {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const DISMISS_KEY_PREFIX = 'coachBriefDismissed:'
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -47,597 +105,974 @@ function useWindowWidth() {
   }, [])
   return width
 }
-
-function getLast30Days(): string[] {
-  const days: string[] = []
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    days.push(d.toISOString().split('T')[0])
-  }
-  return days
-}
-
-function getStreak(habitId: string, completions: Completions): number {
-  const today = new Date()
-  let streak = 0
-  for (let i = 0; i < 365; i++) {
-    const d = new Date(today)
-    d.setDate(d.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
-    if (completions[dateStr]?.[habitId]) {
-      streak++
-    } else {
-      break
-    }
-  }
-  return streak
-}
-
-function getCompletionRate(habitId: string, completions: Completions, days = 7): number {
-  let done = 0
-  for (let i = 0; i < days; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    if (completions[d.toISOString().split('T')[0]]?.[habitId]) done++
-  }
-  return Math.round((done / days) * 100)
-}
-
-function getWeakestDay(habitId: string, completions: Completions): string {
-  const dayCounts: Record<number, { done: number; total: number }> = {}
-  for (let i = 0; i < 7; i++) dayCounts[i] = { done: 0, total: 0 }
-  for (let i = 0; i < 28; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const dow = d.getDay()
-    dayCounts[dow].total++
-    if (completions[d.toISOString().split('T')[0]]?.[habitId]) dayCounts[dow].done++
-  }
-  let weakest = 0, lowestRate = 2
-  for (let day = 0; day < 7; day++) {
-    if (dayCounts[day].total === 0) continue
-    const rate = dayCounts[day].done / dayCounts[day].total
-    if (rate < lowestRate) { lowestRate = rate; weakest = day }
-  }
-  return DAY_NAMES[weakest]
-}
-
-function getFireEmoji(streak: number): string {
-  if (streak >= 66) return '🔥🔥🔥'
-  if (streak >= 30) return '🔥🔥'
-  if (streak >= 7) return '🔥'
-  return ''
-}
-
-const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
-  <div style={{ width, height, borderRadius, background: 'rgba(128,128,128,0.12)', animation: 'shimmer 1.5s infinite', backgroundSize: '200% 100%' }} />
-)
-
-function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: React.ElementType; heading: string; subtext: string; isDark?: boolean }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
-      <Icon size={48} style={{ color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), marginBottom: 16 }} />
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
-    </div>
-  )
-}
-
-function HabitsInner() {
+export default function LifeHubPage() {
   const { isDark } = useTheme()
-  const isMobile = useWindowWidth() < 768
-  const searchParams = useSearchParams()
+  const width = useWindowWidth()
+  const isMobile = width < 768
 
-  const inputStyle = {
-    background: isDark ? '#1a1a24' : '#f1f4f9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e8e8e2'}`,
-    borderRadius: '8px',
-    color: isDark ? '#ffffff' : '#0a0a0f',
-    fontFamily: 'Inter, sans-serif',
-    fontSize: '14px',
-    padding: '8px 12px',
-    outline: 'none',
-    width: '100%',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  } as React.CSSProperties
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingChecked, setOnboardingChecked] = useState(false)
 
-  const selectStyle = { ...inputStyle, cursor: 'pointer' } as React.CSSProperties
-
-  const cardStyle = {
-    background: isDark ? '#1a1f2e' : '#ffffff',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: '12px',
-    padding: '20px',
-  } as React.CSSProperties
-
-  const [habits, setHabits] = useState<Habit[]>([])
-  const [completions, setCompletions] = useState<Completions>({})
-  const [missLog, setMissLog] = useState<MissLog>({})
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [missPrompt, setMissPrompt] = useState<{ habitId: string; date: string } | null>(null)
-  const [missReason, setMissReason] = useState('')
-  const [chatOpen] = useState(searchParams.get('chat') === '1')
-  const [expandedStack, setExpandedStack] = useState<Stack | null>(null)
-  const [showWeeklyReview, setShowWeeklyReview] = useState(false)
-  const [milestoneCards, setMilestoneCards] = useState<Record<string, MilestoneCard>>({})
-  const [fetchingMilestone, setFetchingMilestone] = useState<Record<string, boolean>>({})
-  const [form, setForm] = useState({
-    name: '',
-    stack: 'Morning' as Stack,
-    intention: '',
-    twoMinute: '',
-    whyMatters: '',
-    frequency: 'Daily' as Frequency,
-    customDays: [] as number[],
+  const [stats, setStats] = useState<SectionStats>({
+    trading: 'No trades logged',
+    goals: 'No goals set',
+    habits: 'No habits created',
+    health: 'No entries yet',
+    journal: 'No entries yet',
+    finance: 'No entries yet',
   })
 
-  const today = new Date().toISOString().split('T')[0]
-  const last30 = getLast30Days()
-  const currentHour = new Date().getHours()
+  const [metrics, setMetrics] = useState<LiveMetrics>({
+    pnlWeek: '$0',
+    habitStreak: '0d',
+    weekScore: 'N/A',
+    incomeMonth: '$0',
+  })
 
-  // Load dismissed milestones from localStorage
-  const getDismissedMilestones = useCallback((): Record<string, number> => {
-    try {
-      const stored = localStorage.getItem(MILESTONE_DISMISS_KEY)
-      return stored ? JSON.parse(stored) : {}
-    } catch {
-      return {}
+  const [journalTodaySaved, setJournalTodaySaved] = useState(false)
+  const [brief, setBrief] = useState<DailyBrief | null>(null)
+  const [briefLoading, setBriefLoading] = useState(true)
+  const [briefNoData, setBriefNoData] = useState(false)
+  const [briefError, setBriefError] = useState(false)
+  const [briefVisible, setBriefVisible] = useState(true)
+  const [briefFading, setBriefFading] = useState(false)
+  const [newBriefAvailable, setNewBriefAvailable] = useState(false)
+  const [tradingData, setTradingData] = useState<any[]>([])
+  const [habitsData, setHabitsData] = useState<{ habits: any[]; completions: any }>({
+    habits: [],
+    completions: {},
+  })
+  const [financeData, setFinanceData] = useState<{ income: any[]; trading: any[] }>({
+    income: [],
+    trading: [],
+  })
+  const [edgeScore, setEdgeScore] = useState<any>(null)
+  const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [selectedPeriod, setSelectedPeriod] = useState('This week')
+
+  useEffect(() => {
+    const handleClickOutside = () => setActiveTooltip(null)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
+  const cardBorder = 'var(--border)'
+  const cardBg = 'var(--bg-card)'
+  const bg = 'var(--bg-page)'
+  const textPrimary = 'var(--text-primary)'
+  const textSecondary = 'var(--text-secondary)'
+  const textMuted = 'var(--text-muted)'
+  const dismissIconColor = 'var(--text-muted)'
+  const border = 'var(--border)'
+  useEffect(() => {
+    const today = getLocalDateString()
+    const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
+    if (dismissedDate === today) {
+      setBriefVisible(false)
+      setBriefFading(false)
+    } else if (dismissedDate && dismissedDate !== today) {
+      setNewBriefAvailable(true)
+      setBriefVisible(false)
     }
   }, [])
 
-  const dismissMilestone = useCallback((habitId: string) => {
-    setMilestoneCards(prev => {
-      const next = { ...prev }
-      delete next[habitId]
-      return next
-    })
-    const dismissed = getDismissedMilestones()
-    const card = milestoneCards[habitId]
-    if (card) {
-      dismissed[habitId] = card.milestone
-      try { localStorage.setItem(MILESTONE_DISMISS_KEY, JSON.stringify(dismissed)) } catch {}
-    }
-  }, [milestoneCards, getDismissedMilestones])
-
   useEffect(() => {
-    fetch('/api/life/habits')
-      .then(r => r.json())
-      .then(d => {
-        setHabits(d.habits || [])
-        setCompletions(d.completions || {})
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-    try {
-      const stored = localStorage.getItem(MISS_KEY)
-      if (stored) setMissLog(JSON.parse(stored))
-    } catch {}
-  }, [])
-
-  // Check milestones after completions load
-  useEffect(() => {
-    if (loading || habits.length === 0) return
-    const dismissed = getDismissedMilestones()
-    habits.filter(h => h.name && h.name.trim() !== '').forEach(habit => {
-      const streak = getStreak(habit.id, completions)
-      if (streak === 0) return
-      const currentMilestone = MILESTONES.filter(m => m <= streak).pop() || 0
-      if (currentMilestone === 0) return
-      const lastDismissed = dismissed[habit.id] || 0
-      if (currentMilestone <= lastDismissed) return
-      // Check if we already fetched this
-      if (milestoneCards[habit.id] || fetchingMilestone[habit.id]) return
-      // Fetch milestone message
-      setFetchingMilestone(prev => ({ ...prev, [habit.id]: true }))
-      fetch('/api/life/habits/milestone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ habitName: habit.name, habitId: habit.id, streak }),
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data.message) {
-            setMilestoneCards(prev => ({
-              ...prev,
-              [habit.id]: { habitId: habit.id, message: data.message, milestone: data.milestone },
-            }))
-          }
-          setFetchingMilestone(prev => ({ ...prev, [habit.id]: false }))
-        })
-        .catch(() => setFetchingMilestone(prev => ({ ...prev, [habit.id]: false })))
-    })
-  }, [loading, habits, completions]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function toggleHabit(habitId: string, date: string) {
-    const wasDone = !!completions[date]?.[habitId]
-    setCompletions(prev => {
-      const updated = { ...prev, [date]: { ...(prev[date] || {}) } }
-      if (updated[date][habitId]) {
-        delete updated[date][habitId]
-      } else {
-        updated[date][habitId] = true
-      }
-      return updated
-    })
-    try {
-      const res = await fetch('/api/life/habits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle', date, habitId }),
-      })
-      const data = await res.json()
-      if (data.completions) setCompletions(data.completions)
-    } catch {
-      setCompletions(prev => {
-        const reverted = { ...prev, [date]: { ...(prev[date] || {}) } }
-        if (wasDone) {
-          reverted[date][habitId] = true
-        } else {
-          delete reverted[date][habitId]
+    async function checkOnboarding() {
+      try {
+        const res = await fetch('/api/onboarding')
+        const data = await res.json()
+        if (data.complete === false) {
+          setShowOnboarding(true)
         }
-        return reverted
-      })
+      } catch (e) {
+        // if fails, don't show onboarding
+      } finally {
+        setOnboardingChecked(true)
+      }
     }
-    if (wasDone && date === today && currentHour >= 21) setMissPrompt({ habitId, date })
-  }
+    checkOnboarding()
+  }, [])
 
-  function saveMissReason() {
-    if (!missPrompt || !missReason) return
-    const updated = { ...missLog }
-    if (!updated[missPrompt.date]) updated[missPrompt.date] = {}
-    updated[missPrompt.date][missPrompt.habitId] = missReason
-    setMissLog(updated)
-    try { localStorage.setItem(MISS_KEY, JSON.stringify(updated)) } catch {}
-    setMissPrompt(null)
-    setMissReason('')
-  }
-
-  async function addHabit(e: React.FormEvent) {
-    e.preventDefault()
-    const res = await fetch('/api/life/habits', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entry: { ...form } }),
-    })
-    const data = await res.json()
-    setHabits(data.habits || [])
-    setShowForm(false)
-    setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [] })
-  }
-
-  async function deleteHabit(id: string) {
-    setHabits(prev => prev.filter(h => h.id !== id))
+  const fetchBrief = useCallback(async (refresh = false) => {
+    setBriefLoading(true)
+    setBriefError(false)
     try {
-      const res = await fetch(`/api/life/habits?id=${id}`, { method: 'DELETE' })
+      const localDate = getLocalDateString()
+      const res = await fetch('/api/life/daily-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh, localDate }),
+      })
       const data = await res.json()
-      if (data.habits) setHabits(data.habits)
+      if (data.noData) {
+        setBriefNoData(true)
+        setBrief(null)
+      } else if (data.brief) {
+        if (typeof data.brief === 'string') {
+          setBrief({ text: data.brief, generatedAt: new Date().toISOString(), date: localDate })
+        } else {
+          setBrief(data.brief as DailyBrief)
+        }
+        setBriefNoData(false)
+      } else {
+        setBriefError(true)
+      }
     } catch {
-      fetch('/api/life/habits').then(r => r.json()).then(d => { if (d.habits) setHabits(d.habits) }).catch(() => {})
+      setBriefError(true)
+    } finally {
+      setBriefLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (onboardingChecked && !showOnboarding) {
+      const today = getLocalDateString()
+      const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
+      if (dismissedDate !== today) {
+        fetchBrief(false)
+      } else {
+        setBriefLoading(false)
+      }
+    }
+  }, [fetchBrief, onboardingChecked, showOnboarding])
+
+  const handleDismiss = () => {
+    setBriefFading(true)
+    setTimeout(() => {
+      setBriefVisible(false)
+      setBriefFading(false)
+    }, 300)
+    const today = getLocalDateString()
+    localStorage.setItem(DISMISS_KEY_PREFIX + 'date', today)
+    setNewBriefAvailable(false)
+  }
+
+  const handleLoadNewBrief = () => {
+    localStorage.removeItem(DISMISS_KEY_PREFIX + 'date')
+    setNewBriefAvailable(false)
+    setBriefVisible(true)
+    fetchBrief(false)
+  }
+
+  const handleRefresh = () => {
+    localStorage.removeItem(DISMISS_KEY_PREFIX + 'date')
+    setBriefVisible(true)
+    setBriefFading(false)
+    setNewBriefAvailable(false)
+    fetchBrief(true)
+  }
+
+  useEffect(() => {
+    if (!onboardingChecked || showOnboarding) return
+    async function loadStats() {
+      try {
+        const results = await Promise.allSettled([
+          fetch('/api/life/trading').then(r => r.json()),
+          fetch('/api/life/goals').then(r => r.json()),
+          fetch('/api/life/habits').then(r => r.json()),
+          fetch('/api/life/health').then(r => r.json()),
+          fetch('/api/life/journal').then(r => r.json()),
+          fetch('/api/life/finance').then(r => r.json()),
+          fetch('/api/life/review').then(r => r.json()),
+        ])
+
+        const [tradingRes, goalsRes, habitsRes, healthRes, journalRes, financeRes, reviewRes] = results
+
+        const trading = tradingRes.status === 'fulfilled' ? tradingRes.value : {}
+        const goals = goalsRes.status === 'fulfilled' ? goalsRes.value : {}
+        const habits = habitsRes.status === 'fulfilled' ? habitsRes.value : {}
+        const health = healthRes.status === 'fulfilled' ? healthRes.value : {}
+        const journal = journalRes.status === 'fulfilled' ? journalRes.value : {}
+        const finance = financeRes.status === 'fulfilled' ? financeRes.value : {}
+        const review = reviewRes.status === 'fulfilled' ? reviewRes.value : {}
+
+        const tradingLogs = trading.logs || []
+        setTradingData(tradingLogs)
+        const today = getLocalDateString()
+        const todayTrades = tradingLogs.filter((t: any) => t.date === today).length
+        const goalsList = goals.goals || []
+        const activeGoals = goalsList.length
+        const habitsList = habits.habits || []
+        const completions = habits.completions || {}
+        setHabitsData({ habits: habitsList, completions })
+        const todayCompletions = habitsList.filter((h: any) => completions[today]?.[h.id]).length
+        const healthLogs = health.logs || []
+        const lastHealth = healthLogs[healthLogs.length - 1]
+        const healthStatus = lastHealth
+          ? 'Last: ' + new Date(lastHealth.date).toLocaleDateString()
+          : 'No entries yet'
+
+        const journalEntries: any[] = Array.isArray(journal.data)
+          ? journal.data
+          : Array.isArray(journal.entries)
+          ? journal.entries
+          : []
+        const todayJournalEntry = journalEntries.find((e: any) => e.date === today)
+        const hasTodayJournal = !!todayJournalEntry
+        setJournalTodaySaved(hasTodayJournal)
+        const journalStatus = hasTodayJournal
+          ? "Today's entry saved"
+          : journalEntries.length > 0
+          ? 'Last: ' + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
+          : 'No entries yet'
+
+        const incomeEntries = finance.income || []
+        const tradingIncomeEntries = finance.trading || []
+        setFinanceData({ income: incomeEntries, trading: tradingIncomeEntries })
+        const currentMonth = new Date().toISOString().slice(0, 7)
+        const monthlyIncome = incomeEntries
+          .filter((e: any) => e.date?.startsWith(currentMonth))
+          .reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
+
+        const weekStart = new Date()
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+        const weekStartStr = weekStart.toISOString().split('T')[0]
+        const weekPnl = tradingLogs
+          .filter((t: any) => t.date >= weekStartStr)
+          .reduce((sum: number, t: any) => sum + (t.pnl || 0), 0)
+
+        let maxStreak = 0
+        if (habitsList.length > 0) {
+          let streak = 0
+          const d = new Date()
+          for (let i = 0; i < 60; i++) {
+            const ds = d.toISOString().split('T')[0]
+            const done = habitsList.filter((h: any) => completions[ds]?.[h.id]).length
+            if (done > 0) {
+              streak++
+              maxStreak = Math.max(maxStreak, streak)
+            } else {
+              streak = 0
+            }
+            d.setDate(d.getDate() - 1)
+          }
+        }
+
+        const reviews = review.reviews || []
+        const latestReview = reviews[reviews.length - 1]
+        const weekScore = latestReview?.score ?? null
+        if (latestReview?.edgeScore) setEdgeScore(latestReview.edgeScore)
+
+        setStats({
+          trading:
+            todayTrades > 0
+              ? todayTrades + ' trade' + (todayTrades !== 1 ? 's' : '') + ' today'
+              : tradingLogs.length > 0
+              ? tradingLogs.length + ' total trades'
+              : 'No trades logged',
+          goals: activeGoals > 0 ? activeGoals + ' active goal' + (activeGoals !== 1 ? 's' : '') : 'No goals set',
+          habits:
+            habitsList.length > 0
+              ? todayCompletions + '/' + habitsList.length + ' habits done today'
+              : 'No habits created',
+          health: healthStatus,
+          journal: journalStatus,
+          finance: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() + ' income this month' : 'No entries yet',
+        })
+
+        setMetrics({
+          pnlWeek:
+            weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + '$' + Math.abs(weekPnl).toLocaleString() : '$0',
+          habitStreak: maxStreak > 0 ? maxStreak + 'd' : '0d',
+          weekScore: weekScore !== null ? weekScore + '/10' : 'N/A',
+          incomeMonth: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() : '$0',
+        })
+      } catch {
+        // keep defaults
+      }
+    }
+    loadStats()
+  }, [onboardingChecked, showOnboarding])
+
+  if (!onboardingChecked) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          background: bg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '11px',
+            color: textMuted,
+            letterSpacing: '2px',
+          }}
+        >
+          LOADING...
+        </div>
+      </div>
+    )
+  }
+
+  if (showOnboarding) {
+    return <Onboarding onComplete={() => setShowOnboarding(false)} />
+  }
+
+  const formatGeneratedAt = (iso: string) => {
+    try {
+      const d = new Date(iso)
+      return (
+        d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+        ' Â· ' +
+        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      )
+    } catch {
+      return iso
     }
   }
 
-  const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
-  const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
-  const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
-  const scoreColor = dailyScore === null ? (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : dailyScore >= 80 ? '#00c48c' : dailyScore >= 50 ? '#2563eb' : '#f59e0b'
-  const stackHabits = (stack: Stack) => validHabits.filter(h => (h.stack || 'Morning') === stack)
+  const pnlValue = metrics.pnlWeek
+  const pnlColor = pnlValue.startsWith('+') ? 'var(--green)' : pnlValue === '$0' ? textPrimary : 'var(--red)'
+
+  // ---- Derived data for new layout ----
+
+  // Date range string
+  const now = new Date()
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' +
+    new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+
+  // Stats for 5 stat cards
+  const allTrades = tradingData
+  const currentMonth2 = new Date().toISOString().slice(0, 7)
+  const monthTrades = allTrades.filter((t: any) => t.date?.startsWith(currentMonth2))
+  const wins = monthTrades.filter((t: any) => (t.pnl || 0) > 0)
+  const losses = monthTrades.filter((t: any) => (t.pnl || 0) < 0)
+  const netPnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
+  const winRate = monthTrades.length > 0 ? Math.round((wins.length / monthTrades.length) * 100) : null
+  const grossWin = wins.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
+  const grossLoss = Math.abs(losses.reduce((s: number, t: any) => s + (t.pnl || 0), 0))
+  const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : wins.length > 0 ? '\u221e' : null
+  const avgRR = wins.length > 0 && losses.length > 0
+    ? ((grossWin / wins.length) / (grossLoss / losses.length)).toFixed(2)
+    : null
+  const habitStreakNum = parseInt(metrics.habitStreak) || 0
+
+  // Edge score pillars
+  const pillars = [
+    { label: 'Discipline', color: 'var(--brand)', score: edgeScore?.discipline ?? null },
+    { label: 'Consistency', color: '#22c55e', score: edgeScore?.consistency ?? null },
+    { label: 'Execution', color: '#c026d3', score: edgeScore?.execution ?? null },
+    { label: 'Risk Control', gradient: 'linear-gradient(to right, #ef4444 0%, #22c55e 100%)', score: edgeScore?.riskControl ?? null },
+  ]
+  const totalEdgeScore = edgeScore?.total ?? null
+
+  // Heatmap: last 6 weeks Mon-Fri
+  const today2 = new Date()
+  const heatmapWeeks: Array<Array<{ date: string; pnl: number | null; hasTrade: boolean }>> = []
+  const startDay = new Date(today2)
+  // Go back to Monday 6 weeks ago
+  const dayOfWeek = startDay.getDay() // 0=Sun
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  startDay.setDate(startDay.getDate() - daysToMonday - 5 * 7)
+  for (let w = 0; w < 6; w++) {
+    const week: Array<{ date: string; pnl: number | null; hasTrade: boolean }> = []
+    for (let d = 0; d < 5; d++) {
+      const cellDate = new Date(startDay)
+      cellDate.setDate(startDay.getDate() + w * 7 + d)
+      const ds = cellDate.toISOString().split('T')[0]
+      const dayTrades = allTrades.filter((t: any) => t.date === ds)
+      const dayPnl = dayTrades.length > 0 ? dayTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0) : null
+      week.push({ date: ds, pnl: dayPnl, hasTrade: dayTrades.length > 0 })
+    }
+    heatmapWeeks.push(week)
+  }
+
+  function heatmapColor(cell: { pnl: number | null; hasTrade: boolean }) {
+    if (!cell.hasTrade) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
+    if (cell.pnl === null) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
+    if (cell.pnl > 500) return 'var(--green)'
+    if (cell.pnl > 0) return '#4ade80'
+    if (cell.pnl > -500) return '#f87171'
+    return 'var(--red)'
+  }
+
+  // Daily checklist items
+  const checklistItems = [
+    'Review trading plan',
+    'Log morning routine',
+    'Check positions',
+    'Journal entry',
+    'Evening review',
+  ]
+  const checkedCount = checkedItems.filter(Boolean).length
+
+  // Recent trades
+  const recentTrades = [...allTrades].sort((a: any, b: any) => (b.date > a.date ? 1 : -1)).slice(0, 5)
+
+  // Income this month
+  const tradingIncomePnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
+  const contentIncome = financeData.income
+    .filter((e: any) => e.date?.startsWith(currentMonth2))
+    .reduce((s: number, e: any) => s + (e.amount || 0), 0)
+  const totalMonthIncome = tradingIncomePnl + contentIncome
+
+  const statCardBorderColors: Record<string, string> = {
+    'NET P&L': 'var(--brand)',
+    'WIN RATE': '#ef4444',
+    'PROFIT FACTOR': '#22c55e',
+    'AVG R:R': '#a78bfa',
+    'HABIT STREAK': 'var(--brand)',
+  }
+
+  const tooltipContent: Record<string, string> = {
+    'NET P&L': 'Total profit or loss for the selected period after all fees.',
+    'WIN RATE': 'Percentage of trades that closed in profit. Above 50% means more wins than losses.',
+    'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.',
+    'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make $2 for every $1 risked.',
+    'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.',
+  }
 
   return (
-    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
-      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+    <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'var(--font)' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
-        {/* Daily Habit Score */}
-        <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 24, padding: '32px' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? '56px' : '72px', fontWeight: 700, color: scoreColor, lineHeight: 1, letterSpacing: '-2px' }}>
-            {dailyScore === null ? '--' : `${dailyScore}%`}
-          </span>
-          <span style={{ marginTop: 12, fontSize: 11, letterSpacing: '0.2em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'Inter, sans-serif', textTransform: 'uppercase' }}>
-            TODAY'S HABIT SCORE
-          </span>
-          {dailyScore !== null && (
-            <div style={{ marginTop: 16, width: isMobile ? '160px' : '200px', height: 4, background: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: dailyScore + '%', background: scoreColor, borderRadius: 4, transition: 'width 0.7s ease' }} />
-            </div>
-          )}
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between" style={{ marginBottom: 24 }}>
+        {/* ===== TOPBAR ROW 1: Title + Buttons ===== */}
+        <div style={{
+          display: 'flex',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: '12px',
+          marginBottom: '16px',
+        }}>
           <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: 0 }}>Habits</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 2 }}>Track your daily habit stacks</p>
+            <h1 style={{
+              fontFamily: 'var(--font-display, Syne, Inter, sans-serif)',
+              fontWeight: 700,
+              fontSize: isMobile ? '22px' : '26px',
+              color: textPrimary,
+              margin: '0 0 3px',
+              letterSpacing: '-0.01em',
+            }}>
+              Personal Command Center
+            </h1>
+            <p style={{ margin: 0, fontSize: '12px', color: textSecondary }}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
           </div>
-          <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
-            {validHabits.length > 0 && (
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.3)', color: '#2563eb' }}>
-                {todayCompleted}/{validHabits.length} today
-              </div>
-            )}
-            <button onClick={() => setShowWeeklyReview(!showWeeklyReview)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 14px', cursor: 'pointer' }}>
-              Weekly Review
-            </button>
-            <button onClick={() => setShowForm(!showForm)} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Plus size={14} /> New Habit
-            </button>
-          </div>
-        </div>
-
-        {/* TODAY'S HABITS */}
-        {validHabits.length > 0 && (
-          <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16, margin: '0 0 16px 0' }}>TODAY'S HABITS</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {STACKS.map(({ key, label, icon, color }) => {
-                const stackItems = stackHabits(key)
-                if (stackItems.length === 0) return null
-                return (
-                  <div key={key}>
-                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color, marginBottom: 6, textTransform: 'uppercase' }}>{icon} {label}</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                      {stackItems.map(h => {
-                        const done = completions[today]?.[h.id] || false
-                        const streak = getStreak(h.id, completions)
-                        const fireEmoji = getFireEmoji(streak)
-                        return (
-                          <button key={h.id} onClick={() => toggleHabit(h.id, today)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: `1px solid ${done ? color + '40' : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)')}`, background: done ? color + '12' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'), cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
-                            <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2px solid ${done ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: done ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
-                              {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>✓</span>}
-                            </div>
-                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: done ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : (isDark ? '#ffffff' : '#0a0a0f'), textDecoration: done ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
-                            {streak > 0 && (
-                              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                                <Flame size={10} />{streak}d {fireEmoji}
-                              </span>
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Weekly Review */}
-        {showWeeklyReview && validHabits.length > 0 && (
-          <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
-              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>WEEKLY REVIEW</h3>
-              <button onClick={() => setShowWeeklyReview(false)} style={{ background: 'none', border: 'none', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 12, cursor: 'pointer' }}>Close</button>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {validHabits.map(h => {
-                const rate7 = getCompletionRate(h.id, completions, 7)
-                const weakDay = getWeakestDay(h.id, completions)
-                const streak = getStreak(h.id, completions)
-                return (
-                  <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '10px 12px', borderRadius: 8, background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: 0 }}>{h.name}</p>
-                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: '2px 0 0 0' }}>Weakest day: {weakDay}</p>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: rate7 >= 80 ? '#00c48c' : rate7 >= 50 ? '#f59e0b' : '#ff4d6a', margin: 0 }}>{rate7}%</p>
-                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>7-day rate</p>
-                    </div>
-                    {streak > 0 && (
-                      <div style={{ textAlign: 'center' }}>
-                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f59e0b', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}><Flame size={14} />{streak}</p>
-                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>streak</p>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Add Habit Form */}
-        {showForm && (
-          <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), marginBottom: 16 }}>New Habit</h3>
-            <form onSubmit={addHabit} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>HABIT NAME</label>
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'); e.target.style.boxShadow = 'none' }} placeholder="e.g. Morning meditation" required />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>STACK</label>
-                <select value={form.stack} onChange={e => setForm(f => ({ ...f, stack: e.target.value as Stack }))} style={selectStyle}>
-                  <option value="Morning">Morning Stack</option>
-                  <option value="Trading">Trading Stack</option>
-                  <option value="Evening">Evening Stack</option>
-                </select>
-              </div>
-              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>IMPLEMENTATION INTENTION</label>
-                <input value={form.intention} onChange={e => setForm(f => ({ ...f, intention: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'); e.target.style.boxShadow = 'none' }} placeholder="I will [habit] at [time] in/at [location]" />
-              </div>
-              <div>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>FREQUENCY</label>
-                <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value as Frequency }))} style={selectStyle}>
-                  <option value="Daily">Daily</option>
-                  <option value="Weekdays">Weekdays</option>
-                  <option value="Custom">Custom Days</option>
-                </select>
-              </div>
-              {form.frequency === 'Custom' && (
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>CUSTOM DAYS</label>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {DAY_NAMES.map((d, i) => (
-                      <button key={i} type="button" onClick={() => setForm(f => ({ ...f, customDays: f.customDays.includes(i) ? f.customDays.filter(x => x !== i) : [...f.customDays, i] }))} style={{ flex: 1, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '6px 0', borderRadius: 6, background: form.customDays.includes(i) ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.customDays.includes(i) ? 'rgba(37,99,235,0.5)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)')}`, color: form.customDays.includes(i) ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer' }}>{d}</button>
-                    ))}
-                  </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowCalendar(prev => !prev)} style={{
+                background: 'var(--brand-bg)',
+                border: '1.5px solid #93c5fd',
+                color: 'var(--brand)',
+                borderRadius: '6px',
+                padding: '7px 13px',
+                fontSize: '12px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}>
+                <Calendar size={12} />
+                {selectedPeriod === 'This week' ? dateRangeStr : selectedPeriod}
+              </button>
+              {showCalendar && (
+                <div style={{ position: 'absolute', top: '44px', right: '0', background: isDark ? '#1a1f2e' : '#fff', border: '1px solid #e8e8e2', borderRadius: '10px', padding: '12px', zIndex: 300, width: '180px' }}>
+                  {['Today', 'This week', 'This month', 'All time'].map(p => (
+                    <button key={p} onClick={() => { setSelectedPeriod(p); setShowCalendar(false); }} style={{ display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', background: selectedPeriod === p ? 'var(--brand-bg)' : 'none', color: selectedPeriod === p ? 'var(--brand)' : isDark ? '#fff' : '#111', fontWeight: selectedPeriod === p ? 600 : 400, border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>{p}</button>
+                  ))}
                 </div>
               )}
-              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>2-MINUTE VERSION</label>
-                <input value={form.twoMinute} onChange={e => setForm(f => ({ ...f, twoMinute: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'); e.target.style.boxShadow = 'none' }} placeholder="The 2-minute version of this habit is..." />
-              </div>
-              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
-                <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>WHY IT MATTERS</label>
-                <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))} style={inputStyle} onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.3)' }} onBlur={e => { e.target.style.borderColor = (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'); e.target.style.boxShadow = 'none' }} placeholder="One line — why does this habit matter?" />
-              </div>
-              <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
-                <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 20px', cursor: 'pointer' }}>Add Habit</button>
-                <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
-              </div>
-            </form>
+            </div>
+            <Link href="/life/trading?new=1" style={{
+              backgroundColor: 'var(--brand)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 700,
+              padding: '7px 15px',
+              fontSize: '12px',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              flexShrink: 0,
+            }}>
+              <Plus size={13} />
+              Log Trade
+            </Link>
           </div>
+        </div>
+
+        {/* ===== COACH SHAI CARD (exact as-is, dark bg) ===== */}
+        {newBriefAvailable && !briefVisible && (
+          <button
+            onClick={handleLoadNewBrief}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '12px',
+              padding: '8px 14px',
+              borderRadius: '999px',
+              background: 'rgba(37,99,235,0.12)',
+              border: '1px solid rgba(37,99,235,0.3)',
+              color: '#2563eb',
+              fontFamily: 'var(--font)',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+            }}
+          >
+            <RefreshCw size={12} />
+            New brief from Coach Shai
+          </button>
         )}
 
-        {/* Miss Reason Prompt */}
-        {missPrompt && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.8)' }}>
-            <div style={{ ...cardStyle, maxWidth: 360, width: '100%', margin: '0 16px', padding: 24 }}>
-              <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), marginBottom: 4 }}>Why did you skip today?</h3>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginBottom: 16 }}>{validHabits.find(h => h.id === missPrompt.habitId)?.name}</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                {MISS_REASONS.map(reason => (
-                  <button key={reason} onClick={() => setMissReason(reason)} style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 12px', borderRadius: 8, background: missReason === reason ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'), border: `1px solid ${missReason === reason ? 'rgba(37,99,235,0.5)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)')}`, color: missReason === reason ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer' }}>{reason}</button>
+        <div
+          style={{
+            display: briefVisible || briefFading ? 'block' : 'none',
+            opacity: briefFading ? 0 : 1,
+            transition: 'opacity 0.3s ease',
+            backgroundColor: '#0f1117',
+            color: 'rgba(255,255,255,0.82)',
+            border: '0.5px solid #e8e8e2',
+            borderLeft: '3px solid #2563eb',
+            borderRadius: '10px',
+            padding: isMobile ? '16px' : '24px 28px',
+            marginBottom: '20px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font)',
+                  fontSize: '11px',
+                  letterSpacing: '0.1em',
+                  color: 'var(--brand)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                COACH SHAI Â· DAILY BRIEF
+              </span>
+              {brief && (
+                <span style={{ fontFamily: 'var(--font)', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+                  {formatGeneratedAt(brief.generatedAt)}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Button
+                variant="ghost"
+                onClick={handleRefresh}
+                disabled={briefLoading}
+                style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px', color: 'rgba(255,255,255,0.5)' }}
+              >
+                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
+                Refresh
+              </Button>
+              <button
+                onClick={handleDismiss}
+                aria-label="Dismiss Coach Shai brief"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.35)',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s, color 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ffffff' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+          {briefLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <span style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
+            </div>
+          ) : briefNoData ? (
+            <p style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
+              Start logging your data and Coach Shai will brief you every morning.
+            </p>
+          ) : briefError ? (
+            <p style={{ fontFamily: 'var(--font)', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
+              Failed to load brief. Click Refresh to try again.
+            </p>
+          ) : brief ? (
+            <div>
+              <p style={{ fontFamily: 'var(--font)', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>
+                {brief.text}
+              </p>
+              <span
+                onClick={() => setIsExpanded(prev => !prev)}
+                style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', cursor: 'pointer', display: 'inline-block', marginTop: '4px' }}
+              >
+                {isExpanded ? 'Show less â' : 'Read more â'}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+  
+      {/* ===== ROW 2: 5 Stat Cards ===== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+          gap: '10px',
+          marginBottom: '16px',
+        }}>
+          {[
+            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : 'â', color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : textPrimary },
+            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : 'â', color: textPrimary },
+            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : 'â', color: textPrimary },
+            { label: 'AVG R:R', value: avgRR !== null ? avgRR : 'â', color: textPrimary },
+            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : 'â', color: 'var(--brand)' },
+          ].map((card, i) => (
+            <div key={i} style={{
+              background: cardBg,
+              border: 'none',
+              borderRadius: '8px',
+              padding: '20px 16px',
+              borderTop: `3px solid ${statCardBorderColors[card.label] || 'var(--brand)'}`,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: isDark ? '#ffffff' : '#111111', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                {card.label}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === card.label ? null : card.label) }}
+                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                >i</button>
+                {activeTooltip === card.label && (
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                    {tooltipContent[card.label]}
+                  </div>
+                )}
+              </div>
+              <div style={{ fontSize: card.value === 'â' ? '32px' : '24px', fontWeight: 600, color: card.value === 'â' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
+                {card.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ===== ROW 3: 3 Columns ===== */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1.4fr 1.4fr',
+          gap: '12px',
+          marginBottom: '16px',
+          alignItems: 'start',
+        }}>
+
+          {/* === COLUMN 1: Edge Score === */}
+          <div style={{
+            background: cardBg,
+            border: '0.5px solid ' + cardBorder,
+            borderRadius: '10px',
+            padding: '16px',
+          }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+              Edge Score
+              <button
+                onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'EDGE SCORE' ? null : 'EDGE SCORE') }}
+                style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+              >i</button>
+              {activeTooltip === 'EDGE SCORE' && (
+                <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                  Your trading edge from 0â100 based on Discipline, Consistency, Execution and Risk Control.
+                </div>
+              )}
+            </div>
+            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+              <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
+                {totalEdgeScore !== null ? totalEdgeScore : 'â'}
+              </div>
+              {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
+                <div style={{
+                  display: 'inline-block',
+                  marginTop: '6px',
+                  background: '#dcfce7',
+                  color: 'var(--green)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  borderRadius: '99px',
+                  padding: '2px 10px',
+                  letterSpacing: '0.04em',
+                }}>Sharp</div>
+              ) : (
+                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>â</div>
+              )}
+            </div>
+            {/* Overall progress bar */}
+            {(totalEdgeScore !== null && totalEdgeScore !== 0) && (
+              <div style={{ height: '5px', background: '#e5e7eb', borderRadius: '3px', marginBottom: '14px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: totalEdgeScore + '%',
+                  background: 'var(--brand)',
+                  borderRadius: '3px',
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+            )}
+            {/* Pillar bars */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {pillars.map((p, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                    <span style={{ fontSize: '11px', color: textSecondary }}>{p.label}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : 'â'}</span>
+                  </div>
+                  <div style={{ height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      width: p.score !== null ? p.score + '%' : '0%',
+                      background: p.gradient || p.color,
+                      borderRadius: '2px',
+                      transition: 'width 0.5s ease',
+                    }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* === COLUMN 2: Heatmap + Checklist === */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Heatmap */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                Trading Activity
+                <button
+                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'TRADING ACTIVITY' ? null : 'TRADING ACTIVITY') }}
+                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                >i</button>
+                {activeTooltip === 'TRADING ACTIVITY' && (
+                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                    Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const).map((dayLabel, dayIdx) => (
+                  <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '24px repeat(6, 1fr)', gap: '2px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{dayLabel}</span>
+                    {heatmapWeeks.map((week, wi) => {
+                        const cell = week[dayIdx]
+                        if (!cell) return null
+                        return (
+                          <div
+                            key={wi}
+                            title={cell.date + (cell.pnl !== null ? ': $' + cell.pnl.toFixed(0) : '')}
+                            style={{
+                              flex: 1,
+                              height: '11px',
+                              borderRadius: '2px',
+                              background: heatmapColor(cell),
+                            }}
+                          />
+                        )
+                      })}
+                  </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveMissReason} disabled={!missReason} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 0', cursor: missReason ? 'pointer' : 'not-allowed', flex: 1, opacity: missReason ? 1 : 0.4 }}>Log It</button>
-                <button onClick={() => setMissPrompt(null)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 0', cursor: 'pointer', flex: 1 }}>Skip</button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px', justifyContent: 'flex-end' }}>
+                {[['Win', '#4ade80'], ['Loss', '#f87171'], ['No trade', isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb']].map(([label, color]) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, border: '0.5px solid ' + cardBorder }} />
+                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Daily Checklist */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600 }}>Daily Checklist</div>
+                <span style={{ fontSize: '14px', color: textSecondary }}>{checkedCount}/{checklistItems.length}</span>
+              </div>
+              {/* Progress bar */}
+              <div style={{ height: '3px', background: '#e5e7eb', borderRadius: '2px', marginBottom: '10px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: (checkedCount / checklistItems.length * 100) + '%',
+                  background: 'var(--brand)',
+                  borderRadius: '2px',
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {checklistItems.map((item, i) => (
+                  <div
+                    key={i}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                    onClick={() => {
+                      const next = [...checkedItems]
+                      next[i] = !next[i]
+                      setCheckedItems(next)
+                    }}
+                  >
+                    <div style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '3px',
+                      border: '1.5px solid ' + (checkedItems[i] ? 'var(--brand)' : '#d1d5db'),
+                      background: checkedItems[i] ? 'var(--brand)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 0.15s',
+                    }}>
+                      {checkedItems[i] && <Check size={9} color="#ffffff" strokeWidth={3} />}
+                    </div>
+                    <span style={{
+                      fontSize: '13px',
+                      color: checkedItems[i] ? textMuted : (isDark ? 'rgba(255,255,255,0.7)' : '#0f1117'),
+                      textDecoration: checkedItems[i] ? 'line-through' : 'none',
+                      transition: 'all 0.15s',
+                    }}>{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
 
-        {/* MANAGE HABITS */}
-        {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
-            <Skeleton height="50px" />
-            <Skeleton height="50px" />
-            <Skeleton height="50px" />
-            <Skeleton height="50px" />
-          </div>
-        ) : validHabits.length === 0 ? (
-          <EmptyState icon={CheckCircle2} heading="NO HABITS YET" isDark={isDark} subtext="Add your first habit below to start building your streak." />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: '0 0 4px 0' }}>MANAGE HABITS</h3>
-            {STACKS.map(({ key, label, icon, color }) => {
-              const items = stackHabits(key)
-              if (items.length === 0) return null
-              const isExpanded = expandedStack === key
-              const doneCount = items.filter(h => completions[today]?.[h.id]).length
-              return (
-                <div key={key} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-                  <button onClick={() => setExpandedStack(isExpanded ? null : key)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontSize: 20 }}>{icon}</span>
-                      <div>
-                        <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.15em', color, margin: 0 }}>{label}</h3>
-                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: '2px 0 0 0' }}>{doneCount}/{items.length} done today</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 80, height: 4, background: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: (items.length > 0 ? (doneCount / items.length * 100) : 0) + '%', background: color, borderRadius: 4, transition: 'width 0.5s ease' }} />
-                      </div>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>{isExpanded ? '▲' : '▼'}</span>
-                    </div>
-                  </button>
-                  {isExpanded && (
-                    <div style={{ padding: '0 20px 20px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {items.map(habit => {
-                        const streak = getStreak(habit.id, completions)
-                        const todayDone = completions[today]?.[habit.id] || false
-                        const fireEmoji = getFireEmoji(streak)
-                        const isLockedIn = streak >= 66
-                        const milestoneCard = milestoneCards[habit.id]
-                        return (
-                          <div key={habit.id} style={{ background: (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                              <button onClick={() => toggleHabit(habit.id, today)} style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#2563eb' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')}`, background: todayDone ? '#2563eb' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}>
-                                {todayDone && <span style={{ color: '#ffffff', fontSize: 11, fontWeight: 700 }}>✓</span>}
-                              </button>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: todayDone ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') : (isDark ? '#ffffff' : '#0a0a0f'), textDecoration: todayDone ? 'line-through' : 'none' }}>{habit.name}</span>
-                                  {isLockedIn && (
-                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#f59e0b' }}>LOCKED IN 🏆</span>
-                                  )}
-                                  {streak > 0 && (
-                                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />{streak}d {fireEmoji}</span>
-                                  )}
-                                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 6px', borderRadius: 4, background: (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'), color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') }}>{habit.frequency || 'Daily'}</span>
-                                </div>
-                                {/* Streak progress */}
-                                <div style={{ fontSize: 11, color: '#2563eb', fontFamily: 'JetBrains Mono, monospace', marginTop: 4 }}>
-                                  {streak > 0 ? `Day ${streak} · ${Math.max(0, 66 - streak)} days to make it permanent` : 'Start your streak today'}
-                                </div>
-                                <div style={{ height: 2, background: 'rgba(0,0,0,0.1)', borderRadius: 1, marginTop: 4 }}>
-                                  <div style={{ height: 2, width: `${Math.min(100, (streak / 66) * 100)}%`, background: streak >= 66 ? '#00c48c' : '#2563eb', borderRadius: 1, transition: 'width 0.3s ease' }} />
-                                </div>
-                                {habit.intention && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 4 }}>{habit.intention}</p>}
-                                {habit.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2 }}>{habit.whyMatters}</p>}
-                                {habit.twoMinute && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginTop: 2, fontStyle: 'italic' }}>2-min: {habit.twoMinute}</p>}
-                              </div>
-                              <button onClick={() => deleteHabit(habit.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, flexShrink: 0 }}>
-                                <Trash2 size={11} style={{ color: '#ff4d6a' }} />
-                              </button>
-                            </div>
-
-                            {/* Coach Shai Milestone Card */}
-                            {milestoneCard && (
-                              <div style={{ position: 'relative', background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.2)', borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                                <button onClick={() => dismissMilestone(habit.id)} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), display: 'flex', alignItems: 'center', padding: 2 }}>
-                                  <X size={12} />
-                                </button>
-                                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#2563eb', fontWeight: 700, letterSpacing: '0.15em', marginBottom: 6 }}>⚡ COACH SHAI</p>
-                                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f'), lineHeight: 1.5, margin: 0, paddingRight: 20 }}>{milestoneCard.message.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')}</p>
-                              </div>
-                            )}
-
-                            <div>
-                              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 6 }}>LAST 30 DAYS</p>
-                              <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                                {last30.map(date => {
-                                  const done = completions[date]?.[habit.id]
-                                  const isToday = date === today
-                                  const hasMissReason = missLog[date]?.[habit.id]
-                                  return (
-                                    <button key={date} onClick={() => toggleHabit(habit.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')} style={{ width: 18, height: 18, borderRadius: 3, background: done ? color : hasMissReason ? 'rgba(255,77,106,0.3)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'), border: isToday ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.06)', cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s' }} />
-                                  )
-                                })}
-                              </div>
-                            </div>
-                            {missLog[today]?.[habit.id] && (
-                              <div style={{ marginTop: 8 }}>
-                                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '4px 8px', borderRadius: 6, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>Missed: {missLog[today][habit.id]}</span>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
+          {/* === COLUMN 3: Recent Trades + Income === */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Recent Trades */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                  Recent Trades
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'RECENT TRADES' ? null : 'RECENT TRADES') }}
+                    style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
+                  >i</button>
+                  {activeTooltip === 'RECENT TRADES' && (
+                    <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                      Your last logged trades. Click View all to open the full Trading Journal.
                     </div>
                   )}
                 </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-      <LifeHubChat section="habits" apiRoute="/api/life/habits/chat" contextData={{ habits: validHabits.map(h => ({ name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters, frequency: h.frequency, streak: getStreak(h.id, completions), completionRate7d: getCompletionRate(h.id, completions, 7), completionRate30d: getCompletionRate(h.id, completions, 30), weakestDay: getWeakestDay(h.id, completions), todayDone: !!completions[today]?.[h.id], })), totalHabits: validHabits.length, todayCompleted, missLog, }} systemPrompt="You are Coach Shai, a behavioral science-based habit AI. You have access to the user's habit stacks (Morning, Trading, Evening), each habit's implementation intention, why it matters, current streak, 7-day and 30-day completion rates, weakest day of week, today's status, and miss reason logs. Analyze patterns, celebrate streaks, identify skip patterns, and give sharp, science-backed advice to improve consistency. Reference specific habits and data when coaching." defaultOpen={chatOpen} />
-    </div>
-  )
-}
+                <Link href="/life/trading" style={{ fontSize: '11px', color: 'var(--brand)', textDecoration: 'none' }}>View all</Link>
+              </div>
+              {recentTrades.length > 0 ? (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead>
+                      <tr>
+                        {['Date', 'Symbol', 'Side', 'P&L'].map(h => (
+                          <th key={h} style={{ textAlign: 'left', color: '#aaaaaa', fontWeight: 600, paddingBottom: '6px', borderBottom: '0.5px solid ' + cardBorder, paddingRight: '8px', whiteSpace: 'nowrap', fontSize: '11px' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentTrades.map((t: any, i: number) => {
+                        const tp = t.pnl || 0
+                        const pnlColor2 = tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : textPrimary
+                        return (
+                          <tr key={i}>
+                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, whiteSpace: 'nowrap' }}>{t.date}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || 'â'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || 'â'}</td>
+                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'â'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: textMuted, textAlign: 'center', padding: '16px 0' }}>No trades logged yet</div>
+              )}
+            </div>
 
-export default function HabitsPage() {
-  return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(128,128,128,0.5)' }}>Loading...</div></div>}>
-      <HabitsInner />
-    </Suspense>
+            {/* Income This Month */}
+            <div style={{
+              background: cardBg,
+              border: '0.5px solid ' + cardBorder,
+              borderRadius: '10px',
+              padding: '16px',
+            }}>
+              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Income This Month</div>
+              <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
+                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'â'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'â'}
+                  </div>
+                </div>
+                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary }}>
+                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'â'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <p style={{ marginTop: '24px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', letterSpacing: '0.1em', color: textMuted }}>
+          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
+        </p>
+      </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
+    </div>
   )
 }
