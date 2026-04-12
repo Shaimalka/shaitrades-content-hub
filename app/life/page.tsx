@@ -159,14 +159,14 @@ export default function LifeHubPage() {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
-  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
-  const cardBg = isDark ? '#1a1f2e' : '#ffffff'
-  const bg = isDark ? '#0a0a0f' : '#f8f8f6'
-  const textPrimary = isDark ? '#ffffff' : '#0a0a0f'
-  const textSecondary = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
-  const textMuted = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'
-  const dismissIconColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'
-  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const cardBorder = 'var(--border)'
+  const cardBg = 'var(--bg-card)'
+  const bg = 'var(--bg-page)'
+  const textPrimary = 'var(--text-primary)'
+  const textSecondary = 'var(--text-secondary)'
+  const textMuted = 'var(--text-muted)'
+  const dismissIconColor = 'var(--text-muted)'
+  const border = 'var(--border)'
   useEffect(() => {
     const today = getLocalDateString()
     const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
@@ -421,7 +421,7 @@ export default function LifeHubPage() {
       const d = new Date(iso)
       return (
         d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-        ' · ' +
+        ' Â· ' +
         d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       )
     } catch {
@@ -430,13 +430,13 @@ export default function LifeHubPage() {
   }
 
   const pnlValue = metrics.pnlWeek
-  const pnlColor = pnlValue.startsWith('+') ? '#16a34a' : pnlValue === '$0' ? textPrimary : '#dc2626'
+  const pnlColor = pnlValue.startsWith('+') ? 'var(--green)' : pnlValue === '$0' ? textPrimary : 'var(--red)'
 
   // ---- Derived data for new layout ----
 
   // Date range string
   const now = new Date()
-  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' +
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' +
     new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   // Stats for 5 stat cards
@@ -457,7 +457,7 @@ export default function LifeHubPage() {
 
   // Edge score pillars
   const pillars = [
-    { label: 'Discipline', color: '#60a5fa', score: edgeScore?.discipline ?? null },
+    { label: 'Discipline', color: 'var(--brand)', score: edgeScore?.discipline ?? null },
     { label: 'Consistency', color: '#22c55e', score: edgeScore?.consistency ?? null },
     { label: 'Execution', color: '#c026d3', score: edgeScore?.execution ?? null },
     { label: 'Risk Control', gradient: 'linear-gradient(to right, #ef4444 0%, #22c55e 100%)', score: edgeScore?.riskControl ?? null },
@@ -488,10 +488,10 @@ export default function LifeHubPage() {
   function heatmapColor(cell: { pnl: number | null; hasTrade: boolean }) {
     if (!cell.hasTrade) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
     if (cell.pnl === null) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
-    if (cell.pnl > 500) return '#16a34a'
+    if (cell.pnl > 500) return 'var(--green)'
     if (cell.pnl > 0) return '#4ade80'
     if (cell.pnl > -500) return '#f87171'
-    return '#dc2626'
+    return 'var(--red)'
   }
 
   // Daily checklist items
@@ -515,11 +515,11 @@ export default function LifeHubPage() {
   const totalMonthIncome = tradingIncomePnl + contentIncome
 
   const statCardBorderColors: Record<string, string> = {
-    'NET P&L': '#60a5fa',
+    'NET P&L': 'var(--brand)',
     'WIN RATE': '#ef4444',
     'PROFIT FACTOR': '#22c55e',
     'AVG R:R': '#a78bfa',
-    'HABIT STREAK': '#60a5fa',
+    'HABIT STREAK': 'var(--brand)',
   }
 
   const tooltipContent: Record<string, string> = {
@@ -531,7 +531,7 @@ export default function LifeHubPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'var(--font)' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
         {/* ===== TOPBAR ROW 1: Title + Buttons ===== */}
@@ -561,9 +561,9 @@ export default function LifeHubPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             <div style={{ position: 'relative' }}>
               <button onClick={() => setShowCalendar(prev => !prev)} style={{
-                background: '#eff6ff',
+                background: 'var(--brand-bg)',
                 border: '1.5px solid #93c5fd',
-                color: '#60a5fa',
+                color: 'var(--brand)',
                 borderRadius: '6px',
                 padding: '7px 13px',
                 fontSize: '12px',
@@ -579,13 +579,13 @@ export default function LifeHubPage() {
               {showCalendar && (
                 <div style={{ position: 'absolute', top: '44px', right: '0', background: isDark ? '#1a1f2e' : '#fff', border: '1px solid #e8e8e2', borderRadius: '10px', padding: '12px', zIndex: 300, width: '180px' }}>
                   {['Today', 'This week', 'This month', 'All time'].map(p => (
-                    <button key={p} onClick={() => { setSelectedPeriod(p); setShowCalendar(false); }} style={{ display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', background: selectedPeriod === p ? '#eff6ff' : 'none', color: selectedPeriod === p ? '#60a5fa' : isDark ? '#fff' : '#111', fontWeight: selectedPeriod === p ? 600 : 400, border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>{p}</button>
+                    <button key={p} onClick={() => { setSelectedPeriod(p); setShowCalendar(false); }} style={{ display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', background: selectedPeriod === p ? 'var(--brand-bg)' : 'none', color: selectedPeriod === p ? 'var(--brand)' : isDark ? '#fff' : '#111', fontWeight: selectedPeriod === p ? 600 : 400, border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>{p}</button>
                   ))}
                 </div>
               )}
             </div>
             <Link href="/life/trading?new=1" style={{
-              backgroundColor: '#60a5fa',
+              backgroundColor: 'var(--brand)',
               color: '#ffffff',
               border: 'none',
               borderRadius: '6px',
@@ -618,7 +618,7 @@ export default function LifeHubPage() {
               background: 'rgba(37,99,235,0.12)',
               border: '1px solid rgba(37,99,235,0.3)',
               color: '#2563eb',
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'var(--font)',
               fontSize: '12px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -659,18 +659,18 @@ export default function LifeHubPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span
                 style={{
-                  fontFamily: 'Inter, sans-serif',
+                  fontFamily: 'var(--font)',
                   fontSize: '11px',
                   letterSpacing: '0.1em',
-                  color: '#60a5fa',
+                  color: 'var(--brand)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                 }}
               >
-                COACH SHAI · DAILY BRIEF
+                COACH SHAI Â· DAILY BRIEF
               </span>
               {brief && (
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+                <span style={{ fontFamily: 'var(--font)', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
                   {formatGeneratedAt(brief.generatedAt)}
                 </span>
               )}
@@ -712,26 +712,26 @@ export default function LifeHubPage() {
           {briefLoading ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
+              <span style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
             </div>
           ) : briefNoData ? (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
+            <p style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
               Start logging your data and Coach Shai will brief you every morning.
             </p>
           ) : briefError ? (
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font)', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
               Failed to load brief. Click Refresh to try again.
             </p>
           ) : brief ? (
             <div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>
+              <p style={{ fontFamily: 'var(--font)', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>
                 {brief.text}
               </p>
               <span
                 onClick={() => setIsExpanded(prev => !prev)}
                 style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', cursor: 'pointer', display: 'inline-block', marginTop: '4px' }}
               >
-                {isExpanded ? 'Show less ←' : 'Read more →'}
+                {isExpanded ? 'Show less â' : 'Read more â'}
               </span>
             </div>
           ) : null}
@@ -746,18 +746,18 @@ export default function LifeHubPage() {
           marginBottom: '16px',
         }}>
           {[
-            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : '—', color: netPnl > 0 ? '#16a34a' : netPnl < 0 ? '#dc2626' : textPrimary },
-            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : '—', color: textPrimary },
-            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : '—', color: textPrimary },
-            { label: 'AVG R:R', value: avgRR !== null ? avgRR : '—', color: textPrimary },
-            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : '—', color: '#60a5fa' },
+            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : 'â', color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : textPrimary },
+            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : 'â', color: textPrimary },
+            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : 'â', color: textPrimary },
+            { label: 'AVG R:R', value: avgRR !== null ? avgRR : 'â', color: textPrimary },
+            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : 'â', color: 'var(--brand)' },
           ].map((card, i) => (
             <div key={i} style={{
               background: cardBg,
               border: 'none',
               borderRadius: '8px',
               padding: '20px 16px',
-              borderTop: `3px solid ${statCardBorderColors[card.label] || '#60a5fa'}`,
+              borderTop: `3px solid ${statCardBorderColors[card.label] || 'var(--brand)'}`,
               boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             }}>
               <div style={{ fontSize: '11px', textTransform: 'uppercase', color: isDark ? '#ffffff' : '#111111', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
@@ -772,7 +772,7 @@ export default function LifeHubPage() {
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: card.value === '—' ? '32px' : '24px', fontWeight: 600, color: card.value === '—' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
+              <div style={{ fontSize: card.value === 'â' ? '32px' : '24px', fontWeight: 600, color: card.value === 'â' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
                 {card.value}
               </div>
             </div>
@@ -803,20 +803,20 @@ export default function LifeHubPage() {
               >i</button>
               {activeTooltip === 'EDGE SCORE' && (
                 <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
-                  Your trading edge from 0–100 based on Discipline, Consistency, Execution and Risk Control.
+                  Your trading edge from 0â100 based on Discipline, Consistency, Execution and Risk Control.
                 </div>
               )}
             </div>
             <div style={{ textAlign: 'center', marginBottom: '10px' }}>
               <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
-                {totalEdgeScore !== null ? totalEdgeScore : '—'}
+                {totalEdgeScore !== null ? totalEdgeScore : 'â'}
               </div>
               {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
                 <div style={{
                   display: 'inline-block',
                   marginTop: '6px',
                   background: '#dcfce7',
-                  color: '#16a34a',
+                  color: 'var(--green)',
                   fontSize: '10px',
                   fontWeight: 700,
                   borderRadius: '99px',
@@ -824,7 +824,7 @@ export default function LifeHubPage() {
                   letterSpacing: '0.04em',
                 }}>Sharp</div>
               ) : (
-                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>—</div>
+                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>â</div>
               )}
             </div>
             {/* Overall progress bar */}
@@ -833,7 +833,7 @@ export default function LifeHubPage() {
                 <div style={{
                   height: '100%',
                   width: totalEdgeScore + '%',
-                  background: '#60a5fa',
+                  background: 'var(--brand)',
                   borderRadius: '3px',
                   transition: 'width 0.5s ease',
                 }} />
@@ -845,7 +845,7 @@ export default function LifeHubPage() {
                 <div key={i}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                     <span style={{ fontSize: '11px', color: textSecondary }}>{p.label}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : '—'}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : 'â'}</span>
                   </div>
                   <div style={{ height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{
@@ -931,7 +931,7 @@ export default function LifeHubPage() {
                 <div style={{
                   height: '100%',
                   width: (checkedCount / checklistItems.length * 100) + '%',
-                  background: '#60a5fa',
+                  background: 'var(--brand)',
                   borderRadius: '2px',
                   transition: 'width 0.3s ease',
                 }} />
@@ -951,8 +951,8 @@ export default function LifeHubPage() {
                       width: '14px',
                       height: '14px',
                       borderRadius: '3px',
-                      border: '1.5px solid ' + (checkedItems[i] ? '#60a5fa' : '#d1d5db'),
-                      background: checkedItems[i] ? '#60a5fa' : 'transparent',
+                      border: '1.5px solid ' + (checkedItems[i] ? 'var(--brand)' : '#d1d5db'),
+                      background: checkedItems[i] ? 'var(--brand)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -995,7 +995,7 @@ export default function LifeHubPage() {
                     </div>
                   )}
                 </div>
-                <Link href="/life/trading" style={{ fontSize: '11px', color: '#60a5fa', textDecoration: 'none' }}>View all</Link>
+                <Link href="/life/trading" style={{ fontSize: '11px', color: 'var(--brand)', textDecoration: 'none' }}>View all</Link>
               </div>
               {recentTrades.length > 0 ? (
                 <div style={{ overflowX: 'auto' }}>
@@ -1010,13 +1010,13 @@ export default function LifeHubPage() {
                     <tbody>
                       {recentTrades.map((t: any, i: number) => {
                         const tp = t.pnl || 0
-                        const pnlColor2 = tp > 0 ? '#16a34a' : tp < 0 ? '#dc2626' : textPrimary
+                        const pnlColor2 = tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : textPrimary
                         return (
                           <tr key={i}>
                             <td style={{ padding: '5px 8px 5px 0', color: textSecondary, whiteSpace: 'nowrap' }}>{t.date}</td>
-                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || '—'}</td>
-                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || '—'}</td>
-                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : '—'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || 'â'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || 'â'}</td>
+                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'â'}</td>
                           </tr>
                         )
                       })}
@@ -1037,19 +1037,19 @@ export default function LifeHubPage() {
             }}>
               <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Income This Month</div>
               <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
-                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : '—'}
+                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'â'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
-                  <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? '#16a34a' : '#dc2626' }}>
-                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : '—'}
+                  <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'â'}
                   </div>
                 </div>
                 <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
                   <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
                   <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary }}>
-                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : '—'}
+                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'â'}
                   </div>
                 </div>
               </div>
@@ -1059,7 +1059,7 @@ export default function LifeHubPage() {
 
         {/* Footer */}
         <p style={{ marginTop: '24px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', letterSpacing: '0.1em', color: textMuted }}>
-          {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
+          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
         </p>
       </div>
 
