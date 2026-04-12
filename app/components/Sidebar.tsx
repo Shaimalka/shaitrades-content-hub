@@ -119,7 +119,7 @@ export default function Sidebar() {
                                                                                                              letterSpacing: '0.08em',
                                                                                                  }
                                                                                    },
-                                                                                                                   React.createElement('span', { style: { color: '#ffffff' } }, 'SHAI'),
+                                                                                                                   React.createElement('span', { style: { color: '#ffffff' } }, 'TRA'),
                                                                                                                    React.createElement('span', { style: { color: 'var(--brand)' } }, 'BITS')
                                                                                                                  )
                                                                                ),
