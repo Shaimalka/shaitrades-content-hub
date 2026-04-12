@@ -1,1079 +1,456 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Calendar, Plus, Check } from 'lucide-react'
-import Onboarding from '@/app/components/Onboarding'
+import React, { useState, useEffect } from 'react'
 import { useTheme } from '@/app/contexts/ThemeContext'
-import Button from '@/app/components/ui/Button'
+import { useSession, signOut } from 'next-auth/react'
+import { Sun, Moon, Settings, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
-const sections = [
-  {
-    key: 'trading',
-    name: 'Trading Journal',
-    descriptor: 'Track trades, P&L, and patterns',
-    icon: LineChart,
-    href: '/life/trading',
-    statusBadge: 'NO TRADES',
-    statusKey: 'trading',
-  },
-  {
-    key: 'goals',
-    name: 'Goals',
-    descriptor: 'Define targets, track progress',
-    icon: Target,
-    href: '/life/goals',
-    statusBadge: '0 GOALS',
-    statusKey: 'goals',
-  },
-  {
-    key: 'habits',
-    name: 'Habits',
-    descriptor: 'Build streaks, stay consistent',
-    icon: Flame,
-    href: '/life/habits',
-    statusBadge: '0 STREAK',
-    statusKey: 'habits',
-  },
-  {
-    key: 'health',
-    name: 'Health',
-    descriptor: 'Log wellness, track vitals',
-    icon: Heart,
-    href: '/life/health',
-    statusBadge: 'NO LOGS',
-    statusKey: 'health',
-  },
-  {
-    key: 'journal',
-    name: 'Daily Journal',
-    descriptor: 'Reflect, plan, and capture ideas',
-    icon: BookOpen,
-    href: '/life/journal',
-    statusBadge: 'NO ENTRY',
-    statusKey: 'journal',
-  },
-  {
-    key: 'finance',
-    name: 'Finance',
-    descriptor: 'Income, expenses, net worth',
-    icon: DollarSign,
-    href: '/life/finance',
-    statusBadge: '$0 THIS MONTH',
-    statusKey: 'finance',
-  },
-]
+const MARKETS = ['Futures', 'Stocks', 'Forex', 'Crypto', 'Options']
+const SESSIONS = ['London', 'New York', 'Asian', 'Overnight']
+const TIMEZONES = [
+  { label: 'UTC', value: 'UTC' },
+  { label: 'EST (UTC-5)', value: 'America/New_York' },
+  { label: 'CST (UTC-6)', value: 'America/Chicago' },
+  { label: 'MST (UTC-7)', value: 'America/Denver' },
+  { label: 'PST (UTC-8)', value: 'America/Los_Angeles' },
+  { label: 'GMT (UTC+0)', value: 'Europe/London' },
+  { label: 'CET (UTC+1)', value: 'Europe/Paris' },
+  { label: 'ICT Thailand (UTC+7)', value: 'Asia/Bangkok' },
+  { label: 'JST (UTC+9)', value: 'Asia/Tokyo' },
+  { label: 'AEST (UTC+10)', value: 'Australia/Sydney' },
+  ]
 
-type SectionStats = {
-  trading: string
-  goals: string
-  habits: string
-  health: string
-  journal: string
-  finance: string
+type TradingAccount = {
+    id: string
+    label: string
+    type: 'propfirm' | 'live' | 'paper'
+    firm: string
+    size: number
 }
 
-type LiveMetrics = {
-  pnlWeek: string
-  habitStreak: string
-  weekScore: string
-  incomeMonth: string
+type Settings = {
+    fullName: string
+    phone: string
+    location: string
+    bio: string
+    markets: string[]
+    tradingSession: string
+    timezone: string
 }
 
-type DailyBrief = {
-  text: string
-  generatedAt: string
-  date: string
+const DEFAULT_SETTINGS: Settings = {
+    fullName: '',
+    phone: '',
+    location: '',
+    bio: '',
+    markets: [],
+    tradingSession: 'New York',
+    timezone: 'America/New_York',
 }
 
-/** Returns today's date as YYYY-MM-DD in the user's local timezone */
-function getLocalDateString(): string {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+const DEFAULT_ACCOUNT: { label: string; type: TradingAccount['type']; firm: string; size: string } = {
+    label: '',
+    type: 'propfirm',
+    firm: '',
+    size: '',
 }
 
-const DISMISS_KEY_PREFIX = 'coachBriefDismissed:'
-
-function useWindowWidth() {
-  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
-  useEffect(() => {
-    const handler = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handler)
-    return () => window.removeEventListener('resize', handler)
-  }, [])
-  return width
+function fmt(n: number) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
-export default function LifeHubPage() {
-  const { isDark } = useTheme()
-  const width = useWindowWidth()
-  const isMobile = width < 768
 
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingChecked, setOnboardingChecked] = useState(false)
+export default function SettingsPage() {
+    const { isDark, toggle } = useTheme()
+    const { data: session } = useSession()
 
-  const [stats, setStats] = useState<SectionStats>({
-    trading: 'No trades logged',
-    goals: 'No goals set',
-    habits: 'No habits created',
-    health: 'No entries yet',
-    journal: 'No entries yet',
-    finance: 'No entries yet',
-  })
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [toast, setToast] = useState('')
+    const [pwMsg, setPwMsg] = useState(false)
 
-  const [metrics, setMetrics] = useState<LiveMetrics>({
-    pnlWeek: '$0',
-    habitStreak: '0d',
-    weekScore: 'N/A',
-    incomeMonth: '$0',
-  })
+  const [accounts, setAccounts] = useState<TradingAccount[]>([])
+    const [newAccount, setNewAccount] = useState(DEFAULT_ACCOUNT)
+    const [accountsLoading, setAccountsLoading] = useState(true)
 
-  const [journalTodaySaved, setJournalTodaySaved] = useState(false)
-  const [brief, setBrief] = useState<DailyBrief | null>(null)
-  const [briefLoading, setBriefLoading] = useState(true)
-  const [briefNoData, setBriefNoData] = useState(false)
-  const [briefError, setBriefError] = useState(false)
-  const [briefVisible, setBriefVisible] = useState(true)
-  const [briefFading, setBriefFading] = useState(false)
-  const [newBriefAvailable, setNewBriefAvailable] = useState(false)
-  const [tradingData, setTradingData] = useState<any[]>([])
-  const [habitsData, setHabitsData] = useState<{ habits: any[]; completions: any }>({
-    habits: [],
-    completions: {},
-  })
-  const [financeData, setFinanceData] = useState<{ income: any[]; trading: any[] }>({
-    income: [],
-    trading: [],
-  })
-  const [edgeScore, setEdgeScore] = useState<any>(null)
-  const [checkedItems, setCheckedItems] = useState<boolean[]>([false, false, false, false, false])
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
-  const [showCalendar, setShowCalendar] = useState(false)
-  const [selectedPeriod, setSelectedPeriod] = useState('This week')
+  const bg = isDark ? '#0f1117' : '#f8f8f6'
+    const card = isDark ? '#1a1f2e' : '#ffffff'
+    const border = isDark ? 'rgba(255,255,255,0.08)' : '#e8e8e2'
+    const text = isDark ? '#ffffff' : '#0f1117'
+    const muted = isDark ? '#aaaaaa' : '#0f1117'
+    const inputBg = isDark ? '#1a1f2e' : '#ffffff'
+    const blue = '#60a5fa'
 
   useEffect(() => {
-    const handleClickOutside = () => setActiveTooltip(null)
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
-
-  const cardBorder = 'var(--border)'
-  const cardBg = 'var(--bg-card)'
-  const bg = 'var(--bg-page)'
-  const textPrimary = 'var(--text-primary)'
-  const textSecondary = 'var(--text-secondary)'
-  const textMuted = 'var(--text-muted)'
-  const dismissIconColor = 'var(--text-muted)'
-  const border = 'var(--border)'
-  useEffect(() => {
-    const today = getLocalDateString()
-    const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
-    if (dismissedDate === today) {
-      setBriefVisible(false)
-      setBriefFading(false)
-    } else if (dismissedDate && dismissedDate !== today) {
-      setNewBriefAvailable(true)
-      setBriefVisible(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    async function checkOnboarding() {
-      try {
-        const res = await fetch('/api/onboarding')
-        const data = await res.json()
-        if (data.complete === false) {
-          setShowOnboarding(true)
+        async function load() {
+                try {
+                          const res = await fetch('/api/settings')
+                          const data = await res.json()
+                          if (data.settings) {
+                                      const s = data.settings
+                                      setSettings({
+                                                    fullName: s.fullName || '',
+                                                    phone: s.phone || '',
+                                                    location: s.location || '',
+                                                    bio: s.bio || '',
+                                                    markets: s.markets || [],
+                                                    tradingSession: s.tradingSession || 'New York',
+                                                    timezone: s.timezone || 'America/New_York',
+                                      })
+                          }
+                } catch {}
+                setLoading(false)
         }
-      } catch (e) {
-        // if fails, don't show onboarding
-      } finally {
-        setOnboardingChecked(true)
-      }
-    }
-    checkOnboarding()
-  }, [])
-
-  const fetchBrief = useCallback(async (refresh = false) => {
-    setBriefLoading(true)
-    setBriefError(false)
-    try {
-      const localDate = getLocalDateString()
-      const res = await fetch('/api/life/daily-brief', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh, localDate }),
-      })
-      const data = await res.json()
-      if (data.noData) {
-        setBriefNoData(true)
-        setBrief(null)
-      } else if (data.brief) {
-        if (typeof data.brief === 'string') {
-          setBrief({ text: data.brief, generatedAt: new Date().toISOString(), date: localDate })
-        } else {
-          setBrief(data.brief as DailyBrief)
-        }
-        setBriefNoData(false)
-      } else {
-        setBriefError(true)
-      }
-    } catch {
-      setBriefError(true)
-    } finally {
-      setBriefLoading(false)
-    }
+        load()
   }, [])
 
   useEffect(() => {
-    if (onboardingChecked && !showOnboarding) {
-      const today = getLocalDateString()
-      const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
-      if (dismissedDate !== today) {
-        fetchBrief(false)
-      } else {
-        setBriefLoading(false)
-      }
-    }
-  }, [fetchBrief, onboardingChecked, showOnboarding])
-
-  const handleDismiss = () => {
-    setBriefFading(true)
-    setTimeout(() => {
-      setBriefVisible(false)
-      setBriefFading(false)
-    }, 300)
-    const today = getLocalDateString()
-    localStorage.setItem(DISMISS_KEY_PREFIX + 'date', today)
-    setNewBriefAvailable(false)
-  }
-
-  const handleLoadNewBrief = () => {
-    localStorage.removeItem(DISMISS_KEY_PREFIX + 'date')
-    setNewBriefAvailable(false)
-    setBriefVisible(true)
-    fetchBrief(false)
-  }
-
-  const handleRefresh = () => {
-    localStorage.removeItem(DISMISS_KEY_PREFIX + 'date')
-    setBriefVisible(true)
-    setBriefFading(false)
-    setNewBriefAvailable(false)
-    fetchBrief(true)
-  }
-
-  useEffect(() => {
-    if (!onboardingChecked || showOnboarding) return
-    async function loadStats() {
-      try {
-        const results = await Promise.allSettled([
-          fetch('/api/life/trading').then(r => r.json()),
-          fetch('/api/life/goals').then(r => r.json()),
-          fetch('/api/life/habits').then(r => r.json()),
-          fetch('/api/life/health').then(r => r.json()),
-          fetch('/api/life/journal').then(r => r.json()),
-          fetch('/api/life/finance').then(r => r.json()),
-          fetch('/api/life/review').then(r => r.json()),
-        ])
-
-        const [tradingRes, goalsRes, habitsRes, healthRes, journalRes, financeRes, reviewRes] = results
-
-        const trading = tradingRes.status === 'fulfilled' ? tradingRes.value : {}
-        const goals = goalsRes.status === 'fulfilled' ? goalsRes.value : {}
-        const habits = habitsRes.status === 'fulfilled' ? habitsRes.value : {}
-        const health = healthRes.status === 'fulfilled' ? healthRes.value : {}
-        const journal = journalRes.status === 'fulfilled' ? journalRes.value : {}
-        const finance = financeRes.status === 'fulfilled' ? financeRes.value : {}
-        const review = reviewRes.status === 'fulfilled' ? reviewRes.value : {}
-
-        const tradingLogs = trading.logs || []
-        setTradingData(tradingLogs)
-        const today = getLocalDateString()
-        const todayTrades = tradingLogs.filter((t: any) => t.date === today).length
-        const goalsList = goals.goals || []
-        const activeGoals = goalsList.length
-        const habitsList = habits.habits || []
-        const completions = habits.completions || {}
-        setHabitsData({ habits: habitsList, completions })
-        const todayCompletions = habitsList.filter((h: any) => completions[today]?.[h.id]).length
-        const healthLogs = health.logs || []
-        const lastHealth = healthLogs[healthLogs.length - 1]
-        const healthStatus = lastHealth
-          ? 'Last: ' + new Date(lastHealth.date).toLocaleDateString()
-          : 'No entries yet'
-
-        const journalEntries: any[] = Array.isArray(journal.data)
-          ? journal.data
-          : Array.isArray(journal.entries)
-          ? journal.entries
-          : []
-        const todayJournalEntry = journalEntries.find((e: any) => e.date === today)
-        const hasTodayJournal = !!todayJournalEntry
-        setJournalTodaySaved(hasTodayJournal)
-        const journalStatus = hasTodayJournal
-          ? "Today's entry saved"
-          : journalEntries.length > 0
-          ? 'Last: ' + new Date(journalEntries[journalEntries.length - 1].date).toLocaleDateString()
-          : 'No entries yet'
-
-        const incomeEntries = finance.income || []
-        const tradingIncomeEntries = finance.trading || []
-        setFinanceData({ income: incomeEntries, trading: tradingIncomeEntries })
-        const currentMonth = new Date().toISOString().slice(0, 7)
-        const monthlyIncome = incomeEntries
-          .filter((e: any) => e.date?.startsWith(currentMonth))
-          .reduce((sum: number, e: any) => sum + (e.amount || 0), 0)
-
-        const weekStart = new Date()
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-        const weekStartStr = weekStart.toISOString().split('T')[0]
-        const weekPnl = tradingLogs
-          .filter((t: any) => t.date >= weekStartStr)
-          .reduce((sum: number, t: any) => sum + (t.pnl || 0), 0)
-
-        let maxStreak = 0
-        if (habitsList.length > 0) {
-          let streak = 0
-          const d = new Date()
-          for (let i = 0; i < 60; i++) {
-            const ds = d.toISOString().split('T')[0]
-            const done = habitsList.filter((h: any) => completions[ds]?.[h.id]).length
-            if (done > 0) {
-              streak++
-              maxStreak = Math.max(maxStreak, streak)
-            } else {
-              streak = 0
-            }
-            d.setDate(d.getDate() - 1)
-          }
+        async function loadAccounts() {
+                try {
+                          const res = await fetch('/api/trading-accounts')
+                          const data = await res.json()
+                          if (Array.isArray(data.accounts)) setAccounts(data.accounts)
+                } catch {}
+                setAccountsLoading(false)
         }
+        loadAccounts()
+  }, [])
 
-        const reviews = review.reviews || []
-        const latestReview = reviews[reviews.length - 1]
-        const weekScore = latestReview?.score ?? null
-        if (latestReview?.edgeScore) setEdgeScore(latestReview.edgeScore)
-
-        setStats({
-          trading:
-            todayTrades > 0
-              ? todayTrades + ' trade' + (todayTrades !== 1 ? 's' : '') + ' today'
-              : tradingLogs.length > 0
-              ? tradingLogs.length + ' total trades'
-              : 'No trades logged',
-          goals: activeGoals > 0 ? activeGoals + ' active goal' + (activeGoals !== 1 ? 's' : '') : 'No goals set',
-          habits:
-            habitsList.length > 0
-              ? todayCompletions + '/' + habitsList.length + ' habits done today'
-              : 'No habits created',
-          health: healthStatus,
-          journal: journalStatus,
-          finance: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() + ' income this month' : 'No entries yet',
-        })
-
-        setMetrics({
-          pnlWeek:
-            weekPnl !== 0 ? (weekPnl >= 0 ? '+' : '') + '$' + Math.abs(weekPnl).toLocaleString() : '$0',
-          habitStreak: maxStreak > 0 ? maxStreak + 'd' : '0d',
-          weekScore: weekScore !== null ? weekScore + '/10' : 'N/A',
-          incomeMonth: monthlyIncome > 0 ? '$' + monthlyIncome.toLocaleString() : '$0',
-        })
-      } catch {
-        // keep defaults
-      }
-    }
-    loadStats()
-  }, [onboardingChecked, showOnboarding])
-
-  if (!onboardingChecked) {
-    return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '11px',
-            color: textMuted,
-            letterSpacing: '2px',
-          }}
-        >
-          LOADING...
-        </div>
-      </div>
-    )
+  async function save() {
+        setSaving(true)
+        try {
+                await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(settings),
+                })
+                await fetch('/api/trading-accounts', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ accounts }),
+                })
+                setToast('Saved!')
+                setTimeout(() => setToast(''), 3000)
+        } catch {
+                setToast('Save failed')
+                setTimeout(() => setToast(''), 3000)
+        } finally {
+                setSaving(false)
+        }
   }
 
-  if (showOnboarding) {
-    return <Onboarding onComplete={() => setShowOnboarding(false)} />
+  function toggleMarket(m: string) {
+        setSettings(prev => ({
+                ...prev,
+                markets: prev.markets.includes(m) ? prev.markets.filter(x => x !== m) : [...prev.markets, m],
+        }))
   }
 
-  const formatGeneratedAt = (iso: string) => {
-    try {
-      const d = new Date(iso)
+  function addAccount() {
+        if (!newAccount.label.trim() || !newAccount.firm.trim() || !newAccount.size) return
+        const acc: TradingAccount = {
+                id: Date.now().toString(),
+                label: newAccount.label.trim(),
+                type: newAccount.type,
+                firm: newAccount.firm.trim(),
+                size: Number(newAccount.size),
+        }
+        setAccounts(prev => [...prev, acc])
+        setNewAccount(DEFAULT_ACCOUNT)
+  }
+
+  function removeAccount(id: string) {
+        setAccounts(prev => prev.filter(a => a.id !== id))
+  }
+
+  const totalCapital = accounts.reduce((s, a) => s + a.size, 0)
+    const propCapital = accounts.filter(a => a.type === 'propfirm').reduce((s, a) => s + a.size, 0)
+    const liveCapital = accounts.filter(a => a.type === 'live').reduce((s, a) => s + a.size, 0)
+    const propCount = accounts.filter(a => a.type === 'propfirm').length
+    const liveCount = accounts.filter(a => a.type === 'live').length
+
+  const sectionLabel: React.CSSProperties = {
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.12em',
+        color: '#aaaaaa',
+        textTransform: 'uppercase',
+        marginBottom: 12,
+  }
+
+  const inputStyle: React.CSSProperties = {
+        width: '100%',
+        background: inputBg,
+        border: `1px solid ${border}`,
+        borderRadius: 8,
+        padding: '10px 12px',
+        color: text,
+        fontSize: 14,
+        fontFamily: 'Inter, sans-serif',
+        outline: 'none',
+        boxSizing: 'border-box',
+  }
+
+  const labelStyle: React.CSSProperties = {
+        fontSize: 11,
+        color: muted,
+        fontFamily: 'Inter, sans-serif',
+        marginBottom: 6,
+        display: 'block',
+  }
+
+  const typeBadgeStyle = (type: TradingAccount['type']): React.CSSProperties => ({
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        padding: '2px 8px',
+        borderRadius: 99,
+        background: type === 'propfirm' ? 'rgba(37,99,235,0.15)' : type === 'live' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+        color: type === 'propfirm' ? '#2563eb' : type === 'live' ? '#10b981' : '#f59e0b',
+        textTransform: 'uppercase',
+  })
+
+  if (loading) return <div style={{ padding: 40, color: text, fontFamily: 'Inter, sans-serif' }}>Loading...</div>
+
       return (
-        d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
-        ' Â· ' +
-        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-      )
-    } catch {
-      return iso
-    }
-  }
-
-  const pnlValue = metrics.pnlWeek
-  const pnlColor = pnlValue.startsWith('+') ? 'var(--green)' : pnlValue === '$0' ? textPrimary : 'var(--red)'
-
-  // ---- Derived data for new layout ----
-
-  // Date range string
-  const now = new Date()
-  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' +
-    new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-
-  // Stats for 5 stat cards
-  const allTrades = tradingData
-  const currentMonth2 = new Date().toISOString().slice(0, 7)
-  const monthTrades = allTrades.filter((t: any) => t.date?.startsWith(currentMonth2))
-  const wins = monthTrades.filter((t: any) => (t.pnl || 0) > 0)
-  const losses = monthTrades.filter((t: any) => (t.pnl || 0) < 0)
-  const netPnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
-  const winRate = monthTrades.length > 0 ? Math.round((wins.length / monthTrades.length) * 100) : null
-  const grossWin = wins.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
-  const grossLoss = Math.abs(losses.reduce((s: number, t: any) => s + (t.pnl || 0), 0))
-  const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : wins.length > 0 ? '\u221e' : null
-  const avgRR = wins.length > 0 && losses.length > 0
-    ? ((grossWin / wins.length) / (grossLoss / losses.length)).toFixed(2)
-    : null
-  const habitStreakNum = parseInt(metrics.habitStreak) || 0
-
-  // Edge score pillars
-  const pillars = [
-    { label: 'Discipline', color: 'var(--brand)', score: edgeScore?.discipline ?? null },
-    { label: 'Consistency', color: '#22c55e', score: edgeScore?.consistency ?? null },
-    { label: 'Execution', color: '#c026d3', score: edgeScore?.execution ?? null },
-    { label: 'Risk Control', gradient: 'linear-gradient(to right, #ef4444 0%, #22c55e 100%)', score: edgeScore?.riskControl ?? null },
-  ]
-  const totalEdgeScore = edgeScore?.total ?? null
-
-  // Heatmap: last 6 weeks Mon-Fri
-  const today2 = new Date()
-  const heatmapWeeks: Array<Array<{ date: string; pnl: number | null; hasTrade: boolean }>> = []
-  const startDay = new Date(today2)
-  // Go back to Monday 6 weeks ago
-  const dayOfWeek = startDay.getDay() // 0=Sun
-  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-  startDay.setDate(startDay.getDate() - daysToMonday - 5 * 7)
-  for (let w = 0; w < 6; w++) {
-    const week: Array<{ date: string; pnl: number | null; hasTrade: boolean }> = []
-    for (let d = 0; d < 5; d++) {
-      const cellDate = new Date(startDay)
-      cellDate.setDate(startDay.getDate() + w * 7 + d)
-      const ds = cellDate.toISOString().split('T')[0]
-      const dayTrades = allTrades.filter((t: any) => t.date === ds)
-      const dayPnl = dayTrades.length > 0 ? dayTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0) : null
-      week.push({ date: ds, pnl: dayPnl, hasTrade: dayTrades.length > 0 })
-    }
-    heatmapWeeks.push(week)
-  }
-
-  function heatmapColor(cell: { pnl: number | null; hasTrade: boolean }) {
-    if (!cell.hasTrade) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
-    if (cell.pnl === null) return isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb'
-    if (cell.pnl > 500) return 'var(--green)'
-    if (cell.pnl > 0) return '#4ade80'
-    if (cell.pnl > -500) return '#f87171'
-    return 'var(--red)'
-  }
-
-  // Daily checklist items
-  const checklistItems = [
-    'Review trading plan',
-    'Log morning routine',
-    'Check positions',
-    'Journal entry',
-    'Evening review',
-  ]
-  const checkedCount = checkedItems.filter(Boolean).length
-
-  // Recent trades
-  const recentTrades = [...allTrades].sort((a: any, b: any) => (b.date > a.date ? 1 : -1)).slice(0, 5)
-
-  // Income this month
-  const tradingIncomePnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
-  const contentIncome = financeData.income
-    .filter((e: any) => e.date?.startsWith(currentMonth2))
-    .reduce((s: number, e: any) => s + (e.amount || 0), 0)
-  const totalMonthIncome = tradingIncomePnl + contentIncome
-
-  const statCardBorderColors: Record<string, string> = {
-    'NET P&L': 'var(--brand)',
-    'WIN RATE': '#ef4444',
-    'PROFIT FACTOR': '#22c55e',
-    'AVG R:R': '#a78bfa',
-    'HABIT STREAK': 'var(--brand)',
-  }
-
-  const tooltipContent: Record<string, string> = {
-    'NET P&L': 'Total profit or loss for the selected period after all fees.',
-    'WIN RATE': 'Percentage of trades that closed in profit. Above 50% means more wins than losses.',
-    'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.',
-    'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make $2 for every $1 risked.',
-    'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.',
-  }
-
-  return (
-    <div style={{ minHeight: '100vh', background: bg, padding: isMobile ? '16px' : '24px 32px', fontFamily: 'var(--font)' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-
-        {/* ===== TOPBAR ROW 1: Title + Buttons ===== */}
-        <div style={{
-          display: 'flex',
-          alignItems: isMobile ? 'flex-start' : 'center',
-          justifyContent: 'space-between',
-          flexDirection: isMobile ? 'column' : 'row',
-          gap: '12px',
-          marginBottom: '16px',
-        }}>
-          <div>
-            <h1 style={{
-              fontFamily: 'var(--font-display, Syne, Inter, sans-serif)',
-              fontWeight: 700,
-              fontSize: isMobile ? '22px' : '26px',
-              color: textPrimary,
-              margin: '0 0 3px',
-              letterSpacing: '-0.01em',
-            }}>
-              Personal Command Center
-            </h1>
-            <p style={{ margin: 0, fontSize: '12px', color: textSecondary }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            <div style={{ position: 'relative' }}>
-              <button onClick={() => setShowCalendar(prev => !prev)} style={{
-                background: 'var(--brand-bg)',
-                border: '1.5px solid #93c5fd',
-                color: 'var(--brand)',
-                borderRadius: '6px',
-                padding: '7px 13px',
-                fontSize: '12px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}>
-                <Calendar size={12} />
-                {selectedPeriod === 'This week' ? dateRangeStr : selectedPeriod}
-              </button>
-              {showCalendar && (
-                <div style={{ position: 'absolute', top: '44px', right: '0', background: isDark ? '#1a1f2e' : '#fff', border: '1px solid #e8e8e2', borderRadius: '10px', padding: '12px', zIndex: 300, width: '180px' }}>
-                  {['Today', 'This week', 'This month', 'All time'].map(p => (
-                    <button key={p} onClick={() => { setSelectedPeriod(p); setShowCalendar(false); }} style={{ display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', background: selectedPeriod === p ? 'var(--brand-bg)' : 'none', color: selectedPeriod === p ? 'var(--brand)' : isDark ? '#fff' : '#111', fontWeight: selectedPeriod === p ? 600 : 400, border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>{p}</button>
-                  ))}
+        <div style={{ minHeight: '100vh', background: bg, padding: '32px 24px', fontFamily: 'Inter, sans-serif' }}>
+          {/* Back button */}
+                <div style={{ marginBottom: 20 }}>
+                          <Link href="/life" style={{
+                    color: blue,
+                    fontSize: 13,
+                    fontFamily: 'Inter, sans-serif',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+        }}
+                                    onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                                    onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+                                    >
+                                    â Dashboard
+                          </Link>
                 </div>
-              )}
-            </div>
-            <Link href="/life/trading?new=1" style={{
-              backgroundColor: 'var(--brand)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              fontWeight: 700,
-              padding: '7px 15px',
-              fontSize: '12px',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              flexShrink: 0,
-            }}>
-              <Plus size={13} />
-              Log Trade
-            </Link>
-          </div>
-        </div>
-
-        {/* ===== COACH SHAI CARD (exact as-is, dark bg) ===== */}
-        {newBriefAvailable && !briefVisible && (
-          <button
-            onClick={handleLoadNewBrief}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '12px',
-              padding: '8px 14px',
-              borderRadius: '999px',
-              background: 'rgba(37,99,235,0.12)',
-              border: '1px solid rgba(37,99,235,0.3)',
-              color: '#2563eb',
-              fontFamily: 'var(--font)',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              letterSpacing: '0.02em',
-            }}
-          >
-            <RefreshCw size={12} />
-            New brief from Coach Shai
-          </button>
-        )}
-
-        <div
-          style={{
-            display: briefVisible || briefFading ? 'block' : 'none',
-            opacity: briefFading ? 0 : 1,
-            transition: 'opacity 0.3s ease',
-            backgroundColor: '#0f1117',
-            color: 'rgba(255,255,255,0.82)',
-            border: '0.5px solid #e8e8e2',
-            borderLeft: '3px solid #2563eb',
-            borderRadius: '10px',
-            padding: isMobile ? '16px' : '24px 28px',
-            marginBottom: '20px',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '16px',
-              flexWrap: 'wrap',
-              gap: '8px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  fontFamily: 'var(--font)',
-                  fontSize: '11px',
-                  letterSpacing: '0.1em',
-                  color: 'var(--brand)',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                }}
-              >
-                COACH SHAI Â· DAILY BRIEF
-              </span>
-              {brief && (
-                <span style={{ fontFamily: 'var(--font)', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
-                  {formatGeneratedAt(brief.generatedAt)}
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Button
-                variant="ghost"
-                onClick={handleRefresh}
-                disabled={briefLoading}
-                style={{ fontSize: '12px', padding: '6px 12px', minHeight: '36px', color: 'rgba(255,255,255,0.5)' }}
-              >
-                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />
-                Refresh
-              </Button>
-              <button
-                onClick={handleDismiss}
-                aria-label="Dismiss Coach Shai brief"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: 'transparent',
-                  color: 'rgba(255,255,255,0.35)',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.15s, color 0.15s',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ffffff' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.35)' }}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          </div>
-          {briefLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2563eb', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <span style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
-            </div>
-          ) : briefNoData ? (
-            <p style={{ fontFamily: 'var(--font)', fontSize: '14px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.7 }}>
-              Start logging your data and Coach Shai will brief you every morning.
-            </p>
-          ) : briefError ? (
-            <p style={{ fontFamily: 'var(--font)', fontSize: '13px', color: '#ff4d6a', margin: 0 }}>
-              Failed to load brief. Click Refresh to try again.
-            </p>
-          ) : brief ? (
-            <div>
-              <p style={{ fontFamily: 'var(--font)', fontSize: isMobile ? '14px' : '15px', color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.7, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>
-                {brief.text}
-              </p>
-              <span
-                onClick={() => setIsExpanded(prev => !prev)}
-                style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', cursor: 'pointer', display: 'inline-block', marginTop: '4px' }}
-              >
-                {isExpanded ? 'Show less â' : 'Read more â'}
-              </span>
-            </div>
-          ) : null}
-        </div>
-
-  
-      {/* ===== ROW 2: 5 Stat Cards ===== */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
-          gap: '10px',
-          marginBottom: '16px',
-        }}>
-          {[
-            { label: 'NET P&L', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : 'â', color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : textPrimary },
-            { label: 'WIN RATE', value: winRate !== null ? winRate + '%' : 'â', color: textPrimary },
-            { label: 'PROFIT FACTOR', value: profitFactor !== null ? profitFactor : 'â', color: textPrimary },
-            { label: 'AVG R:R', value: avgRR !== null ? avgRR : 'â', color: textPrimary },
-            { label: 'HABIT STREAK', value: habitStreakNum > 0 ? habitStreakNum + 'd' : 'â', color: 'var(--brand)' },
-          ].map((card, i) => (
-            <div key={i} style={{
-              background: cardBg,
-              border: 'none',
-              borderRadius: '8px',
-              padding: '20px 16px',
-              borderTop: `3px solid ${statCardBorderColors[card.label] || 'var(--brand)'}`,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-            }}>
-              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: isDark ? '#ffffff' : '#111111', letterSpacing: '0.08em', marginBottom: '5px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
-                {card.label}
-                <button
-                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === card.label ? null : card.label) }}
-                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
-                >i</button>
-                {activeTooltip === card.label && (
-                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
-                    {tooltipContent[card.label]}
-                  </div>
-                )}
+        
+          {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Settings size={20} color={blue} />
+                                <h1 style={{ fontSize: 22, fontWeight: 700, color: text, margin: 0 }}>Settings</h1>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted, padding: 6 }}>
+                                  {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                                </button>
+                        {session?.user?.email && (
+                      <span style={{ fontSize: 12, color: muted }}>{session.user.email}</span>
+                                )}
+                      </div>
               </div>
-              <div style={{ fontSize: card.value === 'â' ? '32px' : '24px', fontWeight: 600, color: card.value === 'â' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)') : card.color, lineHeight: 1 }}>
-                {card.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ===== ROW 3: 3 Columns ===== */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 1.4fr 1.4fr',
-          gap: '12px',
-          marginBottom: '16px',
-          alignItems: 'start',
-        }}>
-
-          {/* === COLUMN 1: Edge Score === */}
-          <div style={{
-            background: cardBg,
-            border: '0.5px solid ' + cardBorder,
-            borderRadius: '10px',
-            padding: '16px',
-          }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
-              Edge Score
-              <button
-                onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'EDGE SCORE' ? null : 'EDGE SCORE') }}
-                style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
-              >i</button>
-              {activeTooltip === 'EDGE SCORE' && (
-                <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
-                  Your trading edge from 0â100 based on Discipline, Consistency, Execution and Risk Control.
-                </div>
-              )}
-            </div>
-            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-              <div style={{ fontFamily: 'Syne, var(--font-display, sans-serif)', fontSize: '48px', fontWeight: 800, color: textPrimary, lineHeight: 1 }}>
-                {totalEdgeScore !== null ? totalEdgeScore : 'â'}
-              </div>
-              {(totalEdgeScore !== null && totalEdgeScore !== 0) ? (
-                <div style={{
-                  display: 'inline-block',
-                  marginTop: '6px',
-                  background: '#dcfce7',
-                  color: 'var(--green)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  borderRadius: '99px',
-                  padding: '2px 10px',
-                  letterSpacing: '0.04em',
-                }}>Sharp</div>
-              ) : (
-                <div style={{ display: 'inline-block', marginTop: '6px', fontSize: '10px', fontWeight: 700, color: '#aaaaaa', letterSpacing: '0.04em' }}>â</div>
-              )}
-            </div>
-            {/* Overall progress bar */}
-            {(totalEdgeScore !== null && totalEdgeScore !== 0) && (
-              <div style={{ height: '5px', background: '#e5e7eb', borderRadius: '3px', marginBottom: '14px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: totalEdgeScore + '%',
-                  background: 'var(--brand)',
-                  borderRadius: '3px',
-                  transition: 'width 0.5s ease',
-                }} />
-              </div>
-            )}
-            {/* Pillar bars */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {pillars.map((p, i) => (
-                <div key={i}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                    <span style={{ fontSize: '11px', color: textSecondary }}>{p.label}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: textPrimary }}>{p.score !== null ? p.score : 'â'}</span>
-                  </div>
-                  <div style={{ height: '4px', background: '#e5e7eb', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: p.score !== null ? p.score + '%' : '0%',
-                      background: p.gradient || p.color,
-                      borderRadius: '2px',
-                      transition: 'width 0.5s ease',
-                    }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* === COLUMN 2: Heatmap + Checklist === */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Heatmap */}
-            <div style={{
-              background: cardBg,
-              border: '0.5px solid ' + cardBorder,
-              borderRadius: '10px',
-              padding: '16px',
-            }}>
-              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
-                Trading Activity
-                <button
-                  onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'TRADING ACTIVITY' ? null : 'TRADING ACTIVITY') }}
-                  style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
-                >i</button>
-                {activeTooltip === 'TRADING ACTIVITY' && (
-                  <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
-                    Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.
-                  </div>
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                {(['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const).map((dayLabel, dayIdx) => (
-                  <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '24px repeat(6, 1fr)', gap: '2px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{dayLabel}</span>
-                    {heatmapWeeks.map((week, wi) => {
-                        const cell = week[dayIdx]
-                        if (!cell) return null
-                        return (
-                          <div
-                            key={wi}
-                            title={cell.date + (cell.pnl !== null ? ': $' + cell.pnl.toFixed(0) : '')}
-                            style={{
-                              flex: 1,
-                              height: '11px',
-                              borderRadius: '2px',
-                              background: heatmapColor(cell),
-                            }}
-                          />
-                        )
-                      })}
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px', justifyContent: 'flex-end' }}>
-                {[['Win', '#4ade80'], ['Loss', '#f87171'], ['No trade', isDark ? 'rgba(255,255,255,0.06)' : '#f0f0eb']].map(([label, color]) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, border: '0.5px solid ' + cardBorder }} />
-                    <span style={{ fontSize: '11px', color: '#aaaaaa' }}>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Daily Checklist */}
-            <div style={{
-              background: cardBg,
-              border: '0.5px solid ' + cardBorder,
-              borderRadius: '10px',
-              padding: '16px',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600 }}>Daily Checklist</div>
-                <span style={{ fontSize: '14px', color: textSecondary }}>{checkedCount}/{checklistItems.length}</span>
-              </div>
-              {/* Progress bar */}
-              <div style={{ height: '3px', background: '#e5e7eb', borderRadius: '2px', marginBottom: '10px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: (checkedCount / checklistItems.length * 100) + '%',
-                  background: 'var(--brand)',
-                  borderRadius: '2px',
-                  transition: 'width 0.3s ease',
-                }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {checklistItems.map((item, i) => (
-                  <div
-                    key={i}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-                    onClick={() => {
-                      const next = [...checkedItems]
-                      next[i] = !next[i]
-                      setCheckedItems(next)
-                    }}
-                  >
-                    <div style={{
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '3px',
-                      border: '1.5px solid ' + (checkedItems[i] ? 'var(--brand)' : '#d1d5db'),
-                      background: checkedItems[i] ? 'var(--brand)' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      transition: 'all 0.15s',
-                    }}>
-                      {checkedItems[i] && <Check size={9} color="#ffffff" strokeWidth={3} />}
-                    </div>
-                    <span style={{
-                      fontSize: '13px',
-                      color: checkedItems[i] ? textMuted : (isDark ? 'rgba(255,255,255,0.7)' : '#0f1117'),
-                      textDecoration: checkedItems[i] ? 'line-through' : 'none',
-                      transition: 'all 0.15s',
-                    }}>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* === COLUMN 3: Recent Trades + Income === */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Recent Trades */}
-            <div style={{
-              background: cardBg,
-              border: '0.5px solid ' + cardBorder,
-              borderRadius: '10px',
-              padding: '16px',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', fontWeight: 600, display: 'flex', alignItems: 'center', position: 'relative' }}>
-                  Recent Trades
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setActiveTooltip(activeTooltip === 'RECENT TRADES' ? null : 'RECENT TRADES') }}
-                    style={{ width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #d0d0ca', background: 'transparent', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '9px', color: '#999', fontWeight: '600', marginLeft: '6px', flexShrink: 0 }}
-                  >i</button>
-                  {activeTooltip === 'RECENT TRADES' && (
-                    <div style={{ position: 'absolute', top: '24px', left: '0', width: '220px', background: '#0f1117', borderRadius: '8px', padding: '10px 14px', zIndex: 200, fontSize: '11px', color: 'rgba(255,255,255,0.82)', lineHeight: '1.6', border: '0.5px solid rgba(255,255,255,0.1)' }} onClick={(e) => e.stopPropagation()}>
-                      Your last logged trades. Click View all to open the full Trading Journal.
-                    </div>
-                  )}
-                </div>
-                <Link href="/life/trading" style={{ fontSize: '11px', color: 'var(--brand)', textDecoration: 'none' }}>View all</Link>
-              </div>
-              {recentTrades.length > 0 ? (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                    <thead>
-                      <tr>
-                        {['Date', 'Symbol', 'Side', 'P&L'].map(h => (
-                          <th key={h} style={{ textAlign: 'left', color: '#aaaaaa', fontWeight: 600, paddingBottom: '6px', borderBottom: '0.5px solid ' + cardBorder, paddingRight: '8px', whiteSpace: 'nowrap', fontSize: '11px' }}>{h}</th>
+        
+              <div style={{ maxWidth: 720, display: 'flex', flexDirection: 'column', gap: 24 }}>
+              
+                {/* Profile */}
+                      <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
+                                <p style={sectionLabel}>PROFILE</p>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                            <div>
+                                                          <label style={labelStyle}>Full Name</label>
+                                                          <input style={inputStyle} value={settings.fullName} onChange={e => setSettings(p => ({ ...p, fullName: e.target.value }))} placeholder="Your name" />
+                                            </div>
+                                            <div>
+                                                          <label style={labelStyle}>Phone</label>
+                                                          <input style={inputStyle} value={settings.phone} onChange={e => setSettings(p => ({ ...p, phone: e.target.value }))} placeholder="+1 234 567 8900" />
+                                            </div>
+                                            <div>
+                                                          <label style={labelStyle}>Location</label>
+                                                          <input style={inputStyle} value={settings.location} onChange={e => setSettings(p => ({ ...p, location: e.target.value }))} placeholder="City, Country" />
+                                            </div>
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                          <label style={labelStyle}>Email</label>
+                                                          <input
+                                                            style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed', background: isDark ? '#0f1117' : '#f1f5f9' }}
+                                                            value={session?.user?.email || ''}
+                                                            readOnly
+                                                            disabled
+                                                            placeholder="your@email.com"
+                                                          />
+                                                          <p style={{ fontSize: 11, color: muted, fontFamily: 'Inter, sans-serif', marginTop: 4 }}>Managed by your login provider</p>
+                                            </div>
+                                </div>
+                                <div style={{ marginTop: 16 }}>
+                                            <label style={labelStyle}>Bio</label>
+                                            <textarea style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} value={settings.bio} onChange={e => setSettings(p => ({ ...p, bio: e.target.value }))} placeholder="Short bio..." />
+                                </div>
+                      </div>
+              
+                {/* Trading Preferences */}
+                      <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
+                                <p style={sectionLabel}>TRADING PREFERENCES</p>
+                                <div style={{ marginBottom: 16 }}>
+                                            <label style={labelStyle}>Markets</label>
+                                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                              {MARKETS.map(m => (
+                          <button key={m} onClick={() => toggleMarket(m)} style={{
+                                              padding: '6px 14px', borderRadius: 99, fontSize: 13, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                              background: settings.markets.includes(m) ? blue : 'transparent',
+                                              color: settings.markets.includes(m) ? '#fff' : muted,
+                                              border: `1px solid ${settings.markets.includes(m) ? blue : border}`,
+                          }}>
+                            {m}
+                          </button>
                         ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentTrades.map((t: any, i: number) => {
-                        const tp = t.pnl || 0
-                        const pnlColor2 = tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : textPrimary
-                        return (
-                          <tr key={i}>
-                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, whiteSpace: 'nowrap' }}>{t.date}</td>
-                            <td style={{ padding: '5px 8px 5px 0', color: textPrimary, fontWeight: 600 }}>{t.symbol || 'â'}</td>
-                            <td style={{ padding: '5px 8px 5px 0', color: textSecondary, textTransform: 'capitalize' }}>{t.side || t.direction || 'â'}</td>
-                            <td style={{ padding: '5px 0 5px 0', color: pnlColor2, fontWeight: 600, whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'â'}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div style={{ fontSize: '12px', color: textMuted, textAlign: 'center', padding: '16px 0' }}>No trades logged yet</div>
-              )}
-            </div>
-
-            {/* Income This Month */}
-            <div style={{
-              background: cardBg,
-              border: '0.5px solid ' + cardBorder,
-              borderRadius: '10px',
-              padding: '16px',
-            }}>
-              <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.08em', marginBottom: '10px', fontWeight: 600 }}>Income This Month</div>
-              <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginBottom: '12px' }}>
-                {totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'â'}
+                                            </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                            <div>
+                                                          <label style={labelStyle}>Trading Session</label>
+                                                          <select style={inputStyle} value={settings.tradingSession} onChange={e => setSettings(p => ({ ...p, tradingSession: e.target.value }))}>
+                                                            {SESSIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                                          </select>
+                                            </div>
+                                            <div>
+                                                          <label style={labelStyle}>Timezone</label>
+                                                          <select style={inputStyle} value={settings.timezone} onChange={e => setSettings(p => ({ ...p, timezone: e.target.value }))}>
+                                                            {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
+                                                          </select>
+                                            </div>
+                                </div>
+                      </div>
+              
+                {/* Trading Capital */}
+                      <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
+                                <p style={sectionLabel}>TRADING CAPITAL</p>
+                      
+                        {/* Accounts list */}
+                        {accountsLoading ? (
+                      <p style={{ fontSize: 13, color: muted }}>Loading accounts...</p>
+                    ) : accounts.length === 0 ? (
+                      <p style={{ fontSize: 13, color: muted, marginBottom: 16 }}>No accounts added yet.</p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                        {accounts.map(acc => (
+                                        <div key={acc.id} style={{
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                            background: inputBg, border: `1px solid ${border}`, borderRadius: 8, padding: '10px 14px',
+                                        }}>
+                                                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                                                                              <span style={{ fontSize: 13, color: text, fontWeight: 500 }}>{acc.label}</span>
+                                                                              <span style={typeBadgeStyle(acc.type)}>{acc.type === 'propfirm' ? 'Prop' : acc.type === 'live' ? 'Live' : 'Paper'}</span>
+                                                                              <span style={{ fontSize: 12, color: muted }}>{acc.firm}</span>
+                                                          </div>
+                                                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                                              <span style={{ fontSize: 14, fontWeight: 600, color: text, fontFamily: 'JetBrains Mono, monospace' }}>{fmt(acc.size)}</span>
+                                                                              <button onClick={() => removeAccount(acc.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: 4, display: 'flex', alignItems: 'center' }}>
+                                                                                                    <Trash2 size={14} />
+                                                                              </button>
+                                                          </div>
+                                        </div>
+                                      ))}
+                      </div>
+                                )}
+                      
+                        {/* Add account form */}
+                                <div style={{ background: isDark ? '#0f1117' : '#f1f5f9', border: `1px solid ${border}`, borderRadius: 8, padding: 16 }}>
+                                            <p style={{ ...sectionLabel, marginBottom: 14 }}>ADD ACCOUNT</p>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                                          <div>
+                                                                          <label style={labelStyle}>Label</label>
+                                                                          <input style={inputStyle} value={newAccount.label} onChange={e => setNewAccount(p => ({ ...p, label: e.target.value }))} placeholder="e.g. APEX 50K Account 1" />
+                                                          </div>
+                                                          <div>
+                                                                          <label style={labelStyle}>Firm</label>
+                                                                          <input style={inputStyle} value={newAccount.firm} onChange={e => setNewAccount(p => ({ ...p, firm: e.target.value }))} placeholder="e.g. APEX Funding, Topstep" />
+                                                          </div>
+                                                          <div>
+                                                                          <label style={labelStyle}>Size ($)</label>
+                                                                          <input style={inputStyle} type="number" value={newAccount.size} onChange={e => setNewAccount(p => ({ ...p, size: e.target.value }))} placeholder="e.g. 50000" min={0} />
+                                                          </div>
+                                                          <div>
+                                                                          <label style={labelStyle}>Type</label>
+                                                                          <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+                                                                            {(['propfirm', 'live', 'paper'] as const).map(t => (
+                              <button key={t} onClick={() => setNewAccount(p => ({ ...p, type: t }))} style={{
+                                                      padding: '6px 12px', borderRadius: 99, fontSize: 12, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                                      background: newAccount.type === t ? (t === 'propfirm' ? 'rgba(37,99,235,0.2)' : t === 'live' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)') : 'transparent',
+                                                      color: newAccount.type === t ? (t === 'propfirm' ? '#2563eb' : t === 'live' ? '#10b981' : '#f59e0b') : muted,
+                                                      border: `1px solid ${newAccount.type === t ? (t === 'propfirm' ? '#2563eb' : t === 'live' ? '#10b981' : '#f59e0b') : border}`,
+                                                      fontWeight: newAccount.type === t ? 600 : 400,
+                              }}>
+                                {t === 'propfirm' ? 'Prop Firm' : t === 'live' ? 'Live' : 'Paper'}
+                              </button>
+                            ))}
+                                                                          </div>
+                                                          </div>
+                                            </div>
+                                            <button onClick={addAccount} style={{
+                        marginTop: 12, padding: '8px 18px', background: blue, color: '#ffffff', border: 'none', borderRadius: '6px',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}>
+                                                          + Add Account
+                                            </button>
+                                </div>
+                      
+                        {/* Capital totals */}
+                        {accounts.length > 0 && (
+                      <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <div style={{ padding: '16px 20px', background: isDark ? '#0a0a1a' : '#eff6ff', border: `1px solid ${isDark ? '#1e2d5a' : '#bfdbfe'}`, borderRadius: 10 }}>
+                                                    <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: blue, margin: '0 0 6px' }}>TOTAL CAPITAL</p>
+                                                    <p style={{ fontSize: 28, fontWeight: 700, color: blue, fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(totalCapital)}</p>
+                                                    <p style={{ fontSize: 11, color: isDark ? '#93bbfc' : '#3b82f6', margin: '4px 0 0', fontFamily: 'Inter, sans-serif' }}>
+                                                      {accounts.length} account{accounts.length !== 1 ? 's' : ''} â {propCount} prop firm, {liveCount} live
+                                                    </p>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                                    <div style={{ padding: '12px 16px', background: isDark ? '#0a1a12' : '#f0fdf4', border: `1px solid ${isDark ? '#1a3a26' : '#bbf7d0'}`, borderRadius: 10 }}>
+                                                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#10b981', margin: '0 0 4px' }}>PROP FIRM CAPITAL</p>
+                                                                      <p style={{ fontSize: 20, fontWeight: 700, color: '#10b981', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(propCapital)}</p>
+                                                    </div>
+                                                    <div style={{ padding: '12px 16px', background: isDark ? '#1a1500' : '#fffbeb', border: `1px solid ${isDark ? '#3a2d00' : '#fde68a'}`, borderRadius: 10 }}>
+                                                                      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: '#f59e0b', margin: '0 0 4px' }}>LIVE CAPITAL</p>
+                                                                      <p style={{ fontSize: 20, fontWeight: 700, color: '#f59e0b', fontFamily: 'JetBrains Mono, monospace', margin: 0 }}>{fmt(liveCapital)}</p>
+                                                    </div>
+                                    </div>
+                      </div>
+                                )}
+                      </div>
+              
+                {/* Account */}
+                      <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: 24 }}>
+                                <p style={sectionLabel}>ACCOUNT</p>
+                        {session?.user?.email && (
+                      <p style={{ fontSize: 13, color: muted, marginBottom: 16 }}>Signed in as <span style={{ color: text }}>{session.user.email}</span></p>
+                                )}
+                                <div style={{ display: 'flex', gap: 10 }}>
+                                            <button onClick={() => { setPwMsg(true); setTimeout(() => setPwMsg(false), 3000) }} style={{
+                        padding: '8px 16px', background: 'transparent', border: `1px solid ${border}`, borderRadius: '6px',
+                        fontSize: 13, color: '#0f1117', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}>
+                                                          Change Password
+                                            </button>
+                                            <button onClick={() => signOut({ callbackUrl: '/login' })} style={{
+                        padding: '8px 16px', background: 'transparent', border: '1px solid #ef4444', borderRadius: '6px',
+                        fontSize: 13, color: '#ef4444', cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+        }}>
+                                                          Sign Out
+                                            </button>
+                                </div>
+                        {pwMsg && <p style={{ fontSize: 12, color: muted, marginTop: 8 }}>Password reset link sent to your email.</p>}
+                      </div>
+              
+                {/* Save */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <button onClick={save} disabled={saving} style={{
+                      padding: '10px 28px', background: blue, color: '#ffffff', border: 'none', borderRadius: '6px',
+                      fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
+                      fontFamily: 'Inter, sans-serif',
+        }}>
+                                  {saving ? 'Saving...' : 'Save Settings'}
+                                </button>
+                        {toast && <span style={{ fontSize: 13, color: toast === 'Saved!' ? '#10b981' : '#ef4444', fontFamily: 'Inter, sans-serif' }}>{toast}</span>}
+                      </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Trading</div>
-                  <div style={{ fontSize: '16px', fontWeight: 600, color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                    {tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'â'}
-                  </div>
-                </div>
-                <div style={{ background: cardBg, borderRadius: '6px', padding: '10px 12px' }}>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#aaaaaa', letterSpacing: '0.06em', marginBottom: '4px' }}>Content</div>
-                  <div style={{ fontSize: '16px', fontWeight: 600, color: textPrimary }}>
-                    {contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'â'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-
-        {/* Footer */}
-        <p style={{ marginTop: '24px', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', letterSpacing: '0.1em', color: textMuted }}>
-          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
-        </p>
-      </div>
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-      `}</style>
-    </div>
-  )
+      )
 }
-
