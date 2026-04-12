@@ -77,7 +77,7 @@ export default function Sidebar() {
       style: {
         width: sidebarWidth,
         height: '100vh',
-        background: 'var(--sidebar-bg)',
+        background: '#0f172a',
         display: 'flex',
         flexDirection: 'column' as const,
         position: 'fixed' as const,
@@ -89,233 +89,234 @@ export default function Sidebar() {
         transition: 'width 0.2s ease',
       }
     },
-      // Header
-      React.createElement('div', {
+    // Header
+    React.createElement('div', {
+      style: {
+        padding: collapsed && !isMobile ? '24px 0 16px' : '24px 20px 16px',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative' as const,
+        minHeight: '64px',
+      }
+    },
+      collapsed && !isMobile
+      ? React.createElement('span', {
+          style: {
+            color: '#ffffff',
+            fontSize: '15px',
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+          }
+        }, 'B')
+      : React.createElement('span', {
+          style: {
+            fontSize: '15px',
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+          }
+        },
+        React.createElement('span', { style: { color: '#ffffff' } }, 'TRA'),
+        React.createElement('span', { style: { color: '#60a5fa' } }, 'BITS')
+      )
+    ),
+
+    // Nav
+    React.createElement('nav', { style: { flex: 1, padding: '8px 0' } },
+      navItems.map((item) => {
+        const isActive = pathname === item.href
+        const Icon = item.icon
+        return React.createElement(React.Fragment, { key: item.href },
+          item.section && !collapsed && !isMobile &&
+          React.createElement('div', {
+            style: {
+              color: 'rgba(255,255,255,0.35)',
+              fontSize: '10px',
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              padding: '16px 20px 4px',
+              textTransform: 'uppercase' as const,
+            }
+          }, item.section),
+          React.createElement(Link, {
+            href: item.href,
+            title: collapsed && !isMobile ? item.label : undefined,
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+              gap: '10px',
+              padding: collapsed && !isMobile ? '9px 0' : '9px 20px',
+              margin: '1px 0',
+              borderRadius: 0,
+              color: isActive ? '#ffffff' : 'rgba(255,255,255,0.5)',
+              textDecoration: 'none',
+              fontSize: '13px',
+              fontWeight: isActive ? 600 : 400,
+              borderLeft: isActive ? '2px solid #60a5fa' : '2px solid transparent',
+              background: isActive ? 'rgba(96,165,250,0.12)' : 'transparent',
+              transition: 'all 150ms',
+            }
+          },
+          React.createElement(Icon, { size: 15, color: isActive ? '#ffffff' : 'rgba(255,255,255,0.42)', style: { opacity: isActive ? 1 : 0.5 } }),
+          !collapsed || isMobile ? item.label : null
+          )
+        )
+      })
+    ),
+
+    // Collapse toggle button (desktop only)
+    !isMobile && React.createElement('div', {
+      style: {
+        padding: collapsed ? '8px 0' : '8px 12px',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+      }
+    },
+      React.createElement('button', {
+        onClick: handleToggleCollapse,
+        onMouseEnter: () => setCollapseHover(true),
+        onMouseLeave: () => setCollapseHover(false),
+        title: collapsed ? 'Expand sidebar' : 'Collapse sidebar',
         style: {
-          padding: collapsed && !isMobile ? '24px 0 16px' : '24px 20px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.15)',
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          position: 'relative' as const,
-          minHeight: '64px',
+          gap: '6px',
+          padding: '8px 16px',
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '8px',
+          color: 'rgba(255,255,255,0.5)',
+          cursor: 'pointer',
+          fontSize: '12px',
+          transition: 'background 150ms ease',
+          whiteSpace: 'nowrap' as const,
+          overflow: 'hidden' as const,
         }
       },
-        collapsed && !isMobile
-          ? React.createElement('span', {
-              style: {
-                color: '#fff',
-                fontSize: '22px',
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-              }
-            }, 'B')
-          : React.createElement('span', {
-              style: {
-                color: '#fff',
-                fontSize: '20px',
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-              }
-            },
-              React.createElement('span', { style: { color: '#ffffff' } }, 'TRA'),
-              React.createElement('span', { style: { color: '#60a5fa' } }, 'BITS')
-            )
-      ),
-
-      // Nav
-      React.createElement('nav', { style: { flex: 1, padding: '8px 0' } },
-        navItems.map((item) => {
-          const isActive = pathname === item.href
-          const Icon = item.icon
-          return React.createElement(React.Fragment, { key: item.href },
-            item.section && !collapsed && !isMobile &&
-              React.createElement('div', {
-                style: {
-                  color: 'rgba(255,255,255,0.25)',
-                  fontSize: '9px',
-                  letterSpacing: '0.1em',
-                  padding: '16px 20px 4px',
-                  textTransform: 'uppercase' as const,
-                }
-              }, item.section),
-            React.createElement(Link, {
-              href: item.href,
-              title: collapsed && !isMobile ? item.label : undefined,
-              style: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-                gap: '10px',
-                padding: collapsed && !isMobile ? '10px 0' : '10px 20px',
-                margin: '1px 8px',
-                borderRadius: '8px',
-                color: isActive ? '#fff' : 'rgba(255,255,255,0.42)',
-                textDecoration: 'none',
-                fontSize: '12px',
-                borderLeft: isActive ? '2px solid var(--brand-blue)' : '2px solid transparent',
-                background: isActive ? 'rgba(96,165,250,0.09)' : 'transparent',
-                transition: 'all 150ms',
-              }
-            },
-              React.createElement(Icon, { size: 16, color: isActive ? '#fff' : 'rgba(255,255,255,0.42)' }),
-              !collapsed || isMobile ? item.label : null
-            )
+        collapsed
+        ? React.createElement(ChevronRight, { size: 14, color: 'rgba(255,255,255,0.5)' })
+        : React.createElement(React.Fragment, null,
+            React.createElement(ChevronLeft, { size: 14, color: 'rgba(255,255,255,0.5)' }),
+            React.createElement('span', { style: { color: 'rgba(255,255,255,0.5)' } }, 'Collapse')
           )
-        })
-      ),
+      )
+    ),
 
-      // Collapse toggle button (desktop only)
-      !isMobile && React.createElement('div', {
+    // Footer
+    React.createElement('div', {
+      style: { padding: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }
+    },
+      React.createElement('div', {
         style: {
-          padding: collapsed ? '8px 0' : '8px 12px',
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '12px',
+          justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
         }
       },
-        React.createElement('button', {
-          onClick: handleToggleCollapse,
-          onMouseEnter: () => setCollapseHover(true),
-          onMouseLeave: () => setCollapseHover(false),
-          title: collapsed ? 'Expand sidebar' : 'Collapse sidebar',
+        // Light/Dark toggle
+        collapsed && !isMobile
+        ? React.createElement('button', {
+            onClick: toggle,
+            title: isDark ? 'Light Mode' : 'Dark Mode',
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '8px',
+              padding: '8px',
+              color: 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+            }
+          },
+          isDark
+          ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.5)' })
+          : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.5)' })
+          )
+        : React.createElement('button', {
+            onClick: toggle,
+            style: {
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              color: 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }
+          },
+          isDark
+          ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.5)' })
+          : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.5)' }),
+          isDark ? 'Light Mode' : 'Dark Mode'
+          ),
+
+        // Settings icon (hide in collapsed)
+        (!collapsed || isMobile) && React.createElement('button', {
+          onClick: () => router.push('/settings'),
+          title: 'Settings',
           style: {
-            width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
-            padding: '8px 16px',
-            background: collapseHover ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)',
-            border: 'none',
-            borderRadius: '20px',
-            color: 'rgba(255,255,255,0.42)',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '8px',
+            padding: '8px 10px',
+            color: 'rgba(255,255,255,0.5)',
             cursor: 'pointer',
-            fontSize: '12px',
-            transition: 'background 150ms ease',
-            whiteSpace: 'nowrap' as const,
-            overflow: 'hidden' as const,
+            flexShrink: 0,
           }
         },
-          collapsed
-            ? React.createElement(ChevronRight, { size: 14, color: 'rgba(255,255,255,0.42)' })
-            : React.createElement(React.Fragment, null,
-                React.createElement(ChevronLeft, { size: 14, color: 'rgba(255,255,255,0.42)' }),
-                React.createElement('span', { style: { color: 'rgba(255,255,255,0.42)' } }, 'Collapse')
-              )
+          React.createElement(Settings, { size: 14, color: 'rgba(255,255,255,0.5)' })
         )
       ),
 
-      // Footer
-      React.createElement('div', {
-        style: { padding: '16px', borderTop: '1px solid rgba(255,255,255,0.15)' }
+      session?.user && React.createElement('div', {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+        }
       },
         React.createElement('div', {
           style: {
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            background: '#60a5fa',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            marginBottom: '12px',
-            justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+            justifyContent: 'center',
+            color: '#0f172a',
+            fontSize: '11px',
+            fontWeight: 700,
+            flexShrink: 0,
           }
-        },
-          // Light/Dark toggle
-          collapsed && !isMobile
-            ? React.createElement('button', {
-                onClick: toggle,
-                title: isDark ? 'Light Mode' : 'Dark Mode',
-                style: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '8px',
-                  color: 'rgba(255,255,255,0.42)',
-                  cursor: 'pointer',
-                }
-              },
-                isDark
-                  ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.42)' })
-                  : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.42)' })
-              )
-            : React.createElement('button', {
-                onClick: toggle,
-                style: {
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '8px 16px',
-                  color: 'rgba(255,255,255,0.42)',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                }
-              },
-                isDark
-                  ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.42)' })
-                  : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.42)' }),
-                isDark ? 'Light Mode' : 'Dark Mode'
-              ),
-
-          // Settings icon (hide in collapsed)
-          (!collapsed || isMobile) && React.createElement('button', {
-            onClick: () => router.push('/settings'),
-            title: 'Settings',
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(255,255,255,0.07)',
-              border: 'none',
-              borderRadius: '20px',
-              padding: '8px 10px',
-              color: 'rgba(255,255,255,0.42)',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }
-          },
-            React.createElement(Settings, { size: 14, color: 'rgba(255,255,255,0.42)' })
-          )
-        ),
-
-        session?.user && React.createElement('div', {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-          }
-        },
+        }, initials),
+        (!collapsed || isMobile) && React.createElement('div', null,
           React.createElement('div', {
-            style: {
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: 'var(--brand-blue)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#0f1117',
-              fontSize: '12px',
-              fontWeight: 600,
-              flexShrink: 0,
-            }
-          }, initials),
-          (!collapsed || isMobile) && React.createElement('div', null,
-            React.createElement('div', {
-              style: { color: '#fff', fontSize: '11px', fontWeight: 500 }
-            }, session.user.name),
-            React.createElement('div', {
-              style: { color: 'rgba(255,255,255,0.32)', fontSize: '10px' }
-            }, session.user.email)
-          )
+            style: { color: '#ffffff', fontSize: '12px', fontWeight: 600 }
+          }, session.user.name),
+          React.createElement('div', {
+            style: { color: 'rgba(255,255,255,0.4)', fontSize: '10px' }
+          }, session.user.email)
         )
       )
+    )
     )
 
   return React.createElement(React.Fragment, null,
