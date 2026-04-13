@@ -75,7 +75,7 @@ export default function LifeHubPage() {
   const [chatOpen, setChatOpen] = useState(false)
   const [chatTab, setChatTab] = useState<'coach' | 'support'>('coach')
   const [chatMessages, setChatMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
-    { role: 'ai', text: "Hey! What's on your mind? Trading, health, mindset â I'm here. You have 1 life." },
+    { role: 'ai', text: "Hey! What's on your mind? Trading, health, mindset — I'm here. You have 1 life." },
   ])
   const [chatInput, setChatInput] = useState('')
   const [supportName, setSupportName] = useState('')
@@ -262,13 +262,13 @@ export default function LifeHubPage() {
   const formatGeneratedAt = (iso: string) => {
     try {
       const d = new Date(iso)
-      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' Â· ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     } catch { return iso }
   }
 
   // ââ derived data (unchanged calculations) ââââââââââââââââââââââââ
   const now = new Date()
-  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' â ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   const todayLong = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   const allTrades = tradingData
@@ -391,11 +391,11 @@ export default function LifeHubPage() {
   })
 
   // ââ health data ââââââââââââââââââââââââââââââââââââââââââââââââââ
-  // We derive from stats text â actual data is not separately loaded, show placeholders
+  // We derive from stats text — actual data is not separately loaded, show placeholders
   const healthMetrics = [
-    { label: 'SLEEP AVG', value: 'â', unit: 'hrs', color: 'var(--brand)' },
-    { label: 'ENERGY AVG', value: 'â', unit: '/10', color: 'var(--green)' },
-    { label: 'GYM DAYS', value: 'â', unit: 'this wk', color: 'var(--purple)' },
+    { label: 'SLEEP AVG', value: '—', unit: 'hrs', color: 'var(--brand)' },
+    { label: 'ENERGY AVG', value: '—', unit: '/10', color: 'var(--green)' },
+    { label: 'GYM DAYS', value: '—', unit: 'this wk', color: 'var(--purple)' },
   ]
 
   const tooltipTexts: Record<string, string> = {
@@ -404,7 +404,7 @@ export default function LifeHubPage() {
     'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.',
     'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make \$2 for every \$1 risked.',
     'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.',
-    'EDGE SCORE': 'Your trading edge from 0â100 based on Discipline, Consistency, Execution and Risk Control.',
+    'EDGE SCORE': 'Your trading edge from 0–100 based on Discipline, Consistency, Execution and Risk Control.',
     'TRADING ACTIVITY': 'Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.',
     'RECENT TRADES': 'Your last logged trades. Click View all to open the full Trading Journal.',
   }
@@ -452,7 +452,7 @@ export default function LifeHubPage() {
           style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'text', maxWidth: '100%' }}
         >
           <Search size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <span style={{ fontSize: 13, color: 'var(--text-muted)', flex: 1 }}>Ask Coach Shai anything â trading, health, wealth, mindset, fitness plans...</span>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)', flex: 1 }}>Ask Coach Shai anything — trading, health, wealth, mindset, fitness plans...</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             {['â', 'K'].map(k => (
               <span key={k} style={{ background: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', fontSize: 10, fontWeight: 600, color: 'var(--text-muted)' }}>{k}</span>
@@ -493,7 +493,7 @@ export default function LifeHubPage() {
       )}
 
       {/* ââ CONTENT AREA ââââââââââââââââââââââââââââââââââââââââ */}
-      <div style={{ padding: '20px 28px', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 80 }}>
+      <div style={{ padding: '20px 28px', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 80 }}>
 
         {/* ââ Coach Shai new-brief banner ââ */}
         {newBriefAvailable && !briefVisible && (
@@ -506,7 +506,7 @@ export default function LifeHubPage() {
         <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid var(--brand)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI Â· DAILY BRIEF</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI · DAILY BRIEF</span>
               {brief && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{formatGeneratedAt(brief.generatedAt)}</span>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -528,7 +528,7 @@ export default function LifeHubPage() {
           ) : brief ? (
             <div>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>{brief.text}</p>
-              <span onClick={() => setIsExpanded(p => !p)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'inline-block', marginTop: 4 }}>{isExpanded ? 'Show less â' : 'Read more â'}</span>
+              <span onClick={() => setIsExpanded(p => !p)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'inline-block', marginTop: 4 }}>{isExpanded ? 'Show less â' : 'Read more →'}</span>
             </div>
           ) : null}
         </div>
@@ -537,7 +537,7 @@ export default function LifeHubPage() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,minmax(0,1fr))' : 'repeat(5,minmax(0,1fr))', gap: 12 }}>
           {[
             { label: 'NET P&L', accent: '#60a5fa', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : null, color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : 'var(--text-primary)', sub: netPnl !== 0 ? 'month to date' : 'no trades yet' },
-            { label: 'WIN RATE', accent: '#ef4444', value: winRate !== null ? winRate + '%' : null, color: winRate !== null && winRate >= 50 ? 'var(--green)' : winRate !== null ? 'var(--red)' : 'var(--text-primary)', sub: winRate !== null ? wins.length + 'W Â· ' + losses.length + 'L' : 'no trades yet' },
+            { label: 'WIN RATE', accent: '#ef4444', value: winRate !== null ? winRate + '%' : null, color: winRate !== null && winRate >= 50 ? 'var(--green)' : winRate !== null ? 'var(--red)' : 'var(--text-primary)', sub: winRate !== null ? wins.length + 'W · ' + losses.length + 'L' : 'no trades yet' },
             { label: 'PROFIT FACTOR', accent: '#10b981', value: profitFactor !== null ? String(profitFactor) : null, color: 'var(--green)', sub: profitFactor !== null ? 'gross W/L ratio' : 'no trades yet' },
             { label: 'AVG R:R', accent: '#a78bfa', value: avgRR !== null ? String(avgRR) : null, color: 'var(--purple)', sub: avgRR !== null ? 'risk to reward' : 'no trades yet' },
             { label: 'HABIT STREAK', accent: '#60a5fa', value: habitStreakNum > 0 ? habitStreakNum + 'd' : null, color: 'var(--brand)', sub: habitStreakNum > 0 ? 'consecutive days' : 'start a habit' },
@@ -547,7 +547,7 @@ export default function LifeHubPage() {
                 {card.label}<TooltipBtn id={card.label} />
               </div>
               <div style={{ fontSize: card.value ? 24 : 28, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
-                {card.value || 'â'}
+                {card.value || '—'}
               </div>
               <div style={{ fontSize: 11, fontWeight: 500, color: card.value ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{card.sub}</div>
             </div>
@@ -562,7 +562,7 @@ export default function LifeHubPage() {
             <div style={{ ...panelLabel, marginBottom: 12, position: 'relative' }}>Edge Score<TooltipBtn id="EDGE SCORE" /></div>
             <div style={{ textAlign: 'center', marginBottom: 14 }}>
               <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontSize: 44, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{totalEdgeScore !== null ? totalEdgeScore : 'â'}</span>
+                <span style={{ fontSize: 44, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{totalEdgeScore !== null ? totalEdgeScore : '—'}</span>
                 {totalEdgeScore !== null && <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>/100</span>}
               </div>
               <div style={{ marginTop: 6 }}>
@@ -578,7 +578,7 @@ export default function LifeHubPage() {
                 <div key={p.label}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>{p.label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{p.score !== null ? p.score : 'â'}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{p.score !== null ? p.score : '—'}</span>
                   </div>
                   <div style={{ height: 5, background: 'var(--bg-page)', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: p.score !== null ? p.score + '%' : '0%', background: p.color, borderRadius: 3, transition: 'width 0.5s ease' }} />
@@ -653,9 +653,9 @@ export default function LifeHubPage() {
                       return (
                         <tr key={i}>
                           <td style={{ padding: '6px 8px 6px 0', fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{t.date}</td>
-                          <td style={{ padding: '6px 8px 6px 0' }}><span style={{ background: 'var(--bg-page)', color: 'var(--text-secondary)', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{t.symbol || 'â'}</span></td>
-                          <td style={{ padding: '6px 8px 6px 0', fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{t.side || t.direction || 'â'}</td>
-                          <td style={{ padding: '6px 0', fontSize: 12, fontWeight: 700, color: tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'â'}</td>
+                          <td style={{ padding: '6px 8px 6px 0' }}><span style={{ background: 'var(--bg-page)', color: 'var(--text-secondary)', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{t.symbol || '—'}</span></td>
+                          <td style={{ padding: '6px 8px 6px 0', fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{t.side || t.direction || '—'}</td>
+                          <td style={{ padding: '6px 0', fontSize: 12, fontWeight: 700, color: tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : '—'}</td>
                         </tr>
                       )
                     })}
@@ -667,11 +667,11 @@ export default function LifeHubPage() {
             </div>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 20px', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ ...panelLabel, marginBottom: 12 }}>Income This Month</div>
-              <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--green)', marginBottom: 14 }}>{totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'â'}</div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--green)', marginBottom: 14 }}>{totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : '—'}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {[
-                  { label: 'Trading', value: tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'â', color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' },
-                  { label: 'Content', value: contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'â', color: 'var(--text-primary)' },
+                  { label: 'Trading', value: tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : '—', color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' },
+                  { label: 'Content', value: contentIncome > 0 ? '$' + contentIncome.toLocaleString() : '—', color: 'var(--text-primary)' },
                 ].map(item => (
                   <div key={item.label} style={{ background: 'var(--bg-page)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
                     <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 4 }}>{item.label}</div>
@@ -756,7 +756,7 @@ export default function LifeHubPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {habitsWithPct.slice(0, 5).map((h: any) => {
                   console.log('[habits panel] habit object:', h)
-                  const displayName = h.name || h.title || h.label || 'Unnamed'
+                  const displayName = h.name
                   return (
                   <div key={h.id}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -791,7 +791,7 @@ export default function LifeHubPage() {
                 return (
                   <div key={ds} style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ width: '100%', aspectRatio: '1', borderRadius: 4, background: done ? '#dcfce7' : 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: done ? '#16a34a' : 'var(--text-muted)' }}>
-                      {done ? 'â' : 'Â·'}
+                      {done ? 'â' : '·'}
                     </div>
                     <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
                   </div>
@@ -817,7 +817,7 @@ export default function LifeHubPage() {
 
         {/* ââ Footer ââ */}
         <div style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0 40px' }}>
-          {'// ALL DATA STORED IN UPSTASH REDIS Â· AI POWERED BY CLAUDE HAIKU'}
+          {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
         </div>
       </div>
 
