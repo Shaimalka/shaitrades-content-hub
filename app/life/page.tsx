@@ -2,12 +2,10 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Calendar, Plus, Check, Search, Send, MessageCircle, Bell } from 'lucide-react'
+import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Calendar, Plus, Check, Search, Send, MessageCircle } from 'lucide-react'
 import Onboarding from '@/app/components/Onboarding'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import Button from '@/app/components/ui/Button'
-import { signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 
 const sections = [
   { key: 'trading', name: 'Trading Journal', descriptor: 'Track trades, P&L, and patterns', icon: LineChart, href: '/life/trading', statusBadge: 'NO TRADES', statusKey: 'trading' },
@@ -44,7 +42,6 @@ function useWindowWidth() {
 
 export default function LifeHubPage() {
   const { isDark } = useTheme()
-  const router = useRouter()
   const width = useWindowWidth()
   const isMobile = width < 768
 
@@ -76,10 +73,6 @@ export default function LifeHubPage() {
 
   // ââ new UI state âââââââââââââââââââââââââââââââââââââââââââââââââ
   const [searchOpen, setSearchOpen] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
-  const bellRef = useRef<HTMLDivElement>(null)
-  const avatarRef = useRef<HTMLDivElement>(null)
   const [chatOpen, setChatOpen] = useState(false)
   const [chatTab, setChatTab] = useState<'coach' | 'support'>('coach')
   const [chatMessages, setChatMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
@@ -94,24 +87,6 @@ export default function LifeHubPage() {
     const handleClickOutside = () => setActiveTooltip(null)
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
-        setShowNotifications(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
-        setShowUserMenu(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   useEffect(() => {
@@ -468,36 +443,6 @@ export default function LifeHubPage() {
           <Link href="/life/trading?new=1" style={{ background: 'var(--brand)', color: '#ffffff', fontSize: 13, fontWeight: 700, padding: '9px 18px', borderRadius: 'var(--radius-md)', border: 'none', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={13} />Log Trade
           </Link>
-          {/* Bell notification icon */}
-          <div ref={bellRef} style={{ position: 'relative' }}>
-            <button
-              onClick={() => setShowNotifications(p => !p)}
-              style={{ width: 36, height: 36, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}
-            >
-              <Bell size={16} />
-            </button>
-            {showNotifications && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 260, padding: 20, zIndex: 50 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#f9fafb' : '#0f172a', marginBottom: 12 }}>Notifications</div>
-                <div style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>No notifications yet</div>
-              </div>
-            )}
-          </div>
-          {/* Avatar / user menu */}
-          <div ref={avatarRef} style={{ position: 'relative' }}>
-            <div
-              onClick={() => setShowUserMenu(p => !p)}
-              style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0 }}
-            >
-              T
-            </div>
-            {showUserMenu && (
-              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', minWidth: 180, zIndex: 50, padding: 6 }}>
-                <div onClick={() => { setShowUserMenu(false); router.push('/settings') }} style={{ fontSize: 13, fontWeight: 500, color: isDark ? '#f9fafb' : '#0f172a', padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>Profile</div>
-                <div onClick={() => { setShowUserMenu(false); router.push('/settings') }} style={{ fontSize: 13, fontWeight: 500, color: isDark ? '#f9fafb' : '#0f172a', padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>Settings</div>
-                <div onClick={() => signOut()} style={{ fontSize: 13, fontWeight: 500, color: '#ef4444', padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>Log out</div>
-              </div>
-            )}
           </div>
         </div>
       </div>
