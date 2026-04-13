@@ -443,7 +443,6 @@ export default function LifeHubPage() {
           <Link href="/life/trading?new=1" style={{ background: 'var(--brand)', color: '#ffffff', fontSize: 13, fontWeight: 700, padding: '9px 18px', borderRadius: 'var(--radius-md)', border: 'none', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={13} />Log Trade
           </Link>
-          </div>
         </div>
       </div>
 
