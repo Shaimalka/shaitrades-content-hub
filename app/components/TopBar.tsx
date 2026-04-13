@@ -35,11 +35,11 @@ export default function TopBar() {
 
   const title = pageTitles[pathname] || 'TRABITS'
 
-  const initials = session?.user?.name
-    ? session.user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-    : session?.user?.email
-    ? session.user.email[0].toUpperCase()
-    : '?'
+  const rawName = session?.user?.name || session?.user?.email || (session?.user as any)?.id || ''
+  const parts = rawName.trim().split(/\s+/).filter(Boolean)
+  const initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : rawName.slice(0, 2).toUpperCase() || '?'
 
   useEffect(() => {
     function handleClickOutsideBell(event: MouseEvent) {
