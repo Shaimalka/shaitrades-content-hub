@@ -569,6 +569,45 @@ export default function LifeHubPage() {
         </div>
       </div>
 
+
+        {/* ââ Coach Shai new-brief banner ââ */}
+        {newBriefAvailable && !briefVisible && (
+          <button onClick={handleLoadNewBrief} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 999, background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: 'var(--brand)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            <RefreshCw size={12} />New brief from Coach Shai
+          </button>
+        )}
+
+        {/* ââ Coach Shai Card ââ */}
+        <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI · DAILY BRIEF</span>
+              {brief && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{formatGeneratedAt(brief.generatedAt)}</span>}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Button variant="ghost" onClick={handleRefresh} disabled={briefLoading} style={{ fontSize: 12, padding: '4px 10px', color: 'rgba(255,255,255,0.4)' }}>
+                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />Refresh
+              </Button>
+              <button onClick={handleDismiss} style={{ width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14} /></button>
+            </div>
+          </div>
+          {briefLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
+            </div>
+          ) : briefNoData ? (
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>Start logging your data and Coach Shai will brief you every morning.</p>
+          ) : briefError ? (
+            <p style={{ fontSize: 13, color: '#ef4444', margin: 0 }}>Failed to load brief. Click Refresh to try again.</p>
+          ) : brief ? (
+            <div>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>{brief.text}</p>
+              <span onClick={() => setIsExpanded(p => !p)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'inline-block', marginTop: 4 }}>{isExpanded ? 'Show less' : 'Read more →'}</span>
+            </div>
+          ) : null}
+        </div>
+
       {/* ââ SEARCH BAR ââââââââââââââââââââââââââââââââââââââââââ */}
       <div style={{ background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', padding: '12px 28px' }}>
         <div
@@ -617,46 +656,7 @@ export default function LifeHubPage() {
       )}
 
       {/* ââ CONTENT AREA ââââââââââââââââââââââââââââââââââââââââ */}
-      <div style={{ padding: '20px 28px', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 80 }}>
-
-        {/* ââ Coach Shai new-brief banner ââ */}
-        {newBriefAvailable && !briefVisible && (
-          <button onClick={handleLoadNewBrief} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 999, background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: 'var(--brand)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-            <RefreshCw size={12} />New brief from Coach Shai
-          </button>
-        )}
-
-        {/* ââ Coach Shai Card ââ */}
-        <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid var(--brand)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI · DAILY BRIEF</span>
-              {brief && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{formatGeneratedAt(brief.generatedAt)}</span>}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Button variant="ghost" onClick={handleRefresh} disabled={briefLoading} style={{ fontSize: 12, padding: '4px 10px', color: 'rgba(255,255,255,0.4)' }}>
-                <RefreshCw size={12} style={{ animation: briefLoading ? 'spin 1s linear infinite' : 'none' }} />Refresh
-              </Button>
-              <button onClick={handleDismiss} style={{ width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14} /></button>
-            </div>
-          </div>
-          {briefLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Coach Shai is reading your data...</span>
-            </div>
-          ) : briefNoData ? (
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>Start logging your data and Coach Shai will brief you every morning.</p>
-          ) : briefError ? (
-            <p style={{ fontSize: 13, color: '#ef4444', margin: 0 }}>Failed to load brief. Click Refresh to try again.</p>
-          ) : brief ? (
-            <div>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>{brief.text}</p>
-              <span onClick={() => setIsExpanded(p => !p)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'inline-block', marginTop: 4 }}>{isExpanded ? 'Show less' : 'Read more →'}</span>
-            </div>
-          ) : null}
-        </div>
-
+      <div style={{ padding: '16px 28px', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 80 }}>
         {/* ââ 5 Stat Cards ââ */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,minmax(0,1fr))' : 'repeat(5,minmax(0,1fr))', gap: 12 }}>
           {[
@@ -670,7 +670,7 @@ export default function LifeHubPage() {
               <div style={{ ...panelLabel, marginBottom: 8, fontSize: 11, letterSpacing: '0.06em', position: 'relative' }}>
                 {card.label}<InfoTooltip text={card.tip} />
               </div>
-              <div style={{ fontSize: card.value ? 24 : 28, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
+              <div style={{ fontSize: 28, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
                 {card.value || '—'}
               </div>
               <div style={{ fontSize: 11, fontWeight: 500, color: card.value ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{card.sub}</div>
