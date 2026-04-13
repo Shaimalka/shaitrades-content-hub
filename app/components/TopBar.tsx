@@ -36,12 +36,14 @@ export default function TopBar() {
   const title = pageTitles[pathname] || 'TRABITS'
 
   const initials = session?.user?.name
-    ? session.user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'T'
+    ? session.user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : session?.user?.email
+    ? session.user.email[0].toUpperCase()
+    : '?'
 
   useEffect(() => {
     function handleClickOutsideBell(event: MouseEvent) {
-      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
+      if (bellRef.current \u0026\u0026 !bellRef.current.contains(event.target as Node)) {
         setShowNotifications(false)
       }
     }
@@ -51,7 +53,7 @@ export default function TopBar() {
 
   useEffect(() => {
     function handleClickOutsideAvatar(event: MouseEvent) {
-      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
+      if (avatarRef.current \u0026\u0026 !avatarRef.current.contains(event.target as Node)) {
         setShowUserMenu(false)
       }
     }
@@ -82,7 +84,7 @@ export default function TopBar() {
           style: { cursor: 'pointer' },
           onClick: () => setShowNotifications(prev => !prev)
         }),
-        showNotifications && React.createElement('div', {
+        showNotifications \u0026\u0026 React.createElement('div', {
           style: {
             position: 'absolute',
             top: '100%',
@@ -124,7 +126,7 @@ export default function TopBar() {
             boxShadow: hovered ? '0 0 0 3px rgba(37,99,235,0.25)' : 'none',
           }
         }, initials),
-        showUserMenu && React.createElement('div', {
+        showUserMenu \u0026\u0026 React.createElement('div', {
           style: {
             position: 'absolute',
             top: '100%',
