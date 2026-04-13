@@ -541,7 +541,7 @@ export default function LifeHubPage() {
         style={{ width: 15, height: 15, borderRadius: '50%', border: '1px solid var(--border)', background: 'var(--bg-card)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, marginLeft: 6, flexShrink: 0 }}
       >i</button>
       {activeTooltip === id && (
-        <div style={{ position: 'absolute', top: 22, left: 0, width: 220, background: '#0f1117', borderRadius: 8, padding: '10px 14px', zIndex: 200, fontSize: 11, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6, border: '0.5px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ position: 'absolute', top: 22, left: 0, width: 220, background: 'var(--bg-page)', borderRadius: 8, padding: '10px 14px', zIndex: 200, fontSize: 11, color: 'rgba(255,255,255,0.82)', lineHeight: 1.6, border: '0.5px solid rgba(255,255,255,0.1)' }}>
           {tooltipTexts[id] || ''}
         </div>
       )}
@@ -554,7 +554,7 @@ export default function LifeHubPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', fontFamily: 'var(--font)' }}>
       {/* ââ TOPBAR ââââââââââââââââââââââââââââââââââââââââââââââ */}
-      <div style={{ height: 64, background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0 28px', position: 'sticky', top: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ height: 64, background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', padding: '0 28px', position: 'sticky', top: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Personal Command Center</div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{todayLong}</div>
@@ -570,7 +570,7 @@ export default function LifeHubPage() {
       </div>
 
       {/* ââ SEARCH BAR ââââââââââââââââââââââââââââââââââââââââââ */}
-      <div style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '12px 28px' }}>
+      <div style={{ background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', padding: '12px 28px' }}>
         <div
           onClick={() => setSearchOpen(true)}
           style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'text', maxWidth: '100%' }}
