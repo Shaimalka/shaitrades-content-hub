@@ -44,7 +44,7 @@ export default function LifeHubPage() {
   const width = useWindowWidth()
   const isMobile = width < 768
 
-  // Ã¢Ã¢ existing state Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ existing state ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
   const [stats, setStats] = useState<SectionStats>({
@@ -70,12 +70,12 @@ export default function LifeHubPage() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
 
-  // Ã¢Ã¢ new UI state Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ new UI state ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const [searchOpen, setSearchOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [chatTab, setChatTab] = useState<'coach' | 'support'>('coach')
   const [chatMessages, setChatMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
-    { role: 'ai', text: "Hey! What's on your mind? Trading, health, mindset — I'm here. You have 1 life." },
+    { role: 'ai', text: "Hey! What's on your mind? Trading, health, mindset Ã¢ÂÂ I'm here. You have 1 life." },
   ])
   const [chatInput, setChatInput] = useState('')
   const [supportName, setSupportName] = useState('')
@@ -97,7 +97,7 @@ export default function LifeHubPage() {
     return () => document.removeEventListener('keydown', handleKey)
   }, [])
 
-  // Ã¢Ã¢ dismiss/brief logic (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ dismiss/brief logic (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   useEffect(() => {
     const today = getLocalDateString()
     const dismissedDate = localStorage.getItem(DISMISS_KEY_PREFIX + 'date')
@@ -164,7 +164,7 @@ export default function LifeHubPage() {
     fetchBrief(true)
   }
 
-  // Ã¢Ã¢ data loading (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ data loading (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   useEffect(() => {
     if (!onboardingChecked || showOnboarding) return
     async function loadStats() {
@@ -248,7 +248,7 @@ export default function LifeHubPage() {
     loadStats()
   }, [onboardingChecked, showOnboarding])
 
-  // Ã¢Ã¢ guards (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ guards (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   if (!onboardingChecked) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -258,17 +258,17 @@ export default function LifeHubPage() {
   }
   if (showOnboarding) return <Onboarding onComplete={() => setShowOnboarding(false)} />
 
-  // Ã¢Ã¢ helpers Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ helpers ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const formatGeneratedAt = (iso: string) => {
     try {
       const d = new Date(iso)
-      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' ÃÂ· ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     } catch { return iso }
   }
 
-  // Ã¢Ã¢ derived data (unchanged calculations) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ derived data (unchanged calculations) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const now = new Date()
-  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' Ã¢ÂÂ ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   const todayLong = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
   const allTrades = tradingData
@@ -292,7 +292,7 @@ export default function LifeHubPage() {
   ]
   const totalEdgeScore = edgeScore?.total ?? null
 
-  // Ã¢Ã¢ heatmap (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ heatmap (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const today2 = new Date()
   const heatmapWeeks: Array<Array<{ date: string; pnl: number | null; hasTrade: boolean }>> = []
   const startDay = new Date(today2)
@@ -320,19 +320,19 @@ export default function LifeHubPage() {
     return '#dc2626'
   }
 
-  // Ã¢Ã¢ checklist (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ checklist (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const checklistItems = ['Review trading plan', 'Log morning routine', 'Check positions', 'Journal entry', 'Evening review']
   const checkedCount = checkedItems.filter(Boolean).length
 
-  // Ã¢Ã¢ recent trades (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ recent trades (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const recentTrades = [...allTrades].sort((a: any, b: any) => (b.date > a.date ? 1 : -1)).slice(0, 5)
 
-  // Ã¢Ã¢ income (unchanged) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ income (unchanged) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const tradingIncomePnl = monthTrades.reduce((s: number, t: any) => s + (t.pnl || 0), 0)
   const contentIncome = financeData.income.filter((e: any) => e.date?.startsWith(currentMonth2)).reduce((s: number, e: any) => s + (e.amount || 0), 0)
   const totalMonthIncome = tradingIncomePnl + contentIncome
 
-  // Ã¢Ã¢ equity curve (from trade data) Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ equity curve (from trade data) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const sortedTrades = [...allTrades].sort((a: any, b: any) => (a.date > b.date ? 1 : -1))
   const equityCurve: number[] = []
   let runningPnl = 0
@@ -352,14 +352,14 @@ export default function LifeHubPage() {
   const equityColor = equityCurve[equityCurve.length - 1] >= 0 ? 'var(--green)' : 'var(--red)'
   const equityFillId = 'equityFill'
 
-  // Ã¢Ã¢ best/worst days Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ best/worst days ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const dayPnlMap: Record<string, number> = {}
   for (const t of allTrades) { if (t.date) dayPnlMap[t.date] = (dayPnlMap[t.date] || 0) + (t.pnl || 0) }
   const dayPnlArr = Object.entries(dayPnlMap).map(([date, pnl]) => ({ date, pnl }))
   const topDays = [...dayPnlArr].sort((a, b) => b.pnl - a.pnl).slice(0, 3)
   const worstDays = [...dayPnlArr].sort((a, b) => a.pnl - b.pnl).slice(0, 3)
 
-  // Ã¢Ã¢ habits data for Life OS Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ habits data for Life OS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const habitsList2 = habitsData.habits
   const completions2 = habitsData.completions
   const today3 = getLocalDateString()
@@ -374,7 +374,7 @@ export default function LifeHubPage() {
     return { ...h, pct: Math.round((done / total) * 100) }
   })
 
-  // Ã¢Ã¢ journal data Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ journal data ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const journalStreak = (() => {
     let streak = 0
     const d = new Date()
@@ -390,12 +390,12 @@ export default function LifeHubPage() {
     return { ds: d.toISOString().split('T')[0], label: ['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()] }
   })
 
-  // Ã¢Ã¢ health data Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
-  // We derive from stats text — actual data is not separately loaded, show placeholders
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ health data ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+  // We derive from stats text Ã¢ÂÂ actual data is not separately loaded, show placeholders
   const healthMetrics = [
-    { label: 'SLEEP AVG', value: '—', unit: 'hrs', color: 'var(--brand)' },
-    { label: 'ENERGY AVG', value: '—', unit: '/10', color: 'var(--green)' },
-    { label: 'GYM DAYS', value: '—', unit: 'this wk', color: 'var(--purple)' },
+    { label: 'SLEEP AVG', value: 'Ã¢ÂÂ', unit: 'hrs', color: 'var(--brand)' },
+    { label: 'ENERGY AVG', value: 'Ã¢ÂÂ', unit: '/10', color: 'var(--green)' },
+    { label: 'GYM DAYS', value: 'Ã¢ÂÂ', unit: 'this wk', color: 'var(--purple)' },
   ]
 
   const tooltipTexts: Record<string, string> = {
@@ -404,12 +404,12 @@ export default function LifeHubPage() {
     'PROFIT FACTOR': 'Gross profit divided by gross loss. Above 1.0 is profitable. Above 2.0 is strong.',
     'AVG R:R': 'Average risk-to-reward per trade. 2.0 means you make \$2 for every \$1 risked.',
     'HABIT STREAK': 'Consecutive days where you completed all your habits. Protect this number.',
-    'EDGE SCORE': 'Your trading edge from 0â100 based on Discipline, Consistency, Execution and Risk Control.',
+    'EDGE SCORE': 'Your trading edge from 0Ã¢ÂÂ100 based on Discipline, Consistency, Execution and Risk Control.',
     'TRADING ACTIVITY': 'Each cell is one trading day. Green = winning day. Red = losing day. Darker = bigger move.',
     'RECENT TRADES': 'Your last logged trades. Click View all to open the full Trading Journal.',
   }
 
-  // Ã¢Ã¢ tooltipBtn helper Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ tooltipBtn helper ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const TooltipBtn = ({ id }: { id: string }) => (
     <div style={{ position: 'relative', display: 'inline-flex' }}>
       <button
@@ -424,12 +424,12 @@ export default function LifeHubPage() {
     </div>
   )
 
-  // Ã¢Ã¢ panel label style Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢
+  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ panel label style ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
   const panelLabel: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-primary)', display: 'flex', alignItems: 'center' }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', fontFamily: 'var(--font)' }}>
-      {/* Ã¢Ã¢ TOPBAR Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢ */}
+      {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ TOPBAR ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
       <div style={{ height: 64, background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0 28px', position: 'sticky', top: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Personal Command Center</div>
@@ -445,23 +445,23 @@ export default function LifeHubPage() {
         </div>
       </div>
 
-      {/* Ã¢Ã¢ SEARCH BAR Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢ */}
+      {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SEARCH BAR ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
       <div style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '12px 28px' }}>
         <div
           onClick={() => setSearchOpen(true)}
           style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'text', maxWidth: '100%' }}
         >
           <Search size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <span style={{ fontSize: 13, color: 'var(--text-muted)', flex: 1 }}>Ask Coach Shai anything — trading, health, wealth, mindset, fitness plans...</span>
+          <span style={{ fontSize: 13, color: 'var(--text-muted)', flex: 1 }}>Ask Coach Shai anything Ã¢ÂÂ trading, health, wealth, mindset, fitness plans...</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            {['⌘', 'K'].map(k => (
+            {['â', 'K'].map(k => (
               <span key={k} style={{ background: 'var(--bg-page)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px', fontSize: 10, fontWeight: 600, color: 'var(--text-muted)' }}>{k}</span>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Ã¢Ã¢ SEARCH OVERLAY Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢ */}
+      {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SEARCH OVERLAY ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
       {searchOpen && (
         <div
           onClick={() => setSearchOpen(false)}
@@ -492,21 +492,21 @@ export default function LifeHubPage() {
         </div>
       )}
 
-      {/* Ã¢Ã¢ CONTENT AREA Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢ */}
+      {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ CONTENT AREA ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
       <div style={{ padding: '20px 28px', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 80 }}>
 
-        {/* Ã¢Ã¢ Coach Shai new-brief banner Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Coach Shai new-brief banner ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         {newBriefAvailable && !briefVisible && (
           <button onClick={handleLoadNewBrief} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 999, background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)', color: 'var(--brand)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
             <RefreshCw size={12} />New brief from Coach Shai
           </button>
         )}
 
-        {/* Ã¢Ã¢ Coach Shai Card Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Coach Shai Card ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid var(--brand)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI · DAILY BRIEF</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI ÃÂ· DAILY BRIEF</span>
               {brief && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{formatGeneratedAt(brief.generatedAt)}</span>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -528,16 +528,16 @@ export default function LifeHubPage() {
           ) : brief ? (
             <div>
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: isExpanded ? 'unset' : 2, WebkitBoxOrient: 'vertical' }}>{brief.text}</p>
-              <span onClick={() => setIsExpanded(p => !p)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'inline-block', marginTop: 4 }}>{isExpanded ? 'Show less Ã¢' : 'Read more →'}</span>
+              <span onClick={() => setIsExpanded(p => !p)} style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', cursor: 'pointer', display: 'inline-block', marginTop: 4 }}>{isExpanded ? 'Show less ÃÂ¢ÃÂÃÂ' : 'Read more Ã¢ÂÂ'}</span>
             </div>
           ) : null}
         </div>
 
-        {/* Ã¢Ã¢ 5 Stat Cards Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ 5 Stat Cards ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,minmax(0,1fr))' : 'repeat(5,minmax(0,1fr))', gap: 12 }}>
           {[
             { label: 'NET P&L', accent: '#60a5fa', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : null, color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : 'var(--text-primary)', sub: netPnl !== 0 ? 'month to date' : 'no trades yet' },
-            { label: 'WIN RATE', accent: '#ef4444', value: winRate !== null ? winRate + '%' : null, color: winRate !== null && winRate >= 50 ? 'var(--green)' : winRate !== null ? 'var(--red)' : 'var(--text-primary)', sub: winRate !== null ? wins.length + 'W · ' + losses.length + 'L' : 'no trades yet' },
+            { label: 'WIN RATE', accent: '#ef4444', value: winRate !== null ? winRate + '%' : null, color: winRate !== null && winRate >= 50 ? 'var(--green)' : winRate !== null ? 'var(--red)' : 'var(--text-primary)', sub: winRate !== null ? wins.length + 'W ÃÂ· ' + losses.length + 'L' : 'no trades yet' },
             { label: 'PROFIT FACTOR', accent: '#10b981', value: profitFactor !== null ? String(profitFactor) : null, color: 'var(--green)', sub: profitFactor !== null ? 'gross W/L ratio' : 'no trades yet' },
             { label: 'AVG R:R', accent: '#a78bfa', value: avgRR !== null ? String(avgRR) : null, color: 'var(--purple)', sub: avgRR !== null ? 'risk to reward' : 'no trades yet' },
             { label: 'HABIT STREAK', accent: '#60a5fa', value: habitStreakNum > 0 ? habitStreakNum + 'd' : null, color: 'var(--brand)', sub: habitStreakNum > 0 ? 'consecutive days' : 'start a habit' },
@@ -547,14 +547,14 @@ export default function LifeHubPage() {
                 {card.label}<TooltipBtn id={card.label} />
               </div>
               <div style={{ fontSize: card.value ? 24 : 28, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
-                {card.value || '—'}
+                {card.value || 'Ã¢ÂÂ'}
               </div>
               <div style={{ fontSize: 11, fontWeight: 500, color: card.value ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{card.sub}</div>
             </div>
           ))}
         </div>
 
-        {/* Ã¢Ã¢ Three Column Row Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Three Column Row ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr)', gap: 14 }}>
 
           {/* Edge Score */}
@@ -562,7 +562,7 @@ export default function LifeHubPage() {
             <div style={{ ...panelLabel, marginBottom: 12, position: 'relative' }}>Edge Score<TooltipBtn id="EDGE SCORE" /></div>
             <div style={{ textAlign: 'center', marginBottom: 14 }}>
               <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                <span style={{ fontSize: 44, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{totalEdgeScore !== null ? totalEdgeScore : '—'}</span>
+                <span style={{ fontSize: 44, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{totalEdgeScore !== null ? totalEdgeScore : 'Ã¢ÂÂ'}</span>
                 {totalEdgeScore !== null && <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>/100</span>}
               </div>
               <div style={{ marginTop: 6 }}>
@@ -578,7 +578,7 @@ export default function LifeHubPage() {
                 <div key={p.label}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>{p.label}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{p.score !== null ? p.score : '—'}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{p.score !== null ? p.score : 'Ã¢ÂÂ'}</span>
                   </div>
                   <div style={{ height: 5, background: 'var(--bg-page)', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: p.score !== null ? p.score + '%' : '0%', background: p.color, borderRadius: 3, transition: 'width 0.5s ease' }} />
@@ -653,9 +653,9 @@ export default function LifeHubPage() {
                       return (
                         <tr key={i}>
                           <td style={{ padding: '6px 8px 6px 0', fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{t.date}</td>
-                          <td style={{ padding: '6px 8px 6px 0' }}><span style={{ background: 'var(--bg-page)', color: 'var(--text-secondary)', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{t.symbol || '—'}</span></td>
-                          <td style={{ padding: '6px 8px 6px 0', fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{t.side || t.direction || '—'}</td>
-                          <td style={{ padding: '6px 0', fontSize: 12, fontWeight: 700, color: tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : '—'}</td>
+                          <td style={{ padding: '6px 8px 6px 0' }}><span style={{ background: 'var(--bg-page)', color: 'var(--text-secondary)', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4 }}>{t.symbol || 'Ã¢ÂÂ'}</span></td>
+                          <td style={{ padding: '6px 8px 6px 0', fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', textTransform: 'capitalize' }}>{t.side || t.direction || 'Ã¢ÂÂ'}</td>
+                          <td style={{ padding: '6px 0', fontSize: 12, fontWeight: 700, color: tp > 0 ? 'var(--green)' : tp < 0 ? 'var(--red)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>{tp !== 0 ? (tp > 0 ? '+' : '') + '$' + Math.abs(tp).toLocaleString() : 'Ã¢ÂÂ'}</td>
                         </tr>
                       )
                     })}
@@ -667,11 +667,11 @@ export default function LifeHubPage() {
             </div>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 20px', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ ...panelLabel, marginBottom: 12 }}>Income This Month</div>
-              <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--green)', marginBottom: 14 }}>{totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : '—'}</div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--green)', marginBottom: 14 }}>{totalMonthIncome !== 0 ? '$' + totalMonthIncome.toLocaleString() : 'Ã¢ÂÂ'}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {[
-                  { label: 'Trading', value: tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : '—', color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' },
-                  { label: 'Content', value: contentIncome > 0 ? '$' + contentIncome.toLocaleString() : '—', color: 'var(--text-primary)' },
+                  { label: 'Trading', value: tradingIncomePnl !== 0 ? (tradingIncomePnl >= 0 ? '+' : '') + '$' + Math.abs(tradingIncomePnl).toLocaleString() : 'Ã¢ÂÂ', color: tradingIncomePnl >= 0 ? 'var(--green)' : 'var(--red)' },
+                  { label: 'Content', value: contentIncome > 0 ? '$' + contentIncome.toLocaleString() : 'Ã¢ÂÂ', color: 'var(--text-primary)' },
                 ].map(item => (
                   <div key={item.label} style={{ background: 'var(--bg-page)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
                     <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 4 }}>{item.label}</div>
@@ -683,14 +683,14 @@ export default function LifeHubPage() {
           </div>
         </div>
 
-        {/* Ã¢Ã¢ Section Divider: Performance Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Section Divider: Performance ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Performance</span>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
         </div>
 
-        {/* Ã¢Ã¢ Performance: Equity Curve + Best/Worst Days Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Performance: Equity Curve + Best/Worst Days ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,2fr) minmax(0,1fr)', gap: 14 }}>
           {/* Equity Curve */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 20px', boxShadow: 'var(--shadow-sm)' }}>
@@ -736,14 +736,14 @@ export default function LifeHubPage() {
           </div>
         </div>
 
-        {/* Ã¢Ã¢ Section Divider: Life OS Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Section Divider: Life OS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Life OS</span>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
         </div>
 
-        {/* Ã¢Ã¢ Life OS: 4 columns Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Life OS: 4 columns ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,minmax(0,1fr))', gap: 14 }}>
 
           {/* Habits */}
@@ -791,7 +791,7 @@ export default function LifeHubPage() {
                 return (
                   <div key={ds} style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ width: '100%', aspectRatio: '1', borderRadius: 4, background: done ? '#dcfce7' : 'var(--bg-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: done ? '#16a34a' : 'var(--text-muted)' }}>
-                      {done ? 'Ã¢' : '·'}
+                      {done ? 'ÃÂ¢ÃÂÃÂ' : 'ÃÂ·'}
                     </div>
                     <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
                   </div>
@@ -815,13 +815,13 @@ export default function LifeHubPage() {
           </div>
         </div>
 
-        {/* Ã¢Ã¢ Footer Ã¢Ã¢ */}
+        {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Footer ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
         <div style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0 40px' }}>
-          {'// ALL DATA STORED IN UPSTASH REDIS · AI POWERED BY CLAUDE HAIKU'}
+          {'// ALL DATA STORED IN UPSTASH REDIS ÃÂ· AI POWERED BY CLAUDE HAIKU'}
         </div>
       </div>
 
-      {/* Ã¢Ã¢ CHAT WIDGET Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢Ã¢ */}
+      {/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ CHAT WIDGET ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */}
       <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
         {chatOpen && (
           <div style={{ width: 320, background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
