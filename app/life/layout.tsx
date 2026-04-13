@@ -1,12 +1,10 @@
 'use client'
 import React from 'react'
-import { useTheme } from '@/app/contexts/ThemeContext'
 import Sidebar from '@/app/components/Sidebar'
 import TopBar from '@/app/components/TopBar'
 import { SessionProvider } from 'next-auth/react'
 
 function LifeLayoutInner({ children }: { children: React.ReactNode }) {
-  const { isDark } = useTheme()
   const [collapsed, setCollapsed] = React.useState(() => {
     if (typeof window === 'undefined') return false
     try {
@@ -15,7 +13,6 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
       return false
     }
   })
-
   React.useEffect(() => {
     const handler = (e: Event) => {
       const ce = e as CustomEvent<{ collapsed: boolean }>
@@ -31,7 +28,7 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-            background: isDark ? '#0a0a0f' : '#f4f6f9',
+            background: 'var(--bg-page)',
     }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
