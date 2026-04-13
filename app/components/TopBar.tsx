@@ -43,7 +43,7 @@ export default function TopBar() {
 
   useEffect(() => {
     function handleClickOutsideBell(event: MouseEvent) {
-      if (bellRef.current \u0026\u0026 !bellRef.current.contains(event.target as Node)) {
+      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
         setShowNotifications(false)
       }
     }
@@ -53,7 +53,7 @@ export default function TopBar() {
 
   useEffect(() => {
     function handleClickOutsideAvatar(event: MouseEvent) {
-      if (avatarRef.current \u0026\u0026 !avatarRef.current.contains(event.target as Node)) {
+      if (avatarRef.current && !avatarRef.current.contains(event.target as Node)) {
         setShowUserMenu(false)
       }
     }
@@ -84,7 +84,7 @@ export default function TopBar() {
           style: { cursor: 'pointer' },
           onClick: () => setShowNotifications(prev => !prev)
         }),
-        showNotifications \u0026\u0026 React.createElement('div', {
+        showNotifications && React.createElement('div', {
           style: {
             position: 'absolute',
             top: '100%',
@@ -93,7 +93,7 @@ export default function TopBar() {
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
             borderRadius: '10px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.8)',
             minWidth: '260px',
             padding: '20px',
             zIndex: 50,
@@ -126,7 +126,7 @@ export default function TopBar() {
             boxShadow: hovered ? '0 0 0 3px rgba(37,99,235,0.25)' : 'none',
           }
         }, initials),
-        showUserMenu \u0026\u0026 React.createElement('div', {
+        showUserMenu && React.createElement('div', {
           style: {
             position: 'absolute',
             top: '100%',
