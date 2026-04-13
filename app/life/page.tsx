@@ -578,7 +578,7 @@ export default function LifeHubPage() {
         )}
 
         {/* ââ Coach Shai Card ââ */}
-        <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative' }}>
+        <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative', marginTop: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI · DAILY BRIEF</span>
@@ -670,7 +670,7 @@ export default function LifeHubPage() {
               <div style={{ ...panelLabel, marginBottom: 8, fontSize: 11, letterSpacing: '0.06em', position: 'relative' }}>
                 {card.label}<InfoTooltip text={card.tip} />
               </div>
-              <div style={{ fontSize: 28, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
+              <div style={{ fontSize: card.value ? 28 : 32, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
                 {card.value || '—'}
               </div>
               <div style={{ fontSize: 11, fontWeight: 500, color: card.value ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{card.sub}</div>
