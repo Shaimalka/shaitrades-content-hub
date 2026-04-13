@@ -609,10 +609,10 @@ export default function LifeHubPage() {
         </div>
 
       {/* ââ SEARCH BAR ââââââââââââââââââââââââââââââââââââââââââ */}
-      <div style={{ background: 'var(--bg-page)', borderBottom: '1px solid var(--border)', padding: '12px 28px' }}>
+      <div style={{ background: 'var(--bg-page)', padding: '12px 28px' }}>
         <div
           onClick={() => setSearchOpen(true)}
-          style={{ background: 'var(--bg-page)', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'text', maxWidth: '100%' }}
+          style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#ffffff', border: isDark ? '1px solid rgba(96,165,250,0.4)' : '1px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'text', maxWidth: '100%' }}
         >
           <Search size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
           <span style={{ fontSize: 13, color: 'var(--text-muted)', flex: 1 }}>Ask Coach Shai anything — trading, health, wealth, mindset, fitness plans...</span>
