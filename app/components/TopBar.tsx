@@ -28,8 +28,8 @@ export default function TopBar() {
   const bellRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLDivElement>(null)
 
-  const surface = isDark ? '#111118' : '#ffffff'
-  const border = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const surface = 'var(--bg-card)'
+  const border = 'var(--border)'
   const text = isDark ? '#ffffff' : '#0a0a0f'
   const textMuted = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
 
@@ -98,7 +98,7 @@ export default function TopBar() {
             padding: '20px',
             zIndex: 50,
           }
-        },
+        }
           React.createElement('div', {
             style: { fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }
           }, 'Notifications'),
