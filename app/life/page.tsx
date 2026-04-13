@@ -37,7 +37,7 @@ const InfoTooltip = ({ text }: { text: string }) => {
 
       ref={ref}
 
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', marginLeft: 5 }}
 
       onClick={(e) => { e.stopPropagation(); setShow(prev => !prev) }}
 
@@ -45,15 +45,35 @@ const InfoTooltip = ({ text }: { text: string }) => {
 
       <span style={{
 
-        width: 15, height: 15, borderRadius: '50%',
+        width: 13,
 
-        border: '1px solid #e2e8f0', background: '#f8fafc',
+        height: 13,
 
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: '50%',
 
-        fontSize: 9, color: '#94a3b8', fontWeight: 700, cursor: 'pointer',
+        border: '1px solid #cbd5e1',
 
-        flexShrink: 0, userSelect: 'none'
+        background: 'transparent',
+
+        display: 'inline-flex',
+
+        alignItems: 'center',
+
+        justifyContent: 'center',
+
+        fontSize: 8,
+
+        color: '#94a3b8',
+
+        fontWeight: 600,
+
+        cursor: 'pointer',
+
+        flexShrink: 0,
+
+        userSelect: 'none',
+
+        lineHeight: 1
 
       }}>i</span>
 
@@ -61,19 +81,45 @@ const InfoTooltip = ({ text }: { text: string }) => {
 
         <span style={{
 
-          position: 'absolute', bottom: '100%', left: '50%',
+          position: 'absolute',
 
-          transform: 'translateX(-50%)', marginBottom: 6,
+          bottom: '100%',
 
-          background: '#0f172a', color: '#fff', fontSize: 12,
+          left: '50%',
 
-          fontWeight: 400, padding: '10px 14px', borderRadius: 8,
+          transform: 'translateX(-50%)',
 
-          whiteSpace: 'normal', width: 220, zIndex: 100, pointerEvents: 'none',
+          marginBottom: 8,
 
-          boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+          background: '#1e293b',
 
-          lineHeight: 1.6
+          color: 'rgba(255,255,255,0.85)',
+
+          fontSize: 12,
+
+          fontWeight: 400,
+
+          letterSpacing: '0',
+
+          textTransform: 'none',
+
+          padding: '10px 13px',
+
+          borderRadius: 8,
+
+          whiteSpace: 'normal',
+
+          width: 230,
+
+          zIndex: 100,
+
+          pointerEvents: 'none',
+
+          boxShadow: '0 8px 24px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12)',
+
+          lineHeight: 1.6,
+
+          border: '1px solid rgba(255,255,255,0.08)'
 
         }}>{text}</span>
 
