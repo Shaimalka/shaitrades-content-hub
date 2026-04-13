@@ -1,11 +1,41 @@
 // @charset utf-8
 'use client'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Calendar, Plus, Check, Search, Send, MessageCircle } from 'lucide-react'
 import Onboarding from '@/app/components/Onboarding'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import Button from '@/app/components/ui/Button'
+
+const InfoTooltip = ({ text }: { text: string }) => {
+  const [show, setShow] = React.useState(false)
+  return (
+    <span
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      <span style={{
+        width: 15, height: 15, borderRadius: '50%',
+        border: '1px solid #e2e8f0', background: '#f8fafc',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 9, color: '#94a3b8', fontWeight: 700, cursor: 'pointer',
+        flexShrink: 0, userSelect: 'none'
+      }}>i</span>
+      {show && (
+        <span style={{
+          position: 'absolute', bottom: '100%', left: '50%',
+          transform: 'translateX(-50%)', marginBottom: 6,
+          background: '#0f172a', color: '#fff', fontSize: 11,
+          fontWeight: 500, padding: '6px 10px', borderRadius: 6,
+          whiteSpace: 'nowrap', zIndex: 100, pointerEvents: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          lineHeight: 1.4
+        }}>{text}</span>
+      )}
+    </span>
+  )
+}
 
 const sections = [
   { key: 'trading', name: 'Trading Journal', descriptor: 'Track trades, P&L, and patterns', icon: LineChart, href: '/life/trading', statusBadge: 'NO TRADES', statusKey: 'trading' },
@@ -537,15 +567,15 @@ export default function LifeHubPage() {
         {/* ââ 5 Stat Cards ââ */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,minmax(0,1fr))' : 'repeat(5,minmax(0,1fr))', gap: 12 }}>
           {[
-            { label: 'NET P&L', accent: '#60a5fa', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : null, color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : 'var(--text-primary)', sub: netPnl !== 0 ? 'month to date' : 'no trades yet' },
-            { label: 'WIN RATE', accent: '#ef4444', value: winRate !== null ? winRate + '%' : null, color: winRate !== null && winRate >= 50 ? 'var(--green)' : winRate !== null ? 'var(--red)' : 'var(--text-primary)', sub: winRate !== null ? wins.length + 'W · ' + losses.length + 'L' : 'no trades yet' },
-            { label: 'PROFIT FACTOR', accent: '#10b981', value: profitFactor !== null ? String(profitFactor) : null, color: 'var(--green)', sub: profitFactor !== null ? 'gross W/L ratio' : 'no trades yet' },
-            { label: 'AVG R:R', accent: '#a78bfa', value: avgRR !== null ? String(avgRR) : null, color: 'var(--purple)', sub: avgRR !== null ? 'risk to reward' : 'no trades yet' },
-            { label: 'HABIT STREAK', accent: '#60a5fa', value: habitStreakNum > 0 ? habitStreakNum + 'd' : null, color: 'var(--brand)', sub: habitStreakNum > 0 ? 'consecutive days' : 'start a habit' },
+            { label: 'NET P&L', tip: 'Total realized profit and loss across all logged trades', accent: '#60a5fa', value: netPnl !== 0 ? (netPnl >= 0 ? '+' : '') + '$' + Math.abs(netPnl).toLocaleString() : null, color: netPnl > 0 ? 'var(--green)' : netPnl < 0 ? 'var(--red)' : 'var(--text-primary)', sub: netPnl !== 0 ? 'month to date' : 'no trades yet' },
+            { label: 'WIN RATE', tip: 'Percentage of trades closed in profit', accent: '#ef4444', value: winRate !== null ? winRate + '%' : null, color: winRate !== null && winRate >= 50 ? 'var(--green)' : winRate !== null ? 'var(--red)' : 'var(--text-primary)', sub: winRate !== null ? wins.length + 'W · ' + losses.length + 'L' : 'no trades yet' },
+            { label: 'PROFIT FACTOR', tip: 'Gross profit divided by gross loss — above 1.5 is solid', accent: '#10b981', value: profitFactor !== null ? String(profitFactor) : null, color: 'var(--green)', sub: profitFactor !== null ? 'gross W/L ratio' : 'no trades yet' },
+            { label: 'AVG R:R', tip: 'Average risk-to-reward ratio across all trades', accent: '#a78bfa', value: avgRR !== null ? String(avgRR) : null, color: 'var(--purple)', sub: avgRR !== null ? 'risk to reward' : 'no trades yet' },
+            { label: 'HABIT STREAK', tip: 'Consecutive days you hit your daily habit score target', accent: '#60a5fa', value: habitStreakNum > 0 ? habitStreakNum + 'd' : null, color: 'var(--brand)', sub: habitStreakNum > 0 ? 'consecutive days' : 'start a habit' },
           ].map((card) => (
             <div key={card.label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: `3px solid ${card.accent}`, padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
               <div style={{ ...panelLabel, marginBottom: 8, fontSize: 11, letterSpacing: '0.06em', position: 'relative' }}>
-                {card.label}<TooltipBtn id={card.label} />
+                {card.label}<InfoTooltip text={card.tip} />
               </div>
               <div style={{ fontSize: card.value ? 24 : 28, fontWeight: card.value ? 700 : 300, color: card.value ? card.color : 'var(--text-empty)', lineHeight: 1.1 }}>
                 {card.value || '—'}
@@ -560,7 +590,7 @@ export default function LifeHubPage() {
 
           {/* Edge Score */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 20px', boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ ...panelLabel, marginBottom: 12, position: 'relative' }}>Edge Score<TooltipBtn id="EDGE SCORE" /></div>
+            <div style={{ ...panelLabel, marginBottom: 12, position: 'relative' }}>Edge Score<InfoTooltip text="Your overall trading edge — composite of discipline, consistency, execution and risk control" /></div>
             <div style={{ textAlign: 'center', marginBottom: 14 }}>
               <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
                 <span style={{ fontSize: 44, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{totalEdgeScore !== null ? totalEdgeScore : '—'}</span>
@@ -592,7 +622,7 @@ export default function LifeHubPage() {
           {/* Trading Activity + Checklist */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 20px', boxShadow: 'var(--shadow-sm)' }}>
-              <div style={{ ...panelLabel, marginBottom: 12, position: 'relative' }}>Trading Activity<TooltipBtn id="TRADING ACTIVITY" /></div>
+              <div style={{ ...panelLabel, marginBottom: 12, position: 'relative' }}>Trading Activity<InfoTooltip text="Daily win/loss heatmap for the current period" /></div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {(['Mon','Tue','Wed','Thu','Fri'] as const).map((dayLabel, dayIdx) => (
                   <div key={dayLabel} style={{ display: 'grid', gridTemplateColumns: '28px repeat(6,1fr)', gap: 2, alignItems: 'center' }}>
@@ -640,7 +670,7 @@ export default function LifeHubPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 20px', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={{ ...panelLabel, position: 'relative' }}>Recent Trades<TooltipBtn id="RECENT TRADES" /></div>
+                <div style={{ ...panelLabel, position: 'relative' }}>Recent Trades<InfoTooltip text="Your last 5 logged trades" /></div>
                 <Link href="/life/trading" style={{ fontSize: 11, color: 'var(--brand)' }}>View all</Link>
               </div>
               {recentTrades.length > 0 ? (
