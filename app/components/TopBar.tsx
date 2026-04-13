@@ -28,7 +28,7 @@ export default function TopBar() {
   const bellRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLDivElement>(null)
 
-  const surface = 'var(--bg-card)'
+  const surface = 'var(--bg-page)'
   const border = 'var(--border)'
   const text = isDark ? '#ffffff' : '#0a0a0f'
   const textMuted = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
