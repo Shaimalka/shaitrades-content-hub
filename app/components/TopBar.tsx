@@ -98,7 +98,7 @@ export default function TopBar() {
             padding: '20px',
             zIndex: 50,
           }
-        }
+        },
           React.createElement('div', {
             style: { fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }
           }, 'Notifications'),
