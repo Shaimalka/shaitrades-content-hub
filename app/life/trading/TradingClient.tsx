@@ -101,7 +101,7 @@ function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boo
   }, [insight.text, insight.visible])
   if (!insight.visible) return null
   return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderLeft: '3px solid #60a5fa', borderRadius: 10, padding: '16px 20px 0 20px', marginBottom: 16, boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', opacity: insight.fading ? 0 : 1, transition: 'opacity 2s ease', overflow: 'hidden' }}>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderLeft: '3px solid #60a5fa', borderRadius: 12, padding: '16px 20px 0 20px', marginBottom: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', opacity: insight.fading ? 0 : 1, transition: 'opacity 2s ease', overflow: 'hidden' }}>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#60a5fa', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>⚡ COACH SHAI</p>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textPrimary, lineHeight: 1.7, marginBottom: 12 }}>{insight.text}</p>
       <div style={{ height: 2, background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 1 }}>
@@ -199,14 +199,14 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
   const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#94a3b8'
   const bgPage = isDark ? '#0f1117' : '#f8fafc'
   if (trades.length === 0) return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>PERFORMANCE SCORE</p>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>PERFORMANCE SCORE</p>
       <EmptyState icon={BarChart2} heading="NO DATA" subtext="Log trades to see your radar" />
     </div>
   )
   return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>PERFORMANCE SCORE</p>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>PERFORMANCE SCORE</p>
       <ResponsiveContainer width="100%" height={220}>
         <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
           <PolarGrid stroke={isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'} />
@@ -257,8 +257,8 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
     if (m !== lastMonth) { monthLabels.push({ label: MONTH_NAMES[m].slice(0,3), col: wi }); lastMonth = m }
   })
   return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>TRADING ACTIVITY</p>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>TRADING ACTIVITY</p>
       <div style={{ overflowX: 'auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: `20px repeat(${weeks.length}, 1fr)`, gap: 2, minWidth: 400 }}>
           <div />
@@ -330,9 +330,9 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
   }
   const totalMonthPnl = weeks.reduce((s, w) => s + w.pnl, 0)
   return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, height: '100%', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>WEEKLY BREAKDOWN</p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>WEEKLY BREAKDOWN</p>
         <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: totalMonthPnl >= 0 ? '#00c48c' : '#ff4d6a' }}>
           {totalMonthPnl >= 0 ? '+' : ''}${totalMonthPnl.toFixed(2)}
         </span>
@@ -384,17 +384,17 @@ function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
     return { index: i + 1, label: trade.date, cumPnl: Math.round(cumulative * 100) / 100, pnl: trade.pnl }
   })
   if (data.length === 0) return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
-      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>EQUITY CURVE</p>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>EQUITY CURVE</p>
       <EmptyState icon={TrendingUp} heading="NO TRADES YET" subtext="Your equity curve will appear here as you log trades." />
     </div>
   )
   const totalPnl = data[data.length - 1]?.cumPnl ?? 0
   const lineColor = totalPnl >= 0 ? '#00c48c' : '#ff4d6a'
   return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>EQUITY CURVE</p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>EQUITY CURVE</p>
         <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? '#00c48c' : '#ff4d6a' }}>
           {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
         </span>
@@ -470,7 +470,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
   }
   const selectedTrades = selectedDay ? (dayMap[selectedDay]?.trades || []) : []
   return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 20, marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <button onClick={prevMonth} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 6, background: 'transparent', border: `1px solid ${border}`, color: '#60a5fa', cursor: 'pointer' }}>
           <ChevronLeft size={13} />
@@ -810,7 +810,7 @@ function TradingJournalInner() {
         </div>
 
         {/* ===== TODAY'S STATS BAR ===== */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 16px', borderRadius: 8, background: surface, border: `1px solid ${border}`, marginBottom: 16, flexWrap: 'wrap', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 16px', borderRadius: 8, background: surface, border: `1px solid ${border}`, marginBottom: 16, flexWrap: 'wrap', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today</span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayTrades.length} trades</span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayWR !== '—' ? todayWR + '% WR' : '—'}</span>
@@ -824,22 +824,22 @@ function TradingJournalInner() {
 
         {/* ===== 5 STAT CARDS ===== */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20, alignItems: 'stretch' }}>
-          <div style={{ borderTop: '3px solid #60a5fa', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
-            <StatCard label='TOTAL TRADES' value={filteredTrades.length} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #60a5fa', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
+            <StatCard label='TOTAL TRADES' value={filteredTrades.length} style={{ borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
           </div>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderTop: '3px solid #ef4444', borderRadius: 10, padding: '20px 24px', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minHeight: 120 }}>
-            <div style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, alignSelf: 'flex-start' }}>WIN RATE</div>
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderTop: '3px solid #ef4444', borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minHeight: 120 }}>
+            <div style={{ color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', fontSize: 11, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, alignSelf: 'flex-start' }}>WIN RATE</div>
             <WinRateGauge rate={winRateNum} />
-            <div style={{ color: winRateColor, fontSize: 22, fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', lineHeight: 1 }}>{winRate}%</div>
+            <div style={{ color: winRateColor, fontSize: 28, fontFamily: 'Inter, sans-serif', fontWeight: 700, lineHeight: 1 }}>{winRate}%</div>
           </div>
-          <div style={{ borderTop: '3px solid #10b981', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
-            <StatCard label='NET P&L' value={'$' + totalPnl.toFixed(2)} style={{ color: pnlColor, borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
+            <StatCard label='NET P&L' value={'$' + totalPnl.toFixed(2)} style={{ color: pnlColor, borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
           </div>
-          <div style={{ borderTop: '3px solid #10b981', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
-            <StatCard label='PROFIT FACTOR' value={profitFactor} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
+            <StatCard label='PROFIT FACTOR' value={profitFactor} style={{ borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
           </div>
-          <div style={{ borderTop: '3px solid #a78bfa', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
-            <StatCard label='AVG R:R' value={avgRR} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #a78bfa', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
+            <StatCard label='AVG R:R' value={avgRR} style={{ borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
           </div>
         </div>
 
@@ -865,7 +865,7 @@ function TradingJournalInner() {
         <TradingCalendar trades={filteredTrades} isMobile={isMobile} isDark={isDark} />
         {/* ===== TRADE FORM ===== */}
         {showForm && (
-          <div ref={formRef} style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: editingId ? '0 0 0 2px #60a5fa' : isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+          <div ref={formRef} style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: 24, marginBottom: 24, animation: 'slideDown 0.2s ease', boxShadow: editingId ? '0 0 0 2px #60a5fa' : '0 1px 3px rgba(0,0,0,0.04)' }}>
 
             {/* Form header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -1028,7 +1028,7 @@ function TradingJournalInner() {
                     </button>
                   </div>
                 ) : (
-                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 20, borderRadius: 8, border: '1.5px dashed rgba(37,99,235,0.5)', background: 'rgba(37,99,235,0.08)', cursor: 'pointer', minHeight: 80 }}>
+                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '18px 20px', borderRadius: 8, border: '1.5px dashed rgba(37,99,235,0.5)', background: 'rgba(37,99,235,0.08)', cursor: 'pointer', minHeight: 80 }}>
                     <ImagePlus size={24} style={{ color: 'rgba(37,99,235,0.6)' }} />
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted }}>Chart Screenshot</span>
                     <input type='file' accept='image/jpeg,image/png,image/webp' style={{ display: 'none' }} onChange={e => {
@@ -1062,14 +1062,14 @@ function TradingJournalInner() {
         <CoachShaiCard insight={coachInsight} isDark={isDark} />
 
         {/* ===== TRADE LOG TABLE ===== */}
-        <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 10, overflow: 'hidden', marginBottom: 24, boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+        <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, overflow: 'hidden', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ padding: '14px 20px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
               TRADE LOG · {filteredTrades.length} ENTRIES
             </h3>
           </div>
           {loading ? (
-            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Skeleton height='40px' /><Skeleton height='40px' /><Skeleton height='40px' />
             </div>
           ) : filteredTrades.length === 0 ? (
