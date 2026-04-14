@@ -828,41 +828,41 @@ function TradingJournalInner() {
           {/* TOTAL TRADES */}
           <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ height: 3, background: '#60a5fa', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>TOTAL TRADES</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: textPrimary, lineHeight: 1 }}>{filteredTrades.length}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>{wins.length}W / {losses.length}L</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>TOTAL TRADES</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: textPrimary, lineHeight: 1 }}>{filteredTrades.length}</div>
+            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>{wins.length}W / {losses.length}L</div>)}
           </div>
 
           {/* WIN RATE */}
           <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ height: 3, background: '#ef4444', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, marginTop: 8, alignSelf: 'flex-start' }}>WIN RATE</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8, alignSelf: 'flex-start' }}>WIN RATE</div>
             <WinRateGauge rate={winRateNum} />
-            <div style={{ color: winRateColor, fontSize: 28, fontFamily: 'Inter, sans-serif', fontWeight: 700, lineHeight: 1 }}>{winRate}%</div>
+            <div style={{ color: winRateColor, fontSize: filteredTrades.length > 0 ? 24 : 28, fontFamily: 'Inter, sans-serif', fontWeight: filteredTrades.length > 0 ? 700 : 300, lineHeight: 1 }}>{winRate}%</div>
           </div>
 
           {/* NET P&L */}
           <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ height: 3, background: '#10b981', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>NET P&amp;L</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: pnlColor, lineHeight: 1 }}>{'$' + totalPnl.toFixed(2)}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>{totalPnl >= 0 ? 'profit' : 'loss'}</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>NET P&L</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: pnlColor, lineHeight: 1 }}>{'$' + totalPnl.toFixed(2)}</div>
+            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>{MONTH_NAMES[currentMonth]}</div>)}
           </div>
 
           {/* PROFIT FACTOR */}
           <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ height: 3, background: '#10b981', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>PROFIT FACTOR</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: textPrimary, lineHeight: 1 }}>{profitFactor}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>win/loss ratio</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>PROFIT FACTOR</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: textPrimary, lineHeight: 1 }}>{profitFactor}</div>
+            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>win/loss ratio</div>)}
           </div>
 
           {/* AVG R:R */}
           <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ height: 3, background: '#a78bfa', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>AVG R:R</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: textPrimary, lineHeight: 1 }}>{avgRR}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>risk/reward</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>AVG R:R</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: textPrimary, lineHeight: 1 }}>{avgRR}</div>
+            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>risk/reward</div>)}
           </div>
 
         </div>
