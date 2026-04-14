@@ -233,15 +233,15 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const textPrimary = isDark ? '#f9fafb' : '#0f172a'
 
-  const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#94a3b8'
+  const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#475569'
 
-  const textFaint = isDark ? 'rgba(255,255,255,0.2)' : '#94a3b8'
+  const textFaint = isDark ? 'rgba(255,255,255,0.2)' : '#64748b'
 
-  const cellBg = isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc'
+  const cellBg = isDark ? 'rgba(255,255,255,0.03)' : '#f1f5f9'
 
   const cellBorder = isDark ? 'rgba(255,255,255,0.04)' : '#f1f5f9'
 
-  const insightBg = isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc'
+  const insightBg = isDark ? 'rgba(255,255,255,0.02)' : '#f1f5f9'
 
   const dividerColor = isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'
 
@@ -485,7 +485,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: textFaint }}>Account Progress</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.2)' : '#0f172a' }}>Account Progress</div>
 
           {progressBars.map(p => (
 
@@ -537,7 +537,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: textFaint, marginBottom: 14 }}>AI Forecast · based on last 30 trades</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.2)' : '#0f172a', marginBottom: 14 }}>AI Forecast · based on last 30 trades</div>
 
           {forecasts.map((ins, i) => (
 
