@@ -357,19 +357,21 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
     : 'Account in danger. Stop trading and review your plan immediately.'
 
-  const progressBars = [
-
-    { label: 'Profit Target', pct: targetPct, val: `${targetPct}% · $${Math.max(0, totalPnl).toLocaleString()} / $${profitTarget.toLocaleString()}`, color: '#10b981' },
-
-    { label: 'Drawdown Safety', pct: safetyPct, val: `${safetyPct}% safe · $${bufferLeft.toLocaleString()} left`, color: safetyColor },
-
-    { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
-
-    { label: 'Daily Target', pct: 0, val: `$0 / $${dailyNeeded} needed today`, color: textFaint },
-
-    { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
-
-  ]
+  const progressBars = mode === 'prop'
+    ? [
+        { label: 'Profit Target', pct: targetPct, val: `${targetPct}% · ${Math.max(0, totalPnl).toLocaleString()} / ${profitTarget.toLocaleString()}`, color: '#10b981' },
+        { label: 'Drawdown Safety', pct: safetyPct, val: `${safetyPct}% safe · ${bufferLeft.toLocaleString()} left`, color: safetyColor },
+        { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
+        { label: 'Daily Target', pct: 0, val: `$0 / ${dailyNeeded} needed today`, color: textFaint },
+        { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
+      ]
+    : [
+        { label: 'Monthly Goal', pct: 0, val: 'Set a goal in Goals section', color: '#10b981' },
+        { label: 'Win Rate Trend', pct: winRate, val: winRate > 0 ? winRate + '% this month' : 'No data yet', color: '#60a5fa' },
+        { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
+        { label: 'Daily Target', pct: 0, val: `$0 / ${dailyNeeded} needed today`, color: textFaint },
+        { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
+      ]
 
   const liveGrowthText = trades.length > 0
 
@@ -421,11 +423,11 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
     ? [
 
-        { label: 'Current P&L', value: totalPnl >= 0 ? `+$${totalPnl.toLocaleString()}` : `-$${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
+        { label: 'Current P&L', value: totalPnl >= 0 ? `+${totalPnl.toLocaleString()}` : `-${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
 
-        { label: 'Drawdown Used', value: `-$${ddUsed.toLocaleString()}`, color: ddUsed === 0 ? textFaint : ddPct > 60 ? '#ef4444' : '#f59e0b', sub: `of -$${maxDrawdown.toLocaleString()} max` },
+        { label: 'Max Daily Loss', value: '-$0', color: textFaint, sub: 'personal limit' },
 
-        { label: 'Buffer Left', value: `$${bufferLeft.toLocaleString()}`, color: textPrimary, sub: `${bufferInR}R remaining` },
+        { label: 'Open Risk', value: '$0', color: textPrimary, sub: 'no open trades' },
 
         { label: 'Account Size', value: '$50,000', color: '#10b981', sub: 'live account' },
 
@@ -816,7 +818,7 @@ function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
     <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>EQUITY CURVE</p>
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? '#00c48c' : '#ff4d6a' }}>
+        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: totalPnl >=  ? '#00c48c' : '#ff4d6a' }}>
           {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
         </span>
       </div>
