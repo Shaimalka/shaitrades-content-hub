@@ -1216,17 +1216,20 @@ function TradingJournalInner() {
 
         </div>
 
-        {/* ===== 3-COLUMN ANALYTICS ROW ===== */}
+        {/* ===== ACCOUNT RADAR — FULL WIDTH ===== */}
+        <div style={{ marginBottom: 16 }}>
+          <AccountRadar trades={filteredTrades} isDark={isDark} />
+        </div>
+
+        {/* ===== 2-COLUMN ROW: Performance + Weekly ===== */}
         {!isMobile ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '40% 35% 25%', gap: 16, marginBottom: 20, alignItems: 'stretch' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20, alignItems: 'stretch' }}>
             <PerformanceRadar trades={filteredTrades} isDark={isDark} />
-            <TradingHeatmap trades={filteredTrades} isDark={isDark} />
             <WeeklyBreakdown trades={filteredTrades} isDark={isDark} />
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
             <PerformanceRadar trades={filteredTrades} isDark={isDark} />
-            <TradingHeatmap trades={filteredTrades} isDark={isDark} />
             <WeeklyBreakdown trades={filteredTrades} isDark={isDark} />
           </div>
         )}
