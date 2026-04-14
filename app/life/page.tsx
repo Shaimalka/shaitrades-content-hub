@@ -206,6 +206,11 @@ export default function LifeHubPage() {
   const [supportEmail, setSupportEmail] = useState('')
   const [supportMessage, setSupportMessage] = useState('')
 
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [selectedRange, setSelectedRange] = useState('this_month')
+  const [dateRangeLabel, setDateRangeLabel] = useState('')
+  const datePickerRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const handleClickOutside = () => setActiveTooltip(null)
     document.addEventListener('click', handleClickOutside)
@@ -220,6 +225,16 @@ export default function LifeHubPage() {
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
   }, [])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false)
+      }
+    }
+    if (showDatePicker) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showDatePicker])
 
   // ── sendToCoach ──────────────────────────────────────────────────
   const sendToCoach = async (text: string) => {
@@ -421,6 +436,34 @@ export default function LifeHubPage() {
     } catch { return iso }
   }
 
+  const selectDateRange = (range: string) => {
+    const n = new Date()
+    let label = ''
+    if (range === 'this_month') {
+      const s = new Date(n.getFullYear(), n.getMonth(), 1)
+      const e = new Date(n.getFullYear(), n.getMonth() + 1, 0)
+      label = s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    } else if (range === 'last_month') {
+      const s = new Date(n.getFullYear(), n.getMonth() - 1, 1)
+      const e = new Date(n.getFullYear(), n.getMonth(), 0)
+      label = s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    } else if (range === 'last_7') {
+      const s = new Date(n); s.setDate(n.getDate() - 6)
+      label = s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + n.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    } else if (range === 'last_30') {
+      const s = new Date(n); s.setDate(n.getDate() - 29)
+      label = s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + n.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    } else if (range === 'this_year') {
+      const s = new Date(n.getFullYear(), 0, 1)
+      label = s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + n.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    } else if (range === 'all_time') {
+      label = 'All Time'
+    }
+    setDateRangeLabel(label)
+    setSelectedRange(range)
+    setShowDatePicker(false)
+  }
+
   // ââ derived data (unchanged calculations) ââââââââââââââââââââââââ
   const now = new Date()
   const dateRangeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' — ' + new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -591,9 +634,35 @@ export default function LifeHubPage() {
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{todayLong}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button style={{ background: 'var(--brand-bg)', border: '1px solid var(--brand-border)', color: 'var(--brand)', fontSize: 12, fontWeight: 600, padding: '8px 14px', borderRadius: 'var(--radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Calendar size={12} />{dateRangeStr}
-          </button>
+          <div ref={datePickerRef} style={{ position: 'relative', display: 'inline-block' }}>
+            <button
+              onClick={() => setShowDatePicker(prev => !prev)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', border: '1px solid #bfdbfe', background: '#eff6ff', borderRadius: 8, fontSize: 12, fontWeight: 600, color: '#60a5fa', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              <Calendar size={12} />
+              {dateRangeLabel || dateRangeStr}
+            </button>
+            {showDatePicker && (
+              <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: 180, zIndex: 100, padding: 6 }}>
+                {[
+                  { key: 'this_month', label: 'This Month' },
+                  { key: 'last_month', label: 'Last Month' },
+                  { key: 'last_7', label: 'Last 7 Days' },
+                  { key: 'last_30', label: 'Last 30 Days' },
+                  { key: 'this_year', label: 'This Year' },
+                  { key: 'all_time', label: 'All Time' },
+                ].map(opt => (
+                  <div
+                    key={opt.key}
+                    onClick={() => selectDateRange(opt.key)}
+                    style={{ padding: '9px 14px', fontSize: 13, fontWeight: selectedRange === opt.key ? 600 : 400, color: selectedRange === opt.key ? '#60a5fa' : 'var(--text-primary)', background: selectedRange === opt.key ? 'rgba(96,165,250,0.08)' : 'transparent', borderRadius: 7, cursor: 'pointer' }}
+                  >
+                    {opt.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <Link href="/life/trading?new=1" style={{ background: 'var(--brand)', color: '#ffffff', fontSize: 13, fontWeight: 700, padding: '9px 18px', borderRadius: 'var(--radius-md)', border: 'none', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={13} />Log Trade
           </Link>
