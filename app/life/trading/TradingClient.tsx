@@ -16,7 +16,7 @@ type Trade = {
   entryPrice: number; exitPrice: number; contracts: number
   pnl: number; notes: string; emotion: number; time?: string
   source?: string; accountName?: string; symbol?: string
-  playbookId?: string | null; accountType?: 'live' | 'propfirm' | 'paper'
+  playbookId?: string | null; accountType?: 'live' | 'propfir' | 'paper'
   stopLoss?: number; takeProfit?: number
   tradeImage?: string // base64
 }
@@ -732,7 +732,7 @@ function TradingJournalInner() {
     fontSize: 13, color: textPrimary, outline: 'none',
   }
   return (
-    <div style={{ minHeight: '100vh', background: bg }}>
+    <div style={{ minHeight: '100vh', background: bgPage }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
