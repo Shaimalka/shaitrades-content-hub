@@ -826,43 +826,38 @@ function TradingJournalInner() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20, alignItems: 'stretch' }}>
 
           {/* TOTAL TRADES */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ height: 3, background: '#60a5fa', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>TOTAL TRADES</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: textPrimary, lineHeight: 1 }}>{filteredTrades.length}</div>
-            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>{wins.length}W / {losses.length}L</div>)}
+          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #60a5fa', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>TOTAL TRADES</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? textPrimary : 'var(--text-empty)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? filteredTrades.length : '—'}</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : wins.length + 'W · ' + losses.length + 'L'}</div>
           </div>
 
           {/* WIN RATE */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ height: 3, background: '#ef4444', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8, alignSelf: 'flex-start' }}>WIN RATE</div>
+          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #ef4444', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>WIN RATE</div>
             <WinRateGauge rate={winRateNum} />
-            <div style={{ color: winRateColor, fontSize: filteredTrades.length > 0 ? 24 : 28, fontFamily: 'Inter, sans-serif', fontWeight: filteredTrades.length > 0 ? 700 : 300, lineHeight: 1 }}>{winRate}%</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? winRateColor : 'var(--text-empty)', lineHeight: 1.1 }}>{winRate}%</div>
           </div>
 
           {/* NET P&L */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ height: 3, background: '#10b981', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>NET P&L</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: pnlColor, lineHeight: 1 }}>{'$' + totalPnl.toFixed(2)}</div>
-            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>{MONTH_NAMES[currentMonth]}</div>)}
+          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #10b981', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>NET P&L</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? pnlColor : 'var(--text-empty)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2) : '—'}</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : MONTH_NAMES[new Date().getMonth()]}</div>
           </div>
 
           {/* PROFIT FACTOR */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ height: 3, background: '#10b981', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>PROFIT FACTOR</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: textPrimary, lineHeight: 1 }}>{profitFactor}</div>
-            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>win/loss ratio</div>)}
+          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #10b981', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>PROFIT FACTOR</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: 'var(--green)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? profitFactor : '—'}</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : 'gross W/L ratio'}</div>
           </div>
 
           {/* AVG R:R */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ height: 3, background: '#a78bfa', position: 'absolute', top: 0, left: 0, right: 0 }} />
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>AVG R:R</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: filteredTrades.length > 0 ? 24 : 28, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: textPrimary, lineHeight: 1 }}>{avgRR}</div>
-            {filteredTrades.length === 0 ? (<div style={{ color: '#94a3b8', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif', marginTop: 6 }}>no trades yet</div>) : (<div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, marginTop: 6 }}>risk/reward</div>)}
+          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #a78bfa', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>AVG R:R</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: 'var(--purple)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? avgRR : '—'}</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : 'risk to reward'}</div>
           </div>
 
         </div>
