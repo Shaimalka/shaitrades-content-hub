@@ -776,14 +776,8 @@ function TradingJournalInner() {
       `}} />
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '16px' : '24px 24px' }}>
 
-        {/* ===== PAGE HEADER ===== */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <Link href='/life' style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#60a5fa', textDecoration: 'none', display: 'block', marginBottom: 2 }}>← Life Hub</Link>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 20 : 24, fontWeight: 700, color: textPrimary, margin: '0 0 2px', letterSpacing: '-0.02em' }}>Trading Journal</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, margin: 0 }}>Track, analyze, and improve your trading edge.</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        {/* ===== ACTION BUTTONS ===== */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             <div style={{ position: 'relative' }}>
               <select value={selectedAccount} onChange={e => setSelectedAccount(e.target.value)} style={{ appearance: 'none', background: surface, border: `1px solid ${border}`, borderRadius: 8, padding: '8px 28px 8px 12px', fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, cursor: 'pointer', outline: 'none' }}>
                 <option value="all">All Accounts</option>
@@ -813,7 +807,6 @@ function TradingJournalInner() {
               <Button onClick={() => { setEditingId(null); setForm(emptyForm); setShowForm(true); setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Plus size={14} /> Log Trade
               </Button>
-          </div>
         </div>
 
         {/* ===== TODAY'S STATS BAR ===== */}
@@ -830,22 +823,22 @@ function TradingJournalInner() {
         <TradovateStatusBar onSyncComplete={loadTrades} />
 
         {/* ===== 5 STAT CARDS ===== */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
-          <div style={{ borderTop: '3px solid #60a5fa', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20, alignItems: 'stretch' }}>
+          <div style={{ borderTop: '3px solid #60a5fa', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
             <StatCard label='TOTAL TRADES' value={filteredTrades.length} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderTop: '3px solid #ef4444', borderRadius: 10, padding: '20px 24px', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderTop: '3px solid #ef4444', borderRadius: 10, padding: '20px 24px', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minHeight: 120 }}>
             <div style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, alignSelf: 'flex-start' }}>WIN RATE</div>
             <WinRateGauge rate={winRateNum} />
             <div style={{ color: winRateColor, fontSize: 22, fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', lineHeight: 1 }}>{winRate}%</div>
           </div>
-          <div style={{ borderTop: '3px solid #10b981', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+          <div style={{ borderTop: '3px solid #10b981', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
             <StatCard label='NET P&L' value={'$' + totalPnl.toFixed(2)} style={{ color: pnlColor, borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
-          <div style={{ borderTop: '3px solid #10b981', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+          <div style={{ borderTop: '3px solid #10b981', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
             <StatCard label='PROFIT FACTOR' value={profitFactor} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
-          <div style={{ borderTop: '3px solid #a78bfa', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0' }}>
+          <div style={{ borderTop: '3px solid #a78bfa', borderRadius: 10, overflow: 'hidden', boxShadow: isDark ? 'none' : '0 1px 4px #e2e8f0', minHeight: 120 }}>
             <StatCard label='AVG R:R' value={avgRR} style={{ borderTop: 'none', borderRadius: '0 0 10px 10px' }} />
           </div>
         </div>
