@@ -132,7 +132,7 @@ export default function LifeHubChat({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-xs font-mono tracking-wide shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-xs font-sans tracking-wide shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
           style={{
             background: '#60a5fa',
             border: 'none',
@@ -152,25 +152,32 @@ export default function LifeHubChat({
         }`}
         style={{
           width: '360px',
-          background: 'rgba(10,10,14,0.97)',
-          borderLeft: isOpen ? '1px solid rgba(0,255,136,0.4)' : '1px solid rgba(0,242,255,0.15)',
-          backdropFilter: 'blur(16px)',
-          boxShadow: isOpen ? '0 0 20px rgba(0,255,136,0.3)' : 'none',
+          background: '#1a1f2e',
+          border: '1px solid rgba(96,165,250,0.2)',
+          borderRadius: 12,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
-          style={{ borderColor: 'rgba(0,242,255,0.12)' }}
+          style={{
+            background: '#0f1117',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '12px 12px 0 0',
+          }}
         >
           <div className="flex items-center gap-2">
             <div
               className="w-6 h-6 rounded flex items-center justify-center"
-              style={{ background: 'rgba(0,242,255,0.12)', border: '1px solid rgba(0,242,255,0.3)' }}
+              style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)' }}
             >
-              <MessageSquare size={12} style={{ color: '#00f2ff' }} />
+              <MessageSquare size={12} style={{ color: '#60a5fa' }} />
             </div>
-            <span className="text-xs font-mono font-semibold tracking-widest uppercase" style={{ color: '#00f2ff' }}>
+            <span
+              className="text-xs font-sans font-semibold tracking-widest uppercase"
+              style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}
+            >
               {label}
             </span>
           </div>
@@ -188,11 +195,11 @@ export default function LifeHubChat({
           <div
             className="px-4 py-3 mx-3 mt-3 rounded-lg text-xs"
             style={{
-              background: 'rgba(0,242,255,0.05)',
-              border: '1px solid rgba(0,242,255,0.1)',
+              background: 'rgba(96,165,250,0.04)',
+              border: '1px solid rgba(96,165,250,0.08)',
               color: 'var(--text-muted)',
             }}>
-            <span style={{ color: '#00f2ff' }}>Coach Shai</span> has access to all your {section} data. Ask anything about your trends, patterns, or progress.
+            <span style={{ color: '#60a5fa' }}>Coach Shai</span> has access to all your {section} data. Ask anything about your trends, patterns, or progress.
           </div>
         )}
 
@@ -204,22 +211,22 @@ export default function LifeHubChat({
                 <div
                   className="max-w-[82%] px-4 py-2.5 text-xs leading-relaxed rounded-2xl"
                   style={{
-                    background: '#1a1a1a',
-                    border: '1px solid #333',
+                    background: '#1a1f2e',
+                    border: '1px solid rgba(255,255,255,0.08)',
                     color: 'var(--text-primary)',
                   }}
                 >
                   <span className="whitespace-pre-wrap">{msg.content}</span>
                 </div>
               ) : (
-                <div className="max-w-[90%]" style={{ backgroundColor: '#0f1117' }}>
+                <div className="max-w-[90%]" style={{ backgroundColor: '#1a1f2e' }}>
                   <span
-                    className="block text-[9px] font-mono tracking-widest mb-1 font-semibold"
-                    style={{ color: '#00ff88', fontVariant: 'small-caps' }}
+                    className="block text-[9px] font-sans tracking-widest mb-1 font-semibold"
+                    style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', fontVariant: 'small-caps' }}
                   >
                     COACH SHAI
                   </span>
-                  <div className="text-xs leading-relaxed" style={{ color: '#00f2ff' }}>
+                  <div className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 </div>
@@ -230,12 +237,12 @@ export default function LifeHubChat({
             <div className="flex justify-start">
               <div className="pl-0">
                 <span
-                  className="block text-[9px] font-mono tracking-widest mb-1 font-semibold"
-                  style={{ color: '#00ff88', fontVariant: 'small-caps' }}
+                  className="block text-[9px] font-sans tracking-widest mb-1 font-semibold"
+                  style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', fontVariant: 'small-caps' }}
                 >
                   COACH SHAI
                 </span>
-                <Loader2 size={13} className="animate-spin" style={{ color: '#00f2ff' }} />
+                <Loader2 size={13} className="animate-spin" style={{ color: '#60a5fa' }} />
               </div>
             </div>
           )}
@@ -245,13 +252,13 @@ export default function LifeHubChat({
         {/* Input */}
         <div
           className="px-3 py-3 border-t flex-shrink-0"
-          style={{ borderColor: 'rgba(0,242,255,0.12)' }}
+          style={{ borderColor: 'rgba(255,255,255,0.08)' }}
         >
           <div
             className="flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-150"
             style={{
               background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(0,242,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
             <input
@@ -262,19 +269,19 @@ export default function LifeHubChat({
               onKeyDown={handleKeyDown}
               placeholder="Ask Coach Shai about your data..."
               className="flex-1 bg-transparent outline-none text-xs"
-              style={{ color: 'var(--text-primary)', caretColor: '#00f2ff' }}
+              style={{ color: '#f9fafb' }}
               onFocus={e => {
                 const parent = e.currentTarget.parentElement
                 if (parent) {
-                  parent.style.boxShadow = '0 0 0 1px rgba(0,242,255,0.35), 0 0 8px rgba(0,242,255,0.15)'
-                  parent.style.borderColor = 'rgba(0,242,255,0.4)'
+                  parent.style.boxShadow = '0 0 0 1px rgba(96,165,250,0.35), 0 0 8px rgba(96,165,250,0.15)'
+                  parent.style.borderColor = 'rgba(96,165,250,0.4)'
                 }
               }}
               onBlur={e => {
                 const parent = e.currentTarget.parentElement
                 if (parent) {
                   parent.style.boxShadow = ''
-                  parent.style.borderColor = 'rgba(0,242,255,0.18)'
+                  parent.style.borderColor = 'rgba(255,255,255,0.08)'
                 }
               }}
             />
@@ -283,9 +290,9 @@ export default function LifeHubChat({
               disabled={!input.trim() || loading}
               className="w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150 disabled:opacity-40"
               style={{
-                background: 'rgba(0,242,255,0.15)',
-                border: '1px solid rgba(0,242,255,0.3)',
-                color: '#00f2ff',
+                background: '#60a5fa',
+                border: 'none',
+                color: '#ffffff',
               }}
             >
               <Send size={11} />
@@ -297,7 +304,7 @@ export default function LifeHubChat({
       {/* Desktop toggle tab (side tab) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-1.5 px-1.5 py-4 text-[10px] font-mono font-bold tracking-widest transition-all duration-200"
+        className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-1.5 px-1.5 py-4 text-[10px] font-sans font-bold tracking-widest transition-all duration-200"
         style={{
           background: '#60a5fa',
           borderLeft: 'none',
