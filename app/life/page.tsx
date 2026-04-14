@@ -201,6 +201,7 @@ export default function LifeHubPage() {
     { role: 'ai', text: "Hey! What's on your mind? Trading, health, mindset — I'm here. You have 1 life." },
   ])
   const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
   const [supportName, setSupportName] = useState('')
   const [supportEmail, setSupportEmail] = useState('')
   const [supportMessage, setSupportMessage] = useState('')
@@ -219,6 +220,37 @@ export default function LifeHubPage() {
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
   }, [])
+
+  // ── sendToCoach ──────────────────────────────────────────────────
+  const sendToCoach = async (text: string) => {
+    const trimmed = text.trim()
+    if (!trimmed || chatLoading) return
+    setChatOpen(true)
+    setChatTab('coach')
+    const userMsg = { role: 'user' as const, text: trimmed }
+    setChatMessages(prev => [...prev, userMsg])
+    setChatLoading(true)
+    try {
+      const history = chatMessages
+        .slice(1)
+        .map(m => ({ role: (m.role === 'ai' ? 'assistant' : 'user') as 'user' | 'assistant', content: m.text }))
+      const res = await fetch('/api/life/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: trimmed, history }),
+      })
+      const data = await res.json()
+      if (data.reply) {
+        setChatMessages(prev => [...prev, { role: 'ai', text: data.reply }])
+      } else {
+        setChatMessages(prev => [...prev, { role: 'ai', text: 'Something went wrong. Try again.' }])
+      }
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'ai', text: 'Network error. Please try again.' }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
 
   // ââ dismiss/brief logic (unchanged) ââââââââââââââââââââââââââââââ
   useEffect(() => {
@@ -632,7 +664,13 @@ export default function LifeHubPage() {
           <div onClick={e => e.stopPropagation()} style={{ width: 600, background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', maxWidth: '90vw' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <Search size={16} style={{ color: 'var(--text-muted)' }} />
-              <input autoFocus placeholder="Ask Coach Shai anything..." style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, color: 'var(--text-primary)', outline: 'none' }} onKeyDown={e => e.key === 'Escape' && setSearchOpen(false)} />
+              <input autoFocus placeholder="Ask Coach Shai anything..." style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, color: 'var(--text-primary)', outline: 'none' }} onKeyDown={e => {
+                if (e.key === 'Escape') { setSearchOpen(false); return }
+                if (e.key === 'Enter') {
+                  const val = (e.target as HTMLInputElement).value.trim()
+                  if (val) { setSearchOpen(false); sendToCoach(val) }
+                }
+              }} />
             </div>
             <div style={{ padding: '12px 20px 20px' }}>
               {[
@@ -643,7 +681,7 @@ export default function LifeHubPage() {
                 <div key={cat} style={{ marginBottom: 16 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 8 }}>{cat}</div>
                   {items.map(item => (
-                    <div key={item} style={{ padding: '8px 10px', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }} onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-page)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <div key={item} onClick={() => { setSearchOpen(false); sendToCoach(item) }} style={{ padding: '8px 10px', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }} onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-page)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                       <Search size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />{item}
                     </div>
                   ))}
@@ -980,8 +1018,8 @@ export default function LifeHubPage() {
                   ))}
                 </div>
                 <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-                  <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && chatInput.trim()) { setChatMessages(prev => [...prev, { role: 'user', text: chatInput.trim() }]); setChatInput('') } }} placeholder="Ask anything..." style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '7px 10px', fontSize: 12, background: 'var(--bg-page)', color: 'var(--text-primary)', outline: 'none' }} />
-                  <button onClick={() => { if (chatInput.trim()) { setChatMessages(prev => [...prev, { role: 'user', text: chatInput.trim() }]); setChatInput('') } }} style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: 'var(--brand)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Send size={13} color="#fff" /></button>
+                  <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && chatInput.trim()) { const msg = chatInput.trim(); setChatInput(''); sendToCoach(msg) } }} placeholder="Ask anything..." style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '7px 10px', fontSize: 12, background: 'var(--bg-page)', color: 'var(--text-primary)', outline: 'none' }} />
+                  <button onClick={() => { if (chatInput.trim()) { const msg = chatInput.trim(); setChatInput(''); sendToCoach(msg) } }} style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: 'var(--brand)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Send size={13} color="#fff" /></button>
                 </div>
               </>
             ) : (
