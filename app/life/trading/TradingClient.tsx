@@ -225,6 +225,360 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
     </div>
   )
 }
+function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) {
+
+  const surface = isDark ? '#1a1f2e' : '#ffffff'
+
+  const border = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
+
+  const textPrimary = isDark ? '#f9fafb' : '#0f172a'
+
+  const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#94a3b8'
+
+  const textFaint = isDark ? 'rgba(255,255,255,0.2)' : '#94a3b8'
+
+  const cellBg = isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc'
+
+  const cellBorder = isDark ? 'rgba(255,255,255,0.04)' : '#f1f5f9'
+
+  const insightBg = isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc'
+
+  const dividerColor = isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'
+
+  const alertBg = isDark ? 'rgba(245,158,11,0.07)' : '#fffbeb'
+
+  const alertBorder = isDark ? 'rgba(245,158,11,0.18)' : '#fde68a'
+
+  const alertTxt = isDark ? 'rgba(255,255,255,0.5)' : '#92400e'
+
+  const rorBg = isDark ? 'rgba(16,185,129,0.06)' : '#f0fdf4'
+
+  const rorBorder = isDark ? 'rgba(16,185,129,0.14)' : '#bbf7d0'
+
+  const rorTxt = isDark ? 'rgba(255,255,255,0.35)' : '#166534'
+
+  const progBg = isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'
+
+  const wins = trades.filter(t => (t.pnl || 0) > 0)
+
+  const losses = trades.filter(t => (t.pnl || 0) < 0)
+
+  const totalPnl = trades.reduce((s, t) => s + (t.pnl || 0), 0)
+
+  const winRate = trades.length > 0 ? Math.round((wins.length / trades.length) * 100) : 0
+
+  const avgWin = wins.length > 0 ? Math.round(wins.reduce((s, t) => s + (t.pnl || 0), 0) / wins.length) : 0
+
+  const avgLoss = losses.length > 0 ? Math.round(Math.abs(losses.reduce((s, t) => s + (t.pnl || 0), 0) / losses.length)) : 0
+
+  const profitTarget = 3000
+
+  const maxDrawdown = 2000
+
+  const currentDD = Math.min(0, totalPnl)
+
+  const ddUsed = Math.abs(currentDD)
+
+  const bufferLeft = maxDrawdown - ddUsed
+
+  const toPayout = Math.max(0, profitTarget - totalPnl)
+
+  const rAmount = 300
+
+  const bufferInR = rAmount > 0 ? (bufferLeft / rAmount).toFixed(1) : '—'
+
+  const winsNeeded = avgWin > 0 ? (toPayout / avgWin).toFixed(1) : '—'
+
+  const ddPct = Math.min(100, Math.round((ddUsed / maxDrawdown) * 100))
+
+  const targetPct = Math.min(100, Math.round((Math.max(0, totalPnl) / profitTarget) * 100))
+
+  const sorted = [...trades].sort((a: Trade, b: Trade) => (a.date > b.date ? 1 : -1))
+
+  let streak = 0
+
+  for (let i = sorted.length - 1; i >= 0; i--) {
+
+    if ((sorted[i].pnl || 0) < 0) streak++
+
+    else break
+
+  }
+
+  const showAlert = streak >= 3
+
+  const payoutDays = winRate > 0 && avgWin > 0
+
+    ? Math.ceil(toPayout / (avgWin * (winRate / 100)))
+
+    : null
+
+  const blowLosses = avgLoss > 0
+
+    ? (bufferLeft / avgLoss).toFixed(1)
+
+    : null
+
+  const now = new Date()
+
+  const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+
+  const tradingDaysTotal = Math.round(totalDays * 5 / 7)
+
+  const tradingDaysPassed = Math.round(now.getDate() * 5 / 7)
+
+  const monthPct = Math.round((tradingDaysPassed / tradingDaysTotal) * 100)
+
+  const dailyNeeded = tradingDaysTotal > tradingDaysPassed
+
+    ? Math.round(toPayout / (tradingDaysTotal - tradingDaysPassed))
+
+    : 0
+
+  const tradeCountPct = trades.length > 0 ? Math.min(100, Math.round((trades.length / 12) * 100)) : 0
+
+  const safetyPct = 100 - ddPct
+
+  const safetyColor = safetyPct > 60 ? '#10b981' : safetyPct > 30 ? '#f59e0b' : '#ef4444'
+
+  const rorScore = trades.length > 0 ? Math.max(5, Math.round(100 - (ddPct * 1.5) - (streak * 5))) : 0
+
+  const rorLabel = ddPct < 30 ? 'LOW' : ddPct < 60 ? 'MEDIUM' : 'HIGH'
+
+  const rorDesc = ddPct < 30
+
+    ? 'Account healthy. Drawdown within normal variance. Stay disciplined.'
+
+    : ddPct < 60
+
+    ? 'Account under moderate stress. Reduce size and protect the buffer.'
+
+    : 'Account in danger. Stop trading and review your plan immediately.'
+
+  const progressBars = [
+
+    { label: 'Profit Target', pct: targetPct, val: `${targetPct}% · $${Math.max(0, totalPnl).toLocaleString()} / $${profitTarget.toLocaleString()}`, color: '#10b981' },
+
+    { label: 'Drawdown Safety', pct: safetyPct, val: `${safetyPct}% safe · $${bufferLeft.toLocaleString()} left`, color: safetyColor },
+
+    { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
+
+    { label: 'Daily Target', pct: 0, val: `$0 / $${dailyNeeded} needed today`, color: textFaint },
+
+    { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
+
+  ]
+
+  const forecasts = [
+
+    {
+
+      color: '#10b981',
+
+      text: payoutDays
+
+        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Payout in ~{payoutDays} trading days</strong> — {winRate}% WR + ${avgWin} avg win. Maintain pace and avoid sizing up.</>
+
+        : <><strong style={{ fontWeight: 700, color: textPrimary }}>Log trades to unlock payout forecast.</strong> Stats will power this prediction once you have history.</>
+
+    },
+
+    {
+
+      color: '#ef4444',
+
+      text: blowLosses
+
+        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Account blow in ~{blowLosses} losses</strong> — at avg -${avgLoss}/loss your buffer of ${bufferLeft.toLocaleString()} {ddPct > 50 ? 'is dangerously thin' : 'is manageable, stay focused'}.</>
+
+        : <><strong style={{ fontWeight: 700, color: textPrimary }}>Blow risk: N/A</strong> — No loss data yet. Start logging trades to see your risk exposure.</>
+
+    },
+
+    {
+
+      color: '#60a5fa',
+
+      text: <><strong style={{ fontWeight: 700, color: textPrimary }}>Need +${dailyNeeded}/day to pace</strong> — {tradingDaysTotal - tradingDaysPassed} trading days remain this month. Stay consistent.</>
+
+    },
+
+  ]
+
+  return (
+
+    <div style={{ background: surface, border: `1px solid ${isDark ? 'rgba(96,165,250,0.12)' : '#bfdbfe'}`, borderRadius: 14, padding: '22px 26px' }}>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${dividerColor}` }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧠</div>
+
+          <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>Account Radar</span>
+
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa', letterSpacing: '0.04em' }}>PROP FIRM</span>
+
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+
+          {(['Trailing DD', 'EOD DD', 'Static DD'] as const).map((label, i) => (
+
+            <div key={label} style={{ padding: '5px 14px', background: i === 0 ? 'rgba(96,165,250,0.12)' : 'transparent', border: `1px solid ${i === 0 ? 'rgba(96,165,250,0.25)' : border}`, borderRadius: 20, fontSize: 11, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#60a5fa' : textFaint, cursor: 'pointer' }}>{label}</div>
+
+          ))}
+
+          <span style={{ fontSize: 11, color: textFaint, marginLeft: 4, cursor: 'pointer' }}>⚙ Configure</span>
+
+        </div>
+
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 18 }}>
+
+        {[
+
+          { label: 'Current P&L', value: totalPnl >= 0 ? `+$${totalPnl.toLocaleString()}` : `-$${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
+
+          { label: 'Drawdown Used', value: `-$${ddUsed.toLocaleString()}`, color: ddUsed === 0 ? textFaint : ddPct > 60 ? '#ef4444' : '#f59e0b', sub: `of -$${maxDrawdown.toLocaleString()} max` },
+
+          { label: 'Buffer Left', value: `$${bufferLeft.toLocaleString()}`, color: textPrimary, sub: `${bufferInR}R remaining` },
+
+          { label: 'To Payout', value: `$${toPayout.toLocaleString()}`, color: '#60a5fa', sub: `~${winsNeeded} wins away` },
+
+        ].map(s => (
+
+          <div key={s.label} style={{ background: cellBg, borderRadius: 10, padding: '12px 16px', border: `1px solid ${cellBorder}` }}>
+
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: textFaint, marginBottom: 5 }}>{s.label}</div>
+
+            <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1, color: s.color, marginBottom: 3 }}>{s.value}</div>
+
+            <div style={{ fontSize: 11, color: textFaint }}>{s.sub}</div>
+
+          </div>
+
+        ))}
+
+      </div>
+
+      {showAlert && (
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: alertBg, border: `1px solid ${alertBorder}`, borderRadius: 10, marginBottom: 18 }}>
+
+          <span style={{ fontSize: 18, flexShrink: 0 }}>⚡</span>
+
+          <div>
+
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginBottom: 2 }}>Pattern Alert — {streak}-Loss Streak Detected</div>
+
+            <div style={{ fontSize: 12, color: alertTxt, lineHeight: 1.45 }}>Your history shows avg loss tends to increase after {streak} consecutive losses. High probability of revenge trading. Consider stopping for today.</div>
+
+          </div>
+
+        </div>
+
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: textFaint }}>Account Progress</div>
+
+          {progressBars.map(p => (
+
+            <div key={p.label}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+
+                <span style={{ fontSize: 12, fontWeight: 500, color: textMuted }}>{p.label}</span>
+
+                <span style={{ fontSize: 12, fontWeight: 700, color: p.color }}>{p.val}</span>
+
+              </div>
+
+              <div style={{ height: 7, background: progBg, borderRadius: 4, overflow: 'hidden' }}>
+
+                <div style={{ height: 7, width: `${p.pct}%`, background: p.color, borderRadius: 4 }} />
+
+              </div>
+
+            </div>
+
+          ))}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingTop: 4 }}>
+
+            <div style={{ background: cellBg, borderRadius: 8, padding: '10px 12px', border: `1px solid ${cellBorder}` }}>
+
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: textFaint, marginBottom: 4 }}>Avg Win</div>
+
+              <div style={{ fontSize: 14, fontWeight: 700, color: avgWin > 0 ? '#10b981' : textFaint }}>{avgWin > 0 ? `+$${avgWin}` : '—'}</div>
+
+              <div style={{ fontSize: 10, color: textFaint, marginTop: 2 }}>last {trades.length} trades</div>
+
+            </div>
+
+            <div style={{ background: cellBg, borderRadius: 8, padding: '10px 12px', border: `1px solid ${cellBorder}` }}>
+
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: textFaint, marginBottom: 4 }}>Avg Loss</div>
+
+              <div style={{ fontSize: 14, fontWeight: 700, color: avgLoss > 0 ? '#ef4444' : textFaint }}>{avgLoss > 0 ? `-$${avgLoss}` : '—'}</div>
+
+              <div style={{ fontSize: 10, color: textFaint, marginTop: 2 }}>last {trades.length} trades</div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: textFaint, marginBottom: 14 }}>AI Forecast · based on last 30 trades</div>
+
+          {forecasts.map((ins, i) => (
+
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: insightBg, borderRadius: 8, borderLeft: `2px solid ${ins.color}`, marginBottom: 8 }}>
+
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: ins.color, flexShrink: 0, marginTop: 5 }} />
+
+              <div style={{ fontSize: 12, color: textMuted, lineHeight: 1.55 }}>{ins.text}</div>
+
+            </div>
+
+          ))}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', background: rorBg, border: `1px solid ${rorBorder}`, borderRadius: 10, marginTop: 8 }}>
+
+            <div style={{ width: 42, height: 42, borderRadius: '50%', border: '2.5px solid #10b981', background: 'rgba(16,185,129,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#10b981', flexShrink: 0 }}>
+
+              {trades.length > 0 ? rorScore : '—'}
+
+            </div>
+
+            <div>
+
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', marginBottom: 3 }}>Risk of Ruin — {trades.length > 0 ? rorLabel : 'N/A'}</div>
+
+              <div style={{ fontSize: 11, color: rorTxt, lineHeight: 1.45 }}>{trades.length > 0 ? rorDesc : 'Log trades to calculate your risk of ruin score.'}</div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  )
+
+}
+
 // Trading Heatmap — GitHub-style contribution grid
 function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#1a1f2e' : '#ffffff'
