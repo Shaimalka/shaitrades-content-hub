@@ -985,7 +985,7 @@ export default function LifeHubPage() {
       {/* ââ CHAT WIDGET âââââââââââââââââââââââââââââââââââââââââ */}
       <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
         {chatOpen && (
-          <div style={{ width: 320, background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ width: 400, height: 560, background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {/* Chat Header */}
             <div style={{ background: '#0f1117', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>S</div>
@@ -1010,7 +1010,7 @@ export default function LifeHubPage() {
 
             {chatTab === 'coach' ? (
               <>
-                <div style={{ height: 200, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ height: 340, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {chatMessages.map((m, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                       <div style={{ maxWidth: '80%', padding: '8px 12px', borderRadius: m.role === 'ai' ? '4px 10px 10px 10px' : '10px 4px 10px 10px', background: m.role === 'ai' ? 'var(--bg-page)' : 'var(--brand)', color: m.role === 'ai' ? 'var(--text-primary)' : '#fff', fontSize: 12, lineHeight: 1.5 }}>{m.text}</div>
