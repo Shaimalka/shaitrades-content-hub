@@ -824,23 +824,47 @@ function TradingJournalInner() {
 
         {/* ===== 5 STAT CARDS ===== */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20, alignItems: 'stretch' }}>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #60a5fa', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
-            <StatCard label='TOTAL TRADES' value={filteredTrades.length} style={{ borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
+
+          {/* TOTAL TRADES */}
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 3, background: '#60a5fa', position: 'absolute', top: 0, left: 0, right: 0 }} />
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>TOTAL TRADES</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: textPrimary, lineHeight: 1 }}>{filteredTrades.length}</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>{wins.length}W / {losses.length}L</div>
           </div>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderTop: '3px solid #ef4444', borderRadius: 12, padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minHeight: 120 }}>
-            <div style={{ color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', fontSize: 11, fontWeight: 700, fontFamily: 'Inter, sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, alignSelf: 'flex-start' }}>WIN RATE</div>
+
+          {/* WIN RATE */}
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ height: 3, background: '#ef4444', position: 'absolute', top: 0, left: 0, right: 0 }} />
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4, marginTop: 8, alignSelf: 'flex-start' }}>WIN RATE</div>
             <WinRateGauge rate={winRateNum} />
             <div style={{ color: winRateColor, fontSize: 28, fontFamily: 'Inter, sans-serif', fontWeight: 700, lineHeight: 1 }}>{winRate}%</div>
           </div>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
-            <StatCard label='NET P&L' value={'$' + totalPnl.toFixed(2)} style={{ color: pnlColor, borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
+
+          {/* NET P&L */}
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 3, background: '#10b981', position: 'absolute', top: 0, left: 0, right: 0 }} />
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>NET P&amp;L</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: pnlColor, lineHeight: 1 }}>{'$' + totalPnl.toFixed(2)}</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>{totalPnl >= 0 ? 'profit' : 'loss'}</div>
           </div>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #10b981', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
-            <StatCard label='PROFIT FACTOR' value={profitFactor} style={{ borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
+
+          {/* PROFIT FACTOR */}
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 3, background: '#10b981', position: 'absolute', top: 0, left: 0, right: 0 }} />
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>PROFIT FACTOR</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: textPrimary, lineHeight: 1 }}>{profitFactor}</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>win/loss ratio</div>
           </div>
-          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderTop: '3px solid #a78bfa', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120 }}>
-            <StatCard label='AVG R:R' value={avgRR} style={{ borderTop: 'none', borderRadius: '0 0 12px 12px' }} />
+
+          {/* AVG R:R */}
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minHeight: 120, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 3, background: '#a78bfa', position: 'absolute', top: 0, left: 0, right: 0 }} />
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8, marginTop: 8 }}>AVG R:R</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 28, fontWeight: 700, color: textPrimary, lineHeight: 1 }}>{avgRR}</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textMuted, marginTop: 6 }}>risk/reward</div>
           </div>
+
         </div>
 
         {/* ===== 3-COLUMN ANALYTICS ROW ===== */}
