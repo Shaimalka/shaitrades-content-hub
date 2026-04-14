@@ -227,6 +227,8 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
 }
 function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) {
 
+  const [mode, setMode] = React.useState<'prop' | 'live'>('prop')
+
   const surface = isDark ? '#1a1f2e' : '#ffffff'
 
   const border = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
@@ -369,13 +371,23 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   ]
 
+  const liveGrowthText = trades.length > 0
+
+    ? `At your current pace (+$${avgWin * winRate / 100 > 0 ? Math.round(avgWin * winRate / 100) : 0}/trade avg), your account grows approximately ${winRate > 50 ? 'consistently' : 'inconsistently'} this month. Focus on consistency over size.`
+
+    : 'Log trades to see your live account growth forecast.'
+
   const forecasts = [
 
     {
 
       color: '#10b981',
 
-      text: payoutDays
+      text: mode === 'live'
+
+        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>{liveGrowthText}</strong></>
+
+        : payoutDays
 
         ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Payout in ~{payoutDays} trading days</strong> — {winRate}% WR + ${avgWin} avg win. Maintain pace and avoid sizing up.</>
 
@@ -405,6 +417,32 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   ]
 
+  const statCells = mode === 'live'
+
+    ? [
+
+        { label: 'Current P&L', value: totalPnl >= 0 ? `+$${totalPnl.toLocaleString()}` : `-$${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
+
+        { label: 'Drawdown Used', value: `-$${ddUsed.toLocaleString()}`, color: ddUsed === 0 ? textFaint : ddPct > 60 ? '#ef4444' : '#f59e0b', sub: `of -$${maxDrawdown.toLocaleString()} max` },
+
+        { label: 'Buffer Left', value: `$${bufferLeft.toLocaleString()}`, color: textPrimary, sub: `${bufferInR}R remaining` },
+
+        { label: 'Account Size', value: '$50,000', color: '#10b981', sub: 'live account' },
+
+      ]
+
+    : [
+
+        { label: 'Current P&L', value: totalPnl >= 0 ? `+$${totalPnl.toLocaleString()}` : `-$${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
+
+        { label: 'Drawdown Used', value: `-$${ddUsed.toLocaleString()}`, color: ddUsed === 0 ? textFaint : ddPct > 60 ? '#ef4444' : '#f59e0b', sub: `of -$${maxDrawdown.toLocaleString()} max` },
+
+        { label: 'Buffer Left', value: `$${bufferLeft.toLocaleString()}`, color: textPrimary, sub: `${bufferInR}R remaining` },
+
+        { label: 'To Payout', value: `$${toPayout.toLocaleString()}`, color: '#60a5fa', sub: `~${winsNeeded} wins away` },
+
+      ]
+
   return (
 
     <div style={{ background: surface, border: `1px solid ${isDark ? 'rgba(96,165,250,0.12)' : '#bfdbfe'}`, borderRadius: 14, padding: '22px 26px' }}>
@@ -417,13 +455,53 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
           <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>Account Radar</span>
 
-          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.15)', color: '#60a5fa', letterSpacing: '0.04em' }}>PROP FIRM</span>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: mode === 'live' ? 'rgba(16,185,129,0.08)' : 'rgba(96,165,250,0.08)', border: `1px solid ${mode === 'live' ? 'rgba(16,185,129,0.15)' : 'rgba(96,165,250,0.15)'}`, color: mode === 'live' ? '#10b981' : '#60a5fa', letterSpacing: '0.04em' }}>{mode === 'live' ? 'LIVE CAPITAL' : 'PROP FIRM'}</span>
 
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 
-          {(['Trailing DD', 'EOD DD', 'Static DD'] as const).map((label, i) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: isDark ? 'rgba(255,255,255,0.04)' : '#f1f5f9', border: `1px solid ${border}`, borderRadius: 20, padding: '3px 4px' }}>
+
+            {(['prop', 'live'] as const).map(m => (
+
+              <div
+
+                key={m}
+
+                onClick={() => setMode(m)}
+
+                style={{
+
+                  padding: '4px 12px',
+
+                  borderRadius: 20,
+
+                  fontSize: 11,
+
+                  fontWeight: mode === m ? 700 : 500,
+
+                  color: mode === m ? '#fff' : textFaint,
+
+                  background: mode === m ? '#60a5fa' : 'transparent',
+
+                  cursor: 'pointer',
+
+                  transition: 'all 0.15s'
+
+                }}
+
+              >
+
+                {m === 'prop' ? 'Prop Firm' : 'Live Capital'}
+
+              </div>
+
+            ))}
+
+          </div>
+
+          {mode === 'prop' && (['Trailing DD', 'EOD DD', 'Static DD'] as const).map((label, i) => (
 
             <div key={label} style={{ padding: '5px 14px', background: i === 0 ? 'rgba(96,165,250,0.12)' : 'transparent', border: `1px solid ${i === 0 ? 'rgba(96,165,250,0.25)' : border}`, borderRadius: 20, fontSize: 11, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#60a5fa' : textFaint, cursor: 'pointer' }}>{label}</div>
 
@@ -437,17 +515,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 18 }}>
 
-        {[
-
-          { label: 'Current P&L', value: totalPnl >= 0 ? `+$${totalPnl.toLocaleString()}` : `-$${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
-
-          { label: 'Drawdown Used', value: `-$${ddUsed.toLocaleString()}`, color: ddUsed === 0 ? textFaint : ddPct > 60 ? '#ef4444' : '#f59e0b', sub: `of -$${maxDrawdown.toLocaleString()} max` },
-
-          { label: 'Buffer Left', value: `$${bufferLeft.toLocaleString()}`, color: textPrimary, sub: `${bufferInR}R remaining` },
-
-          { label: 'To Payout', value: `$${toPayout.toLocaleString()}`, color: '#60a5fa', sub: `~${winsNeeded} wins away` },
-
-        ].map(s => (
+        {statCells.map(s => (
 
           <div key={s.label} style={{ background: cellBg, borderRadius: 10, padding: '12px 16px', border: `1px solid ${cellBorder}` }}>
 
@@ -578,7 +646,6 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
   )
 
 }
-
 // Trading Heatmap — GitHub-style contribution grid
 function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#1a1f2e' : '#ffffff'
