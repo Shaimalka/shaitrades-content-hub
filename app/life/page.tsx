@@ -504,7 +504,7 @@ export default function LifeHubPage() {
     while (true) {
       const ds = d.toISOString().split('T')[0]
       if (journalTodaySaved && ds === today3) { streak++; d.setDate(d.getDate() - 1); continue }
-      brea
+      break
     }
     return streak
   })()
