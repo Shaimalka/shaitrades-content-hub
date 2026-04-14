@@ -12,7 +12,6 @@ const InfoTooltip = ({ text }: { text: string }) => {
   const [show, setShow] = React.useState(false)
 
   const ref = React.useRef<HTMLSpanElement>(null)
-
   React.useEffect(() => {
 
     function handleClickOutside(event: MouseEvent) {
@@ -505,7 +504,7 @@ export default function LifeHubPage() {
     while (true) {
       const ds = d.toISOString().split('T')[0]
       if (journalTodaySaved && ds === today3) { streak++; d.setDate(d.getDate() - 1); continue }
-      break
+      brea
     }
     return streak
   })()
@@ -578,7 +577,7 @@ export default function LifeHubPage() {
         )}
 
         {/* ââ Coach Shai Card ââ */}
-        <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: '#0f1117', borderLeft: '3px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative', marginTop: 4 }}>
+        <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: isDark ? 'rgba(96,165,250,0.06)' : '#0f1117', borderLeft: '3px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative', marginTop: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>COACH SHAI · DAILY BRIEF</span>
