@@ -693,11 +693,11 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.2)' : '#0f172a', marginBottom: 14 }}>A{trades.length === 0 ? 'AI FORECAST · LOG TRADES TO UNLOCK' : trades.length <= 30 ? `AI FORECAST · BASED ON ALL ${trades.length} TRADES` : 'AI FORECAST · BASED ON LAST 30 TRADES'}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.2)' : '#0f172a', marginBottom: 14 }}>{trades.length === 0 ? 'AI FORECAST · LOG TRADES TO UNLOCK' : trades.length <= 30 ? `AI FORECAST · BASED ON ALL ${trades.length} TRADES` : 'AI FORECAST · BASED ON LAST 30 TRADES'}</div>
 
           {forecasts.map((ins, i) => (
 
-            <div key={i} style={{ display: 'fle, alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: insightBg, borderRadius: 8, borderLeft: `2px solid ${ins.color}`, marginBottom: 8 }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: insightBg, borderRadius: 8, borderLeft: `2px solid ${ins.color}`, marginBottom: 8 }}>
 
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: ins.color, flexShrink: 0, marginTop: 5 }} />
 
