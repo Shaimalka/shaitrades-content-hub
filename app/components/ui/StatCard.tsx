@@ -46,7 +46,7 @@ export default function StatCard({
       </div>
       <div
         style={{
-          fontSize: isEmpty ? '24px' : '20px',
+          fontSize: isEmpty ? '20px' : '16px',
           fontWeight: isEmpty ? 300 : 700,
           color: isEmpty ? 'var(--text-empty)' : (valueColor || 'var(--text-primary)'),
           lineHeight: 1,
