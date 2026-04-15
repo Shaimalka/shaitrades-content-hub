@@ -244,6 +244,18 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
     accountSize: 50000,
     firmName: 'Apex Trader Funding',
   })
+  const [radarLiveConfig, setRadarLiveConfig] = React.useState({
+    accountSize: 10000,
+    riskPerTrade: 1,
+    dailyLossLimit: 500,
+    monthlyGoal: 2000,
+  })
+  const [liveConfigDraft, setLiveConfigDraft] = React.useState({
+    accountSize: 10000,
+    riskPerTrade: 1,
+    dailyLossLimit: 500,
+    monthlyGoal: 2000,
+  })
   const [ddType, setDdType] = React.useState(0)
 
 
@@ -255,6 +267,10 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
         if (data.settings?.radarConfig) {
           setRadarConfig(data.settings.radarConfig)
           setConfigDraft(data.settings.radarConfig)
+        }
+        if (data.settings?.radarLiveConfig) {
+          setRadarLiveConfig(data.settings.radarLiveConfig)
+          setLiveConfigDraft(data.settings.radarLiveConfig)
         }
       } catch {}
     }
@@ -496,12 +512,21 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
       const res = await fetch('/api/settings')
       const data = await res.json()
       const existing = data.settings || {}
-      await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...existing, radarConfig: configDraft }),
-      })
-      setRadarConfig(configDraft)
+      if (mode === 'prop') {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...existing, radarConfig: configDraft }),
+        })
+        setRadarConfig(configDraft)
+      } else {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...existing, radarLiveConfig: liveConfigDraft }),
+        })
+        setRadarLiveConfig(liveConfigDraft)
+      }
       setShowConfig(false)
     } catch {}
     setConfigLoading(false)
@@ -713,30 +738,57 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
         >
           <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderRadius: 14, padding: '28px 32px', width: 460, maxWidth: '90vw' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>Configure Account Radar</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>{mode === 'prop' ? 'Configure Account Radar' : 'Configure Live Account'}</div>
               <div onClick={() => setShowConfig(false)} style={{ cursor: 'pointer', color: textFaint, fontSize: 18, lineHeight: 1 }}>✕</div>
             </div>
-            {[
-              { key: 'firmName', label: 'Prop Firm Name', type: 'text', placeholder: 'e.g. Apex Trader Funding' },
-              { key: 'profitTarget', label: 'Profit Target ($)', type: 'number', placeholder: '3000' },
-              { key: 'maxDrawdown', label: 'Max Drawdown ($)', type: 'number', placeholder: '2000' },
-              { key: 'rAmount', label: 'R Amount per Trade ($)', type: 'number', placeholder: '300' },
-              { key: 'accountSize', label: 'Account Size ($)', type: 'number', placeholder: '50000' },
-            ].map(field => (
-              <div key={field.key} style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: textMuted, marginBottom: 6 }}>{field.label}</div>
-                <input
-                  type={field.type}
-                  placeholder={field.placeholder}
-                  value={(configDraft as any)[field.key]}
-                  onChange={e => setConfigDraft(prev => ({
-                    ...prev,
-                    [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value
-                  }))}
-                  style={{ width: '100%', padding: '9px 12px', background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', border: `1px solid ${border}`, borderRadius: 8, fontSize: 13, fontWeight: 500, color: textPrimary, outline: 'none', fontFamily: 'Inter, sans-serif' }}
-                />
-              </div>
-            ))}
+            {mode === 'prop' ? (
+              <>
+              {[
+                { key: 'firmName', label: 'Prop Firm Name', type: 'text', placeholder: 'e.g. Apex Trader Funding' },
+                { key: 'profitTarget', label: 'Profit Target ($)', type: 'number', placeholder: '3000' },
+                { key: 'maxDrawdown', label: 'Max Drawdown ($)', type: 'number', placeholder: '2000' },
+                { key: 'rAmount', label: 'R Amount per Trade ($)', type: 'number', placeholder: '300' },
+                { key: 'accountSize', label: 'Account Size ($)', type: 'number', placeholder: '50000' },
+              ].map(field => (
+                <div key={field.key} style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: textMuted, marginBottom: 6 }}>{field.label}</div>
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={(configDraft as any)[field.key]}
+                    onChange={e => setConfigDraft(prev => ({
+                      ...prev,
+                      [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value
+                    }))}
+                    style={{ width: '100%', padding: '9px 12px', background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', border: `1px solid ${border}`, borderRadius: 8, fontSize: 13, fontWeight: 500, color: textPrimary, outline: 'none', fontFamily: 'Inter, sans-serif' }}
+                  />
+                </div>
+              ))}
+              </>
+            ) : (
+              <>
+              {[
+                { key: 'accountSize', label: 'Account Size ($)', type: 'number', placeholder: '10000' },
+                { key: 'riskPerTrade', label: 'Risk Per Trade (%)', type: 'number', placeholder: '1' },
+                { key: 'dailyLossLimit', label: 'Daily Loss Limit ($)', type: 'number', placeholder: '500' },
+                { key: 'monthlyGoal', label: 'Monthly Goal ($)', type: 'number', placeholder: '2000' },
+              ].map(field => (
+                <div key={field.key} style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: textMuted, marginBottom: 6 }}>{field.label}</div>
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={(liveConfigDraft as any)[field.key]}
+                    onChange={e => setLiveConfigDraft(prev => ({
+                      ...prev,
+                      [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value
+                    }))}
+                    style={{ width: '100%', padding: '9px 12px', background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', border: `1px solid ${border}`, borderRadius: 8, fontSize: 13, fontWeight: 500, color: textPrimary, outline: 'none', fontFamily: 'Inter, sans-serif' }}
+                  />
+                </div>
+              ))}
+              </>
+            )}
             <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
               <div
                 onClick={saveConfig}
