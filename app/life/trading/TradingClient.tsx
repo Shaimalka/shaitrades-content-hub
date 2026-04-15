@@ -914,37 +914,37 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     weekNum++
   }
   const totalMonthPnl = weeks.reduce((s, w) => s + w.pnl, 0)
-  return (
-    <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, padding: '18px 20px', height: '100%', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>WEEKLY BREAKDOWN</p>
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, color: totalMonthPnl >= 0 ? '#00c48c' : '#ff4d6a' }}>
-          {totalMonthPnl >= 0 ? '+' : ''}${totalMonthPnl.toFixed(2)}
+return (
+    <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', borderRadius: 12, padding: '18px 20px', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1px', color: '#94a3b8', textTransform: 'uppercase' }}>WEEKLY BREAKDOWN</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: totalMonthPnl > 0 ? '#10b981' : totalMonthPnl < 0 ? '#ef4444' : '#94a3b8' }}>
+          {totalMonthPnl === 0 ? '—' : (totalMonthPnl > 0 ? '+' : '') + '$' + Math.abs(totalMonthPnl).toFixed(2)}
         </span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-        {weeks.filter(w => w.trades > 0 || w.weekNum <= 4).map(week => (
-          <div key={week.weekNum} style={{ padding: '12px 14px', borderRadius: 8, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', border: `1px solid ${border}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, color: textPrimary }}>Week {week.weekNum}</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: week.pnl > 0 ? '#00c48c' : week.pnl < 0 ? '#ff4d6a' : textPrimary }}>
-                {week.pnl !== 0 ? (week.pnl > 0 ? '+' : '') + '$' + week.pnl.toFixed(2) : '—'}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textSecondary }}>{week.trades} trades</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary }}>{week.winRate.toFixed(0)}% WR</span>
-            </div>
-            {week.trades > 0 && (
-              <div style={{ marginTop: 8, height: 3, background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 2 }}>
-                <div style={{ height: '100%', width: `${Math.min(Math.abs(week.pnl) / (Math.max(...weeks.map(w => Math.abs(w.pnl)), 1)) * 100, 100)}%`, background: week.pnl >= 0 ? '#00c48c' : '#ff4d6a', borderRadius: 2 }} />
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {weeks.filter(w => w.trades > 0 || w.weekNum <= 4).map(week => {
+          const weekAccents = ['#60a5fa', '#a78bfa', '#10b981', '#f59e0b']
+          const accentColor = weekAccents[(week.weekNum - 1) % 4]
+          return (
+            <div key={week.weekNum} style={{ background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, padding: '12px 14px', marginBottom: 8, borderLeft: `3px solid ${accentColor}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#f9fafb' : '#0f172a' }}>Week {week.weekNum}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: week.pnl > 0 ? '#10b981' : week.pnl < 0 ? '#ef4444' : '#94a3b8' }}>
+                  {week.pnl === 0 ? <span style={{ color: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}>—</span> : (week.pnl > 0 ? '+' : '') + '$' + Math.abs(week.pnl).toFixed(2)}
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+              {week.trades > 0 && (
+                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
+                  {week.trades} trade{week.trades !== 1 ? 's' : ''} · {Math.round(week.winRate)}% WR
+                </div>
+              )}
+            </div>
+          )
+        })}
         {weeks.every(w => w.trades === 0) && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textPrimary }}>No trades this month</p>
+          <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', paddingTop: 8 }}>
+            <p>No trades this month</p>
           </div>
         )}
       </div>
