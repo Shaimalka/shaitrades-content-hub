@@ -1407,6 +1407,7 @@ function TradingJournalInner() {
             sub={filteredTrades.length > 0 ? `${wins.length}W · ${losses.length}L` : 'no trades yet'}
             accentColor="#60a5fa"
             isEmpty={filteredTrades.length === 0}
+            size="sm"
           />
           {/* WIN RATE */}
           <StatCard
@@ -1415,6 +1416,7 @@ function TradingJournalInner() {
             sub={filteredTrades.length > 0 ? `${wins.length}W · ${losses.length}L` : 'no trades yet'}
             accentColor="#ef4444"
             isEmpty={filteredTrades.length === 0}
+            size="sm"
           />
           {/* NET P&L */}
           <StatCard
@@ -1423,6 +1425,7 @@ function TradingJournalInner() {
             sub={filteredTrades.length > 0 ? MONTH_NAMES[new Date().getMonth()] : 'no trades yet'}
             accentColor="#10b981"
             isEmpty={filteredTrades.length === 0}
+            size="sm"
           />
           {/* PROFIT FACTOR */}
           <StatCard
@@ -1431,6 +1434,7 @@ function TradingJournalInner() {
             sub={wins.length > 0 ? 'gross W/L ratio' : 'no trades yet'}
             accentColor="#10b981"
             isEmpty={wins.length === 0}
+            size="sm"
           />
           {/* AVG R:R */}
           <StatCard
@@ -1439,6 +1443,7 @@ function TradingJournalInner() {
             sub={avgRR !== '—' ? 'risk to reward' : 'no trades yet'}
             accentColor="#a78bfa"
             isEmpty={avgRR === '—'}
+            size="sm"
           />
         </div>
 
