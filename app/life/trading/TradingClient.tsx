@@ -533,7 +533,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   return (
 
-    <div style={{ background: surface, border: `1px solid ${isDark ? 'rgba(96,165,250,0.12)' : '#bfdbfe'}`, borderRadius: 14, padding: '22px 26px' }}>
+    <div style={{ background: surface, border: '1px solid rgba(251, 191, 36, 0.35)', borderRadius: 14, padding: '22px 26px', boxShadow: '0 0 0 1px rgba(251, 191, 36, 0.08), 0 4px 24px rgba(251, 191, 36, 0.06)' }}>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${dividerColor}` }}>
 
