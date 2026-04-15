@@ -63,21 +63,6 @@ const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { w
   <div style={{ width, height, borderRadius, background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />
 )
 
-// WinRateGauge — semi-circular SVG gauge
-const WinRateGauge = ({ rate }: { rate: number }) => {
-  const pct = Math.min(rate, 100)
-  const color = pct > 50 ? '#00c48c' : '#ff4d6a'
-  const r = 30
-  const circ = Math.PI * r
-  const fill = (pct / 100) * circ
-  return (
-    <svg width="80" height="45" viewBox="0 0 80 45" style={{ display: 'block', margin: '0 auto' }}>
-      <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke="rgba(128,128,128,0.2)" strokeWidth="6" strokeLinecap="round"/>
-      <path d="M 10 40 A 30 30 0 0 1 70 40" fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
-        strokeDasharray={`${fill} ${circ}`} />
-    </svg>
-  )
-}
 function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boolean }) {
   const [progress, setProgress] = useState(100)
   const surface = isDark ? '#1a1f2e' : '#ffffff'
@@ -1416,43 +1401,45 @@ function TradingJournalInner() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20, alignItems: 'stretch' }}>
 
           {/* TOTAL TRADES */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #60a5fa', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>TOTAL TRADES</div>
-            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: filteredTrades.length > 0 ? textPrimary : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') }}>{filteredTrades.length > 0 ? filteredTrades.length : '—'}</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : wins.length + 'W · ' + losses.length + 'L'}</div>
-          </div>
-
+          <StatCard
+            label="TOTAL TRADES"
+            value={filteredTrades.length > 0 ? String(filteredTrades.length) : '—'}
+            sub={filteredTrades.length > 0 ? `${wins.length}W · ${losses.length}L` : 'no trades yet'}
+            accentColor="#60a5fa"
+            isEmpty={filteredTrades.length === 0}
+          />
           {/* WIN RATE */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #ef4444', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>WIN RATE</div>
-            <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <WinRateGauge rate={winRateNum} />
-            </div>
-            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: filteredTrades.length > 0 ? winRateColor : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') }}>{filteredTrades.length > 0 ? winRate + '%' : '—'}</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : 'win percentage'}</div>
-          </div>
-
+          <StatCard
+            label="WIN RATE"
+            value={filteredTrades.length > 0 ? `${parseFloat(winRate).toFixed(1)}%` : '—'}
+            sub={filteredTrades.length > 0 ? `${wins.length}W · ${losses.length}L` : 'no trades yet'}
+            accentColor="#ef4444"
+            isEmpty={filteredTrades.length === 0}
+          />
           {/* NET P&L */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #10b981', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>NET P&L</div>
-            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: filteredTrades.length > 0 ? pnlColor : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') }}>{filteredTrades.length > 0 ? (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2) : '—'}</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : MONTH_NAMES[new Date().getMonth()]}</div>
-          </div>
-
+          <StatCard
+            label="NET P&L"
+            value={filteredTrades.length > 0 ? `$${totalPnl >= 0 ? '' : '-'}${Math.abs(totalPnl).toFixed(2)}` : '—'}
+            sub={filteredTrades.length > 0 ? MONTH_NAMES[new Date().getMonth()] : 'no trades yet'}
+            accentColor="#10b981"
+            isEmpty={filteredTrades.length === 0}
+          />
           {/* PROFIT FACTOR */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #10b981', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>PROFIT FACTOR</div>
-            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: (filteredTrades.length === 0 || profitFactor === '—') ? (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') : '#10b981' }}>{(filteredTrades.length === 0 || profitFactor === '—') ? '—' : profitFactor}</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : 'gross W/L ratio'}</div>
-          </div>
-
+          <StatCard
+            label="PROFIT FACTOR"
+            value={wins.length > 0 ? String(profitFactor) : '—'}
+            sub={wins.length > 0 ? 'gross W/L ratio' : 'no trades yet'}
+            accentColor="#10b981"
+            isEmpty={wins.length === 0}
+          />
           {/* AVG R:R */}
-          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #a78bfa', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>AVG R:R</div>
-            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: (filteredTrades.length === 0 || avgRR === '—') ? (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') : '#a78bfa' }}>{(filteredTrades.length === 0 || avgRR === '—') ? '—' : avgRR}</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : 'risk to reward'}</div>
-          </div>
-
+          <StatCard
+            label="AVG R:R"
+            value={avgRR !== '—' ? String(avgRR) : '—'}
+            sub={avgRR !== '—' ? 'risk to reward' : 'no trades yet'}
+            accentColor="#a78bfa"
+            isEmpty={avgRR === '—'}
+          />
         </div>
 
         {/* ===== ACCOUNT RADAR — FULL WIDTH ===== */}
