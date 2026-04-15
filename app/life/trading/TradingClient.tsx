@@ -216,11 +216,16 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginTop: 8 }}>
         {data.map(d => (
           <div key={d.subject} style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: d.value >= 60 ? '#00c48c' : d.value >= 40 ? '#f59e0b' : '#ff4d6a' }}>{d.value}</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: trades.length < 5 && d.value === 0 ? '#94a3b8' : d.value >= 60 ? '#10b981' : d.value >= 40 ? '#f59e0b' : '#ef4444' }}>{d.value}</div>
             <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.subject}</div>
           </div>
         ))}
       </div>
+      {trades.length < 5 && trades.length > 0 && (
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#94a3b8', marginTop: 8 }}>
+          Not enough data for full analysis · {5 - trades.length} more trades needed
+        </div>
+      )}
     </div>
   )
 }
