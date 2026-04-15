@@ -1,4 +1,4 @@
-TradingClient.tsx'use client'
+'use client'
 // v9 - Professional Trading Journal — Tradezella-style Dashboard
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts'
@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import StatCard from '@/app/components/ui/StatCard'
-import Button from '@/app/components/ui/Button
+import Button from '@/app/components/ui/Button'
 type Trade = {
   id: string; date: string; direction: 'Long' | 'Short'
   entryPrice: number; exitPrice: number; contracts: number
