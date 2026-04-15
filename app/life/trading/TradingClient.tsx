@@ -1,4 +1,4 @@
-'use client'
+TradingClient.tsx'use client'
 // v9 - Professional Trading Journal — Tradezella-style Dashboard
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts'
@@ -8,8 +8,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import StatCard from '@/app/components/ui/StatCard'
-import Button from '@/app/components/ui/Button'
-
+import Button from '@/app/components/ui/Button
 type Trade = {
   id: string; date: string; direction: 'Long' | 'Short'
   entryPrice: number; exitPrice: number; contracts: number
@@ -321,9 +320,9 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const avgLoss = losses.length > 0 ? Math.round(Math.abs(losses.reduce((s, t) => s + (t.pnl || 0), 0) / losses.length)) : 0
 
-  const profitTarget = radarConfig.profitTarget
+  const profitTarget = mode === 'live' ? radarLiveConfig.monthlyGoal : radarConfig.profitTarget
 
-  const maxDrawdown = radarConfig.maxDrawdown
+  const maxDrawdown = mode === 'live' ? radarLiveConfig.dailyLossLimit : radarConfig.maxDrawdown
 
   // Trailing DD: peak-to-trough; EOD/Static DD: cumulative from start
   let currentDD: number = 0
@@ -346,7 +345,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const toPayout = Math.max(0, profitTarget - totalPnl)
 
-  const rAmount = radarConfig.rAmount
+  const rAmount = mode === 'live' ? Math.round(radarLiveConfig.accountSize * radarLiveConfig.riskPerTrade / 100) : radarConfig.rAmount
 
   const bufferInR = rAmount > 0 ? (bufferLeft / rAmount).toFixed(1) : '—'
 
@@ -427,7 +426,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
         { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
       ]
     : [
-        { label: 'Monthly Goal', pct: 0, val: 'Set a goal in Goals section', color: '#10b981' },
+        { label: 'Monthly Goal', pct: Math.min(100, Math.round((Math.max(0, totalPnl) / radarLiveConfig.monthlyGoal) * 100)), val: `${Math.min(100, Math.round((Math.max(0, totalPnl) / radarLiveConfig.monthlyGoal) * 100))}% · $${Math.max(0, totalPnl).toLocaleString()} / $${radarLiveConfig.monthlyGoal.toLocaleString()}`, color: '#10b981' },
         { label: 'Win Rate Trend', pct: winRate, val: winRate > 0 ? winRate + '% this month' : 'No data yet', color: '#60a5fa' },
         { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
         { label: 'Daily Target', pct: 0, val: `$0 / ${dailyNeeded} needed today`, color: textFaint },
@@ -486,11 +485,11 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         { label: 'Current P&L', value: totalPnl >= 0 ? `+${totalPnl.toLocaleString()}` : `-${Math.abs(totalPnl).toLocaleString()}`, color: totalPnl >= 0 ? '#10b981' : '#ef4444', sub: 'this account' },
 
-        { label: 'Max Daily Loss', value: '-$0', color: textFaint, sub: 'personal limit' },
+        { label: 'Max Daily Loss', value: `-$${radarLiveConfig.dailyLossLimit.toLocaleString()}`, color: textFaint, sub: 'personal limit' },
 
         { label: 'Open Risk', value: '$0', color: textPrimary, sub: 'no open trades' },
 
-        { label: 'Account Size', value: `${radarConfig.accountSize.toLocaleString()}`, color: '#10b981', sub: 'live account' },
+        { label: 'Account Size', value: `${radarLiveConfig.accountSize.toLocaleString()}`, color: '#10b981', sub: 'live account' },
 
       ]
 
