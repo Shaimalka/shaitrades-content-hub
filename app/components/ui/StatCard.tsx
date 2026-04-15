@@ -8,6 +8,7 @@ interface StatCardProps {
   accentColor: string
   valueColor?: string
   isEmpty?: boolean
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export default function StatCard({
@@ -17,7 +18,10 @@ export default function StatCard({
   accentColor,
   valueColor,
   isEmpty = false,
+  size,
 }: StatCardProps) {
+  const valueFontSize = size === 'sm' ? (isEmpty ? '18px' : '14px') : size === 'lg' ? (isEmpty ? '32px' : '28px') : (isEmpty ? '24px' : '20px')
+
   return (
     <div
       style={{
@@ -46,7 +50,7 @@ export default function StatCard({
       </div>
       <div
         style={{
-          fontSize: isEmpty ? '20px' : '16px',
+          fontSize: valueFontSize,
           fontWeight: isEmpty ? 300 : 700,
           color: isEmpty ? 'var(--text-empty)' : (valueColor || 'var(--text-primary)'),
           lineHeight: 1,
