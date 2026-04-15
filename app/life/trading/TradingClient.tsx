@@ -1369,14 +1369,14 @@ function TradingJournalInner() {
           {/* PROFIT FACTOR */}
           <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #10b981', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>PROFIT FACTOR</div>
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: 'var(--green)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? profitFactor : '—'}</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? 'var(--green)' : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'), lineHeight: 1.1 }}>{filteredTrades.length > 0 ? profitFactor : '—'}</div>
             <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : 'gross W/L ratio'}</div>
           </div>
 
           {/* AVG R:R */}
           <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #a78bfa', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>AVG R:R</div>
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: 'var(--purple)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? avgRR : '—'}</div>
+            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? 'var(--purple)' : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'), lineHeight: 1.1 }}>{filteredTrades.length > 0 ? avgRR : '—'}</div>
             <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : 'risk to reward'}</div>
           </div>
 
