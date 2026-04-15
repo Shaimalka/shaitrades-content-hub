@@ -901,7 +901,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
   const lastDay = new Date(year, month + 1, 0)
   const weeks: { weekNum: number; startStr: string; endStr: string; pnl: number; trades: number; days: number; wins: number; winRate: number }[] = []
   let weekStart = new Date(firstDay)
-  let weekNum = 1
+  let weekNum = 
   while (weekStart <= lastDay && weekNum <= 5) {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
@@ -1416,38 +1416,41 @@ function TradingJournalInner() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 12, marginBottom: 20, alignItems: 'stretch' }}>
 
           {/* TOTAL TRADES */}
-          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #60a5fa', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>TOTAL TRADES</div>
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? textPrimary : 'var(--text-empty)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? filteredTrades.length : '—'}</div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : wins.length + 'W · ' + losses.length + 'L'}</div>
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #60a5fa', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>TOTAL TRADES</div>
+            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: filteredTrades.length > 0 ? textPrimary : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') }}>{filteredTrades.length > 0 ? filteredTrades.length : '—'}</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : wins.length + 'W · ' + losses.length + 'L'}</div>
           </div>
 
           {/* WIN RATE */}
-          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #ef4444', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>WIN RATE</div>
-            <WinRateGauge rate={winRateNum} />
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? winRateColor : 'var(--text-empty)', lineHeight: 1.1 }}>{winRate}%</div>
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #ef4444', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>WIN RATE</div>
+            <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <WinRateGauge rate={winRateNum} />
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: filteredTrades.length > 0 ? winRateColor : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') }}>{filteredTrades.length > 0 ? winRate + '%' : '—'}</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : 'win percentage'}</div>
           </div>
 
           {/* NET P&L */}
-          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #10b981', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>NET P&L</div>
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? pnlColor : 'var(--text-empty)', lineHeight: 1.1 }}>{filteredTrades.length > 0 ? (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2) : '—'}</div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : MONTH_NAMES[new Date().getMonth()]}</div>
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #10b981', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>NET P&L</div>
+            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: filteredTrades.length > 0 ? pnlColor : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') }}>{filteredTrades.length > 0 ? (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2) : '—'}</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : MONTH_NAMES[new Date().getMonth()]}</div>
           </div>
 
           {/* PROFIT FACTOR */}
-          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #10b981', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>PROFIT FACTOR</div>
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? 'var(--green)' : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'), lineHeight: 1.1 }}>{filteredTrades.length > 0 ? profitFactor : '—'}</div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : 'gross W/L ratio'}</div>
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #10b981', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>PROFIT FACTOR</div>
+            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: (filteredTrades.length === 0 || profitFactor === '—') ? (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') : '#10b981' }}>{(filteredTrades.length === 0 || profitFactor === '—') ? '—' : profitFactor}</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : 'gross W/L ratio'}</div>
           </div>
 
           {/* AVG R:R */}
-          <div className='stat-card-hover' style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', borderTop: '3px solid #a78bfa', padding: '16px 18px', boxShadow: 'var(--shadow-sm)', minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: 8 }}>AVG R:R</div>
-            <div style={{ fontSize: filteredTrades.length > 0 ? 28 : 32, fontWeight: filteredTrades.length > 0 ? 700 : 300, color: filteredTrades.length > 0 ? 'var(--purple)' : (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1'), lineHeight: 1.1 }}>{filteredTrades.length > 0 ? avgRR : '—'}</div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: filteredTrades.length > 0 ? 'var(--text-primary)' : 'var(--text-muted)', marginTop: 4 }}>{filteredTrades.length === 0 ? 'no trades yet' : 'risk to reward'}</div>
+          <div className='stat-card-hover' style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'), borderTop: '3px solid #a78bfa', borderRadius: 12, padding: '18px 20px', minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8', marginBottom: 8 }}>AVG R:R</div>
+            <div style={{ fontSize: 32, fontWeight: 300, lineHeight: 1, marginBottom: 6, color: (filteredTrades.length === 0 || avgRR === '—') ? (isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1') : '#a78bfa' }}>{(filteredTrades.length === 0 || avgRR === '—') ? '—' : avgRR}</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 'auto' }}>{filteredTrades.length === 0 ? 'no trades yet' : 'risk to reward'}</div>
           </div>
 
         </div>
