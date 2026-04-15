@@ -228,6 +228,37 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
 function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) {
 
   const [mode, setMode] = React.useState<'prop' | 'live'>('prop')
+  const [showConfig, setShowConfig] = React.useState(false)
+  const [configLoading, setConfigLoading] = React.useState(false)
+  const [radarConfig, setRadarConfig] = React.useState({
+    profitTarget: 3000,
+    maxDrawdown: 2000,
+    rAmount: 300,
+    accountSize: 50000,
+    firmName: 'Apex Trader Funding',
+  })
+  const [configDraft, setConfigDraft] = React.useState({
+    profitTarget: 3000,
+    maxDrawdown: 2000,
+    rAmount: 300,
+    accountSize: 50000,
+    firmName: 'Apex Trader Funding',
+  })
+
+
+  React.useEffect(() => {
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/settings')
+        const data = await res.json()
+        if (data.settings?.radarConfig) {
+          setRadarConfig(data.settings.radarConfig)
+          setConfigDraft(data.settings.radarConfig)
+        }
+      } catch {}
+    }
+    loadConfig()
+  }, [])
 
   const surface = isDark ? '#1a1f2e' : '#ffffff'
 
@@ -273,9 +304,9 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const avgLoss = losses.length > 0 ? Math.round(Math.abs(losses.reduce((s, t) => s + (t.pnl || 0), 0) / losses.length)) : 0
 
-  const profitTarget = 3000
+  const profitTarget = radarConfig.profitTarget
 
-  const maxDrawdown = 2000
+  const maxDrawdown = radarConfig.maxDrawdown
 
   const currentDD = Math.min(0, totalPnl)
 
@@ -285,7 +316,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const toPayout = Math.max(0, profitTarget - totalPnl)
 
-  const rAmount = 300
+  const rAmount = radarConfig.rAmount
 
   const bufferInR = rAmount > 0 ? (bufferLeft / rAmount).toFixed(1) : '—'
 
@@ -429,7 +460,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         { label: 'Open Risk', value: '$0', color: textPrimary, sub: 'no open trades' },
 
-        { label: 'Account Size', value: '$50,000', color: '#10b981', sub: 'live account' },
+        { label: 'Account Size', value: `${radarConfig.accountSize.toLocaleString()}`, color: '#10b981', sub: 'live account' },
 
       ]
 
@@ -445,6 +476,23 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
       ]
 
+  const saveConfig = async () => {
+    setConfigLoading(true)
+    try {
+      const res = await fetch('/api/settings')
+      const data = await res.json()
+      const existing = data.settings || {}
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...existing, radarConfig: configDraft }),
+      })
+      setRadarConfig(configDraft)
+      setShowConfig(false)
+    } catch {}
+    setConfigLoading(false)
+  }
+
   return (
 
     <div style={{ background: surface, border: `1px solid ${isDark ? 'rgba(96,165,250,0.12)' : '#bfdbfe'}`, borderRadius: 14, padding: '22px 26px' }}>
@@ -457,7 +505,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
           <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>Account Radar</span>
 
-          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: mode === 'live' ? 'rgba(16,185,129,0.08)' : 'rgba(96,165,250,0.08)', border: `1px solid ${mode === 'live' ? 'rgba(16,185,129,0.15)' : 'rgba(96,165,250,0.15)'}`, color: mode === 'live' ? '#10b981' : '#60a5fa', letterSpacing: '0.04em' }}>{mode === 'live' ? 'LIVE CAPITAL' : 'PROP FIRM'}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: mode === 'live' ? 'rgba(16,185,129,0.08)' : 'rgba(96,165,250,0.08)', border: `1px solid ${mode === 'live' ? 'rgba(16,185,129,0.15)' : 'rgba(96,165,250,0.15)'}`, color: mode === 'live' ? '#10b981' : '#60a5fa', letterSpacing: '0.04em' }}>{mode === 'live' ? 'LIVE CAPITAL' : radarConfig.firmName}</span>
 
         </div>
 
@@ -509,7 +557,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
           ))}
 
-          <span style={{ fontSize: 11, color: textFaint, marginLeft: 4, cursor: 'pointer' }}>⚙ Configure</span>
+          <span onClick={() => { setConfigDraft(radarConfig); setShowConfig(true) }} style={{ fontSize: 11, color: textFaint, marginLeft: 4, cursor: 'pointer' }}>⚙ Configure</span>
 
         </div>
 
@@ -643,6 +691,55 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
       </div>
 
+
+      {showConfig && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowConfig(false) }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderRadius: 14, padding: '28px 32px', width: 460, maxWidth: '90vw' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>Configure Account Radar</div>
+              <div onClick={() => setShowConfig(false)} style={{ cursor: 'pointer', color: textFaint, fontSize: 18, lineHeight: 1 }}>✕</div>
+            </div>
+            {[
+              { key: 'firmName', label: 'Prop Firm Name', type: 'text', placeholder: 'e.g. Apex Trader Funding' },
+              { key: 'profitTarget', label: 'Profit Target ($)', type: 'number', placeholder: '3000' },
+              { key: 'maxDrawdown', label: 'Max Drawdown ($)', type: 'number', placeholder: '2000' },
+              { key: 'rAmount', label: 'R Amount per Trade ($)', type: 'number', placeholder: '300' },
+              { key: 'accountSize', label: 'Account Size ($)', type: 'number', placeholder: '50000' },
+            ].map(field => (
+              <div key={field.key} style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: textMuted, marginBottom: 6 }}>{field.label}</div>
+                <input
+                  type={field.type}
+                  placeholder={field.placeholder}
+                  value={(configDraft as any)[field.key]}
+                  onChange={e => setConfigDraft(prev => ({
+                    ...prev,
+                    [field.key]: field.type === 'number' ? Number(e.target.value) : e.target.value
+                  }))}
+                  style={{ width: '100%', padding: '9px 12px', background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc', border: `1px solid ${border}`, borderRadius: 8, fontSize: 13, fontWeight: 500, color: textPrimary, outline: 'none', fontFamily: 'Inter, sans-serif' }}
+                />
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+              <div
+                onClick={saveConfig}
+                style={{ flex: 1, padding: '10px 0', background: '#60a5fa', borderRadius: 8, fontSize: 13, fontWeight: 700, color: '#fff', textAlign: 'center', cursor: configLoading ? 'not-allowed' : 'pointer', opacity: configLoading ? 0.7 : 1 }}
+              >
+                {configLoading ? 'Saving...' : 'Save Configuration'}
+              </div>
+              <div
+                onClick={() => setShowConfig(false)}
+                style={{ padding: '10px 20px', border: `1px solid ${border}`, borderRadius: 8, fontSize: 13, fontWeight: 600, color: textMuted, cursor: 'pointer' }}
+              >
+                Cancel
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
 
   )
