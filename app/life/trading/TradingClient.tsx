@@ -901,7 +901,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
   const lastDay = new Date(year, month + 1, 0)
   const weeks: { weekNum: number; startStr: string; endStr: string; pnl: number; trades: number; days: number; wins: number; winRate: number }[] = []
   let weekStart = new Date(firstDay)
-  let weekNum = 
+  let weekNum = 1
   while (weekStart <= lastDay && weekNum <= 5) {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
