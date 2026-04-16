@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         ? 'late night'
         : localHour < 12
         ? 'morning'
-        : localHour < 17
+        : localHour < 1
         ? 'afternoon'
         : localHour < 21
         ? 'evening'
@@ -91,14 +91,15 @@ export async function POST(req: NextRequest) {
       systemPrompt += `\n\nThis trader's name is ${p.name || 'unknown'}, age ${p.age || 'unknown'}, based in ${p.location || 'unknown'}. They trade ${(p.instruments || []).join(', ')} and have been trading for ${p.experience || 'unknown'}. Their current level: ${p.currentLevel || 'unknown'}. Their biggest challenge: ${p.biggestChallenge || 'unknown'}. Their motivation: ${p.motivation || 'unknown'}. They started trading because: ${p.whyTrading || 'unknown'}. How they handle losses: ${p.lossResponse || 'unknown'}. Discipline rating: ${p.disciplineRating || 'unknown'}/5. Use this context to make your insights personal and specific. Address them by name occasionally.`
     }
 
-    const { symbol, direction, pnl, notes, entryPrice, exitPrice, contracts } = trade
+    const { symbol, direction, pnl, notes, stopLoss, takeProfit, rr, emotion } = trade
     const userMessage = `Trade just logged:
 - Symbol: ${symbol || 'Unknown'}
 - Direction: ${direction}
-- Entry: ${entryPrice}
-- Exit: ${exitPrice}
-- Contracts: ${contracts}
-- P&L: $${typeof pnl === 'number' ? pnl.toFixed(2) : pnl}
+- Stop Loss: $${stopLoss || 'N/A'}
+- Take Profit: $${takeProfit || 'N/A'}
+- Realized P&L: $${typeof pnl === 'number' ? pnl.toFixed(2) : pnl}
+- R:R: ${rr || 'N/A'}
+- Emotion: ${emotion || 'N/A'}
 ${notes ? `- Notes: ${notes}` : ''}
 
 Give me your insight.`
