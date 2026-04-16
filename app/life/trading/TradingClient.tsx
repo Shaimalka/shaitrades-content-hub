@@ -10,7 +10,7 @@ import { useTheme } from '@/app/contexts/ThemeContext'
 import StatCard from '@/app/components/ui/StatCard'
 import Button from '@/app/components/ui/Button'
 type Trade = {
-  id: string; date: string; direction: 'Long' | 'Short'
+  id: string; date: string; direction: 'Long' | Short'
   contracts: number
   pnl: number; realizedPnl?: number; notes: string; emotion: number; time?: string
   source?: string; accountName?: string; symbol?: string
@@ -1284,8 +1284,8 @@ function TradingJournalInner() {
       date: form.date, time: form.time, direction: form.direction,
       contracts: parseFloat(form.contracts), notes: form.notes, emotion: form.emotion,
       pnl: parseFloat(form.realizedPnl) || 0,
-      stopLoss: parseFloat(form.stopLoss) || null,
-      takeProfit: parseFloat(form.takeProfit) || null,
+      stopLoss: form.stopLoss !== '' ? parseFloat(form.stopLoss) : null,
+      takeProfit: form.takeProfit !== '' ? parseFloat(form.takeProfit) : null,
       rr: formRR ? parseFloat(formRR) : null,
       playbookId: form.playbookId || null, symbol: form.symbol || undefined,
       accountType: form.accountType, tradeImage: form.tradeImage || undefined,
@@ -1562,11 +1562,11 @@ function TradingJournalInner() {
                 </div>
                 <div>
                   <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>STOP LOSS ($)</label>
-                  <input type='number' step='0.01' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='Max risk e.g. 300' required style={inputStyle} />
+                  <input type='number' step='any' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='Max risk e.g. 300' required style={inputStyle} />
                 </div>
                 <div>
                   <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>TAKE PROFIT ($)</label>
-                  <input type='number' step='0.01' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='Target e.g. 600' required style={inputStyle} />
+                  <input type='number' step='any' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='Target e.g. 600' required style={inputStyle} />
                 </div>
                 <div>
                   <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>REALIZED P&L ($)</label>
