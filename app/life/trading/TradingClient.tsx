@@ -11,8 +11,8 @@ import StatCard from '@/app/components/ui/StatCard'
 import Button from '@/app/components/ui/Button'
 type Trade = {
   id: string; date: string; direction: 'Long' | 'Short'
-  entryPrice: number; exitPrice: number; contracts: number
-  pnl: number; notes: string; emotion: number; time?: string
+  contracts: number
+  pnl: number; realizedPnl?: number; notes: string; emotion: number; time?: string
   source?: string; accountName?: string; symbol?: string
   playbookId?: string | null; accountType?: 'live' | 'propfir' | 'paper'
   stopLoss?: number; takeProfit?: number
@@ -1204,7 +1204,7 @@ function TradingJournalInner() {
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().slice(0, 5),
     direction: 'Long' as 'Long' | 'Short',
-    entryPrice: '', exitPrice: '', contracts: '', notes: '',
+    contracts: '', notes: '', realizedPnl: '',
     emotion: 3, playbookId: '', symbol: '',
     stopLoss: '', takeProfit: '',
     accountType: 'live' as 'live' | 'propfirm' | 'paper',
@@ -1244,7 +1244,7 @@ function TradingJournalInner() {
     setEditingId(trade.id)
     setForm({
       date: trade.date, time: trade.time || '', direction: trade.direction,
-      entryPrice: String(trade.entryPrice), exitPrice: String(trade.exitPrice),
+      realizedPnl: String(trade.realizedPnl ?? ''),
       contracts: String(trade.contracts), notes: trade.notes || '',
       emotion: trade.emotion || 3, playbookId: trade.playbookId || '',
       symbol: trade.symbol || '', stopLoss: '', takeProfit: '',
@@ -1280,8 +1280,8 @@ function TradingJournalInner() {
     e.preventDefault()
     const fields = {
       date: form.date, time: form.time, direction: form.direction,
-      entryPrice: parseFloat(form.entryPrice), exitPrice: parseFloat(form.exitPrice),
       contracts: parseFloat(form.contracts), notes: form.notes, emotion: form.emotion,
+      pnl: parseFloat(form.realizedPnl) || 0,
       playbookId: form.playbookId || null, symbol: form.symbol || undefined,
       accountType: form.accountType, tradeImage: form.tradeImage || undefined,
     }
@@ -1334,16 +1334,9 @@ function TradingJournalInner() {
   const pnlColor = totalPnl > 0 ? '#00c48c' : totalPnl < 0 ? '#ff4d6a' : textPrimary
 
   // Auto-calculate R:R from form fields
-  const formRR = (() => {
-    const entry = parseFloat(form.entryPrice)
-    const sl = parseFloat(form.stopLoss)
-    const tp = parseFloat(form.takeProfit)
-    if (!entry || !sl || !tp || isNaN(entry) || isNaN(sl) || isNaN(tp)) return null
-    const risk = Math.abs(entry - sl)
-    const reward = Math.abs(tp - entry)
-    if (risk === 0) return null
-    return (reward / risk).toFixed(2)
-  })()
+  const formRR = form.stopLoss && form.takeProfit && parseFloat(form.stopLoss) > 0
+    ? (parseFloat(form.takeProfit) / parseFloat(form.stopLoss)).toFixed(2)
+    : null
 
   const inputStyle: React.CSSProperties = {
     width: '100%', background: inputBg, border: `1px solid ${border}`,
@@ -1547,46 +1540,29 @@ function TradingJournalInner() {
                 </div>
               </div>
 
-              {/* Row 2: Contracts (narrow), Entry, Exit, Stop Loss, Take Profit */}
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '120px 1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+              {/* Row 2: Contracts, Stop Loss ($), Take Profit ($), Realized P&L ($) */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '120px 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>CONTRACTS</label>
                   <input type='number' step='0.01' value={form.contracts} onChange={e => setForm(f => ({ ...f, contracts: e.target.value }))} placeholder='1' required style={{ ...inputStyle, maxWidth: 120 }} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>ENTRY PRICE</label>
-                  <input type='number' step='0.01' value={form.entryPrice} onChange={e => setForm(f => ({ ...f, entryPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>STOP LOSS ($)</label>
+                  <input type='number' step='0.01' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='Max risk e.g. 300' required style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>EXIT PRICE</label>
-                  <input type='number' step='0.01' value={form.exitPrice} onChange={e => setForm(f => ({ ...f, exitPrice: e.target.value }))} placeholder='0.00' required style={inputStyle} />
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>TAKE PROFIT ($)</label>
+                  <input type='number' step='0.01' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='Target e.g. 600' required style={inputStyle} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>STOP LOSS</label>
-                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 4 }}>optional</span>
-                  <input type='number' step='0.01' value={form.stopLoss} onChange={e => setForm(f => ({ ...f, stopLoss: e.target.value }))} placeholder='0.00' style={inputStyle} />
-                </div>
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>TAKE PROFIT</label>
-                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 4 }}>optional</span>
-                  <input type='number' step='0.01' value={form.takeProfit} onChange={e => setForm(f => ({ ...f, takeProfit: e.target.value }))} placeholder='0.00' style={inputStyle} />
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 6, fontWeight: 600 }}>REALIZED P&L ($)</label>
+                  <input type='number' step='0.01' value={form.realizedPnl} onChange={e => setForm(f => ({ ...f, realizedPnl: e.target.value }))} placeholder='Actual gain/loss e.g. -290' required style={inputStyle} />
+                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginTop: 4 }}>What you actually made or lost</span>
                 </div>
               </div>
 
-              {/* Row 3: NET P&L (auto), R:R (auto), Emotion */}
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 2, fontWeight: 600 }}>NET P&L</label>
-                  <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 6 }}>auto-calculated</span>
-                  <div style={{ ...inputStyle, display: 'flex', alignItems: 'center', fontFamily: 'JetBrains Mono, monospace' }}>
-                    {form.entryPrice && form.exitPrice && form.contracts ? (() => {
-                      const pnl = form.direction === 'Long'
-                        ? (parseFloat(form.exitPrice) - parseFloat(form.entryPrice)) * parseFloat(form.contracts)
-                        : (parseFloat(form.entryPrice) - parseFloat(form.exitPrice)) * parseFloat(form.contracts)
-                      return <span style={{ color: pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>${pnl.toFixed(2)}</span>
-                    })() : <span style={{ color: textMuted }}>—</span>}
-                  </div>
-                </div>
+              {/* Row 3: R:R (auto), Emotion */}
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(2, 1fr)', gap: 12, marginBottom: 16 }}>
                 <div>
                   <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 2, fontWeight: 600 }}>RISK : REWARD</label>
                   <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 10, color: textMuted, marginBottom: 6 }}>auto-calculated</span>
@@ -1697,7 +1673,7 @@ function TradingJournalInner() {
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${border}` }}>
-                    {['DATE','TIME','DIR','SYMBOL','ENTRY','EXIT','QTY','P&L','R:R','EMOTION','NOTES','IMG',''].map(h => (
+                    {['DATE','TIME','DIR','SYMBOL','QTY','P&L','R:R','EMOTION','NOTES','IMG',''].map(h => (
                       <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500 }}>{h}</th>
                     ))}
                   </tr>
@@ -1718,8 +1694,6 @@ function TradingJournalInner() {
                           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, color: trade.direction === 'Long' ? '#60a5fa' : '#ff4d6a', background: trade.direction === 'Long' ? 'rgba(37,99,235,0.1)' : 'rgba(255,77,106,0.1)' }}>{trade.direction}</span>
                         </td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, fontWeight: 600 }}>{trade.symbol || '—'}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.entryPrice}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.exitPrice}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.contracts}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#16a34a' : '#dc2626' }}>${trade.pnl.toFixed(2)}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textPrimary }}>{rr}</td>
