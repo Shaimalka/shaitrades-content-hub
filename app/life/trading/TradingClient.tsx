@@ -22,7 +22,7 @@ type Trade = {
 type Playbook = { id: string; name: string; description: string; createdAt: string }
 type CoachInsight = { text: string; visible: boolean; fading: boolean }
 
-// Emotion word pills config
+// Emotion word pills config — 6 emotions, fixed layout
 const EMOTION_WORDS = [
   { label: 'Confident', value: 1, color: '#00c48c', bg: 'rgba(0,196,140,0.15)', border: 'rgba(0,196,140,0.4)' },
   { label: 'Disciplined', value: 2, color: '#60a5fa', bg: 'rgba(37,99,235,0.15)', border: 'rgba(37,99,235,0.4)' },
