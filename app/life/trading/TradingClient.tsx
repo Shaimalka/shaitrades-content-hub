@@ -898,7 +898,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     const uniqueDays = new Set(weekTrades.map(t => t.date)).size
     const weekWins = weekTrades.filter(t => t.pnl > 0).length
     const weekWinRate = weekTrades.length > 0 ? (weekWins / weekTrades.length) * 100 : 0
-    weeks.push({ weekNum, startStr, endStr, pnl, trades: weekTrades.length, days: uniqueDays, wins: weekWins, winRate: weekWinRate })
+    weeks.push({ weekNum, startStr, endStr, pnl, trades: weekTrades.length, days: uniqueDays, wins: weekWins, wiRate: weekWinRate })
     weekStart = new Date(weekEnd)
     weekStart.setDate(weekEnd.getDate() + 1)
     weekNum++
@@ -1439,10 +1439,10 @@ function TradingJournalInner() {
           {/* AVG R:R */}
           <StatCard
             label="AVG R:R"
-            value={avgRR !== '—' ? String(avgRR) : '—'}
-            sub={avgRR !== '—' ? 'risk to reward' : 'no trades yet'}
+            value={avgRR !== '—' && avgRR !== '0.00' ? String(avgRR) : '—'}
+            sub={avgRR !== '—' && avgRR !== '0.00' ? 'risk to reward' : 'no trades yet'}
             accentColor="#a78bfa"
-            isEmpty={avgRR === '—'}
+            isEmpty={avgRR === '—' || avgRR === '0.00'}
             size="sm"
           />
         </div>
