@@ -1146,6 +1146,7 @@ function TradingJournalInner() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; symbol: string } | null>(null)
   const [chatOpen, setChatOpen] = useState(searchParams.get('chat') === '1')
   const [chatMessages, setChatMessages] = useState<{ role: 'ai' | 'user'; text: string }[]>([
     { role: 'ai', text: "Hey! What's on your mind? I can analyze your trades, patterns, and help you improve." },
@@ -1301,12 +1302,21 @@ function TradingJournalInner() {
     }
   }
 
-  async function deleteTrade(id: string) {
-    const confirmed = window.confirm('Delete this trade? This cannot be undone.')
-    if (!confirmed) return
-    const res = await fetch('/api/life/trading', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', entry: { id } }) })
-    const data = await res.json()
-    setTrades(data.logs || [])
+  function handleDelete(id: string, symbol: string) {
+    setDeleteConfirm({ id, symbol })
+  }
+
+  async function confirmDelete() {
+    if (!deleteConfirm) return
+    try {
+      await fetch('/api/life/trading', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deleteConfirm.id })
+      })
+      setTrades(prev => prev.filter(t => t.id !== deleteConfirm.id))
+    } catch {}
+    setDeleteConfirm(null)
   }
 
   // Stats calculations
@@ -1708,7 +1718,7 @@ function TradingJournalInner() {
                         <td style={{ padding: '6px 14px' }}>
                           <div className='trade-actions' style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0, transition: 'opacity 0.15s' }}>
                             <button onClick={() => startEdit(trade)} title='Edit' style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><Pencil size={12} style={{ color: '#60a5fa' }} /></button>
-                            <button onClick={() => deleteTrade(trade.id)} title='Delete' style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><Trash2 size={12} style={{ color: '#ff4d6a' }} /></button>
+                            <button onClick={() => handleDelete(trade.id, trade.symbol || 'this')} title='Delete' style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3 }}><Trash2 size={12} style={{ color: '#ff4d6a' }} /></button>
                           </div>
                         </td>
                       </tr>
@@ -1773,6 +1783,50 @@ function TradingJournalInner() {
             <MessageCircle size={22} color="var(--brand)" />
           </button>
         </div>
+
+      {deleteConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: isDark ? '#1a1f2e' : '#ffffff',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+            borderRadius: 12, padding: '28px 32px', maxWidth: 400, width: '90%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}>
+            <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 700, color: isDark ? '#f9fafb' : '#0f172a', margin: '0 0 8px' }}>
+              Delete Trade
+            </h3>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#475569', margin: '0 0 24px', lineHeight: 1.5 }}>
+              Are you sure you want to delete this {deleteConfirm.symbol} trade? This cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 8, border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+                  background: 'transparent', color: isDark ? '#f9fafb' : '#0f172a',
+                  fontFamily: 'Inter, sans-serif', fontSize: 14, cursor: 'pointer', fontWeight: 500
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 8, border: 'none',
+                  background: '#ef4444', color: '#ffffff',
+                  fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                Delete Trade
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
