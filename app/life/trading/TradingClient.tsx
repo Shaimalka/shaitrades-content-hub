@@ -10,7 +10,7 @@ import { useTheme } from '@/app/contexts/ThemeContext'
 import StatCard from '@/app/components/ui/StatCard'
 import Button from '@/app/components/ui/Button'
 type Trade = {
-  id: string; date: string; direction: 'Long' | Short'
+  id: string; date: string; direction: 'Long' | 'Short'
   contracts: number
   pnl: number; realizedPnl?: number; notes: string; emotion: number; time?: string
   source?: string; accountName?: string; symbol?: string
