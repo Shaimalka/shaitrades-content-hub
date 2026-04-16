@@ -23,9 +23,9 @@ type MissLog = Record<string, Record<string, string>>
 type MilestoneCard = { habitId: string; message: string; milestone: number }
 
 const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
-  { key: 'Morning', label: 'MORNING STACK', icon: '🌅', color: '#f59e0b' },
-  { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#2563eb' },
-  { key: 'Evening', label: 'EVENING STACK', icon: '🌙', color: '#a78bfa' },
+  { key: 'Morning', label: 'MORNING STACK', icon: 'ð', color: '#f59e0b' },
+  { key: 'Trading', label: 'TRADING STACK', icon: 'ð', color: '#2563eb' },
+  { key: 'Evening', label: 'EVENING STACK', icon: 'ð', color: '#a78bfa' },
 ]
 const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -99,9 +99,9 @@ function getWeakestDay(habitId: string, completions: Completions): string {
 }
 
 function getFireEmoji(streak: number): string {
-  if (streak >= 66) return '🔥🔥🔥'
-  if (streak >= 30) return '🔥🔥'
-  if (streak >= 7) return '🔥'
+  if (streak >= 66) return 'ð¥ð¥ð¥'
+  if (streak >= 30) return 'ð¥ð¥'
+  if (streak >= 7) return 'ð¥'
   return ''
 }
 
@@ -337,13 +337,13 @@ function HabitsInner() {
           </div>
           <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
             {validHabits.length > 0 && (
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', padding: '6px 12px', borderRadius: 8, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.3)', color: '#60a5fa' }}>
+              <div style={{ background: 'rgba(96,165,250,0.1)', color: '#60a5fa', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600, border: '1px solid rgba(96,165,250,0.2)', fontFamily: 'Inter, sans-serif' }}>
                 {todayCompleted}/{validHabits.length} today
               </div>
             )}
             <button
               onClick={() => setShowWeeklyReview(!showWeeklyReview)}
-              style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 8, color: '#475569', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 14px', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 13, color: isDark ? '#f9fafb' : '#0f172a', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
             >
               Weekly Review
             </button>
@@ -532,7 +532,7 @@ function HabitsInner() {
                 <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))} style={inputStyle}
                   onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)' }}
                   onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none' }}
-                  placeholder="One line — why does this habit matter?" />
+                  placeholder="One line â why does this habit matter?" />
               </div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
                 <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 20px', cursor: 'pointer' }}>Add Habit</button>
@@ -602,7 +602,7 @@ function HabitsInner() {
                       <div style={{ width: 80, height: 4, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: (items.length > 0 ? (doneCount / items.length * 100) : 0) + '%', background: color, borderRadius: 4, transition: 'width 0.5s ease' }} />
                       </div>
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#94a3b8' }}>{isExpanded ? '&#9650;' : '&#9660;'}</span>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#94a3b8' }}>{isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </button>
                   {isExpanded && (
@@ -634,7 +634,7 @@ function HabitsInner() {
                                   <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', padding: '2px 6px', borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', color: '#94a3b8', textTransform: 'uppercase' }}>{habit.frequency || 'Daily'}</span>
                                 </div>
                                 <div style={{ fontSize: 11, color: '#60a5fa', fontFamily: 'Inter, sans-serif', marginTop: 4 }}>
-                                  {streak > 0 ? `Day ${streak} · ${Math.max(0, 66 - streak)} days to make it permanent` : 'Start your streak today'}
+                                  {streak > 0 ? `Day ${streak} Â· ${Math.max(0, 66 - streak)} days to make it permanent` : 'Start your streak today'}
                                 </div>
                                 <div style={{ height: 2, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 1, marginTop: 4 }}>
                                   <div style={{ height: 2, width: `${Math.min(100, (streak / 66) * 100)}%`, background: streak >= 66 ? '#10b981' : '#60a5fa', borderRadius: 1, transition: 'width 0.3s ease' }} />
@@ -669,7 +669,7 @@ function HabitsInner() {
                                     <button
                                       key={date}
                                       onClick={() => toggleHabit(habit.id, date)}
-                                      title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
+                                      title={date + (hasMissReason ? ' â Missed: ' + hasMissReason : '')}
                                       style={{
                                         width: 18, height: 18, borderRadius: 3,
                                         background: done ? color : hasMissReason ? 'rgba(239,68,68,0.25)' : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'),
