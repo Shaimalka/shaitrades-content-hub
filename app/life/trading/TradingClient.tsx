@@ -1,5 +1,5 @@
 'use client'
-// v9 - Professional Trading Journal — Tradezella-style Dashboard
+// v9 - Professional Trading Journal â Tradezella-style Dashboard
 import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react'
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts'
 import { Plus, Trash2, Flame, RefreshCw, Loader2, CheckCircle, XCircle, Settings, ChevronLeft, ChevronRight, Pencil, BarChart2, TrendingUp, ChevronDown, Building2, ImagePlus, Upload, X, Send, MessageCircle } from 'lucide-react'
@@ -31,7 +31,7 @@ const EMOTION_WORDS = [
   { label: 'FOMO', value: 5, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
   { label: 'Revenge', value: 6, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
 ]
-const EMOTIONS = ['😰', '😟', '😐', '🙂', '🚀']
+const EMOTIONS = ['ð°', 'ð', 'ð', 'ð', 'ð']
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const ACCOUNT_TYPES = [
   { value: 'live', label: 'Live Account (Tradovate)' },
@@ -86,7 +86,7 @@ function CoachShaiCard({ insight, isDark }: { insight: CoachInsight; isDark: boo
   if (!insight.visible) return null
   return (
     <div style={{ background: surface, border: `1px solid ${border}`, borderLeft: '3px solid #60a5fa', borderRadius: 12, padding: '16px 20px 0 20px', marginBottom: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', opacity: insight.fading ? 0 : 1, transition: 'opacity 2s ease', overflow: 'hidden' }}>
-      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#60a5fa', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>⚡ COACH SHAI</p>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#60a5fa', letterSpacing: '0.1em', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>â¡ COACH SHAI</p>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textPrimary, lineHeight: 1.7, marginBottom: 12 }}>{insight.text}</p>
       <div style={{ height: 2, background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 1 }}>
         <div style={{ height: '100%', width: `${progress}%`, background: '#60a5fa', borderRadius: 1, transition: 'width 0.1s linear' }} />
@@ -117,12 +117,12 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
       const res = await fetch('/api/tradovate/sync', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Sync failed')
-      setSyncMsg(`✓ ${data.imported} new trades imported`)
+      setSyncMsg(`â ${data.imported} new trades imported`)
       setStatus({ connected: true, lastSync: new Date().toISOString() })
       onSyncComplete()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Sync failed'
-      setSyncMsg(`⚠ ${msg}`)
+      setSyncMsg(`â  ${msg}`)
     } finally { setSyncing(false) }
   }
   if (!status) return null
@@ -131,13 +131,13 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
       <>
         {showTradovateBanner && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected — manual logging available for all account types</span>
-            <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#60a5fa', textDecoration: 'none' }}>Connect →</Link>
+            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected â manual logging available for all account types</span>
+            <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#60a5fa', textDecoration: 'none' }}>Connect â</Link>
             <button
               onClick={() => setShowTradovateBanner(false)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f59e0b', fontSize: 16, marginLeft: 12, lineHeight: 1 }}
             >
-              ✕
+              â
             </button>
           </div>
         )}
@@ -148,12 +148,12 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(0,196,140,0.06)', border: '1px solid rgba(0,196,140,0.15)' }}>
       <CheckCircle size={12} style={{ color: '#00c48c', flexShrink: 0 }} />
       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#00c48c' }}>Tradovate Connected</span>
-      {status.lastSync && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textBody }}>· Last: {new Date(status.lastSync).toLocaleString()}</span>}
-      {syncMsg && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: syncMsg.startsWith('✓') ? '#00c48c' : '#ff4d6a' }}>{syncMsg}</span>}
+      {status.lastSync && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textBody }}>Â· Last: {new Date(status.lastSync).toLocaleString()}</span>}
+      {syncMsg && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: syncMsg.startsWith('â') ? '#00c48c' : '#ff4d6a' }}>{syncMsg}</span>}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
         <button onClick={handleSync} disabled={syncing} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 5, background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.2)', color: '#60a5fa', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, cursor: syncing ? 'not-allowed' : 'pointer', opacity: syncing ? 0.6 : 1 }}>
           {syncing ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={10} />}
-          {syncing ? 'Syncing…' : 'Sync Now'}
+          {syncing ? 'Syncingâ¦' : 'Sync Now'}
         </button>
         <Link href="/life/trading/settings" style={{ color: textMuted, opacity: 0.6 }} title="Settings"><Settings size={12} /></Link>
       </div>
@@ -165,8 +165,8 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
   const wins = trades.filter(t => t.pnl > 0)
   const losses = trades.filter(t => t.pnl < 0)
   const winRate = trades.length > 0 ? (wins.length / trades.length) * 100 : 0
-  const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
-  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 1
+  const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + (t.pnl ?? 0), 0) / wins.length : 0
+  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + (t.pnl ?? 0), 0) / losses.length) : 1
   const profitFactor = Math.min((avgWin / avgLoss) * 20, 100)
   const pnls = trades.map(t => t.pnl)
   const mean = pnls.length > 0 ? pnls.reduce((a, b) => a + b, 0) / pnls.length : 0
@@ -218,7 +218,7 @@ function PerformanceRadar({ trades, isDark }: { trades: Trade[]; isDark: boolean
       </div>
       {trades.length < 5 && trades.length > 0 && (
         <div style={{ textAlign: 'center', fontSize: 11, color: '#94a3b8', marginTop: 8 }}>
-          Not enough data for full analysis · {5 - trades.length} more trades needed
+          Not enough data for full analysis Â· {5 - trades.length} more trades needed
         </div>
       )}
     </div>
@@ -347,9 +347,9 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const rAmount = mode === 'live' ? Math.round(radarLiveConfig.accountSize * radarLiveConfig.riskPerTrade / 100) : radarConfig.rAmount
 
-  const bufferInR = rAmount > 0 ? (bufferLeft / rAmount).toFixed(1) : '—'
+  const bufferInR = rAmount > 0 ? (bufferLeft / rAmount).toFixed(1) : 'â'
 
-  const winsNeeded = avgWin > 0 ? (toPayout / avgWin).toFixed(1) : '—'
+  const winsNeeded = avgWin > 0 ? (toPayout / avgWin).toFixed(1) : 'â'
 
   const ddPct = Math.min(100, Math.round((ddUsed / maxDrawdown) * 100))
 
@@ -419,18 +419,18 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
   const progressBars = mode === 'prop'
     ? [
-        { label: 'Profit Target', pct: targetPct, val: `${targetPct}% · ${Math.max(0, totalPnl).toLocaleString()} / ${profitTarget.toLocaleString()}`, color: '#10b981' },
-        { label: 'Drawdown Safety', pct: safetyPct, val: `${safetyPct}% safe · ${bufferLeft.toLocaleString()} left`, color: safetyColor },
-        { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
+        { label: 'Profit Target', pct: targetPct, val: `${targetPct}% Â· ${Math.max(0, totalPnl).toLocaleString()} / ${profitTarget.toLocaleString()}`, color: '#10b981' },
+        { label: 'Drawdown Safety', pct: safetyPct, val: `${safetyPct}% safe Â· ${bufferLeft.toLocaleString()} left`, color: safetyColor },
+        { label: 'Month Pace', pct: monthPct, val: `${monthPct}% Â· ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
         { label: 'Daily Target', pct: 0, val: `$0 / ${dailyNeeded} needed today`, color: textFaint },
-        { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
+        { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8â12 optimal`, color: '#a78bfa' },
       ]
     : [
-        { label: 'Monthly Goal', pct: Math.min(100, Math.round((Math.max(0, totalPnl) / radarLiveConfig.monthlyGoal) * 100)), val: `${Math.min(100, Math.round((Math.max(0, totalPnl) / radarLiveConfig.monthlyGoal) * 100))}% · $${Math.max(0, totalPnl).toLocaleString()} / $${radarLiveConfig.monthlyGoal.toLocaleString()}`, color: '#10b981' },
+        { label: 'Monthly Goal', pct: Math.min(100, Math.round((Math.max(0, totalPnl) / radarLiveConfig.monthlyGoal) * 100)), val: `${Math.min(100, Math.round((Math.max(0, totalPnl) / radarLiveConfig.monthlyGoal) * 100))}% Â· $${Math.max(0, totalPnl).toLocaleString()} / $${radarLiveConfig.monthlyGoal.toLocaleString()}`, color: '#10b981' },
         { label: 'Win Rate Trend', pct: winRate, val: winRate > 0 ? winRate + '% this month' : 'No data yet', color: '#60a5fa' },
-        { label: 'Month Pace', pct: monthPct, val: `${monthPct}% · ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
+        { label: 'Month Pace', pct: monthPct, val: `${monthPct}% Â· ${tradingDaysPassed} of ${tradingDaysTotal} days`, color: '#60a5fa' },
         { label: 'Daily Target', pct: 0, val: `$0 / ${dailyNeeded} needed today`, color: textFaint },
-        { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8–12 optimal`, color: '#a78bfa' },
+        { label: 'Trade Count Pace', pct: tradeCountPct, val: `${trades.length} of 8â12 optimal`, color: '#a78bfa' },
       ]
 
   const liveGrowthText = trades.length > 0
@@ -451,7 +451,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         : payoutDays
 
-        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Payout in ~{payoutDays} trading days</strong> — {winRate}% WR + ${avgWin} avg win. Maintain pace and avoid sizing up.</>
+        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Payout in ~{payoutDays} trading days</strong> â {winRate}% WR + ${avgWin} avg win. Maintain pace and avoid sizing up.</>
 
         : <><strong style={{ fontWeight: 700, color: textPrimary }}>Log trades to unlock payout forecast.</strong> Stats will power this prediction once you have history.</>
 
@@ -463,9 +463,9 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
       text: blowLosses
 
-        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Account blow in ~{blowLosses} losses</strong> — at avg -${avgLoss}/loss your buffer of ${bufferLeft.toLocaleString()} {ddPct > 50 ? 'is dangerously thin' : 'is manageable, stay focused'}.</>
+        ? <><strong style={{ fontWeight: 700, color: textPrimary }}>Account blow in ~{blowLosses} losses</strong> â at avg -${avgLoss}/loss your buffer of ${bufferLeft.toLocaleString()} {ddPct > 50 ? 'is dangerously thin' : 'is manageable, stay focused'}.</>
 
-        : <><strong style={{ fontWeight: 700, color: textPrimary }}>Blow risk: N/A</strong> — No loss data yet. Start logging trades to see your risk exposure.</>
+        : <><strong style={{ fontWeight: 700, color: textPrimary }}>Blow risk: N/A</strong> â No loss data yet. Start logging trades to see your risk exposure.</>
 
     },
 
@@ -473,7 +473,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
       color: '#60a5fa',
 
-      text: <><strong style={{ fontWeight: 700, color: textPrimary }}>Need +${dailyNeeded}/day to pace</strong> — {tradingDaysTotal - tradingDaysPassed} trading days remain this month. Stay consistent.</>
+      text: <><strong style={{ fontWeight: 700, color: textPrimary }}>Need +${dailyNeeded}/day to pace</strong> â {tradingDaysTotal - tradingDaysPassed} trading days remain this month. Stay consistent.</>
 
     },
 
@@ -539,7 +539,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧠</div>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>ð§ </div>
 
           <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>Account Radar</span>
 
@@ -595,7 +595,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
           ))}
 
-          <span onClick={() => { setConfigDraft(radarConfig); setShowConfig(true) }} style={{ fontSize: 11, color: textFaint, marginLeft: 4, cursor: 'pointer' }}>⚙ Configure</span>
+          <span onClick={() => { setConfigDraft(radarConfig); setShowConfig(true) }} style={{ fontSize: 11, color: textFaint, marginLeft: 4, cursor: 'pointer' }}>â Configure</span>
 
         </div>
 
@@ -623,11 +623,11 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: alertBg, border: `1px solid ${alertBorder}`, borderRadius: 10, marginBottom: 18 }}>
 
-          <span style={{ fontSize: 18, flexShrink: 0 }}>⚡</span>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>â¡</span>
 
           <div>
 
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginBottom: 2 }}>Pattern Alert — {streak}-Loss Streak Detected</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginBottom: 2 }}>Pattern Alert â {streak}-Loss Streak Detected</div>
 
             <div style={{ fontSize: 12, color: alertTxt, lineHeight: 1.45 }}>Your history shows avg loss tends to increase after {streak} consecutive losses. High probability of revenge trading. Consider stopping for today.</div>
 
@@ -671,7 +671,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: textFaint, marginBottom: 4 }}>Avg Win</div>
 
-              <div style={{ fontSize: 14, fontWeight: 700, color: avgWin > 0 ? '#10b981' : textFaint }}>{avgWin > 0 ? `+$${avgWin}` : '—'}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: avgWin > 0 ? '#10b981' : textFaint }}>{avgWin > 0 ? `+$${avgWin}` : 'â'}</div>
 
               <div style={{ fontSize: 10, color: textFaint, marginTop: 2 }}>last {trades.length} trades</div>
 
@@ -681,7 +681,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
               <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: textFaint, marginBottom: 4 }}>Avg Loss</div>
 
-              <div style={{ fontSize: 14, fontWeight: 700, color: avgLoss > 0 ? '#ef4444' : textFaint }}>{avgLoss > 0 ? `-$${avgLoss}` : '—'}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: avgLoss > 0 ? '#ef4444' : textFaint }}>{avgLoss > 0 ? `-$${avgLoss}` : 'â'}</div>
 
               <div style={{ fontSize: 10, color: textFaint, marginTop: 2 }}>last {trades.length} trades</div>
 
@@ -693,7 +693,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.2)' : '#0f172a', marginBottom: 14 }}>{trades.length === 0 ? 'AI FORECAST · LOG TRADES TO UNLOCK' : trades.length <= 30 ? `AI FORECAST · BASED ON ALL ${trades.length} TRADES` : 'AI FORECAST · BASED ON LAST 30 TRADES'}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.2)' : '#0f172a', marginBottom: 14 }}>{trades.length === 0 ? 'AI FORECAST Â· LOG TRADES TO UNLOCK' : trades.length <= 30 ? `AI FORECAST Â· BASED ON ALL ${trades.length} TRADES` : 'AI FORECAST Â· BASED ON LAST 30 TRADES'}</div>
 
           {forecasts.map((ins, i) => (
 
@@ -711,13 +711,13 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
 
             <div style={{ width: 42, height: 42, borderRadius: '50%', border: '2.5px solid #10b981', background: 'rgba(16,185,129,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#10b981', flexShrink: 0 }}>
 
-              {trades.length > 0 ? rorScore : '—'}
+              {trades.length > 0 ? rorScore : 'â'}
 
             </div>
 
             <div>
 
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', marginBottom: 3 }}>Risk of Ruin — {trades.length > 0 ? rorLabel : 'N/A'}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', marginBottom: 3 }}>Risk of Ruin â {trades.length > 0 ? rorLabel : 'N/A'}</div>
 
               <div style={{ fontSize: 11, color: rorTxt, lineHeight: 1.45 }}>{trades.length > 0 ? rorDesc : 'Log trades to calculate your risk of ruin score.'}</div>
 
@@ -738,7 +738,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
           <div style={{ background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${border}`, borderRadius: 14, padding: '28px 32px', width: 460, maxWidth: '90vw' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>{mode === 'prop' ? 'Configure Account Radar' : 'Configure Live Account'}</div>
-              <div onClick={() => setShowConfig(false)} style={{ cursor: 'pointer', color: textFaint, fontSize: 18, lineHeight: 1 }}>✕</div>
+              <div onClick={() => setShowConfig(false)} style={{ cursor: 'pointer', color: textFaint, fontSize: 18, lineHeight: 1 }}>â</div>
             </div>
             {mode === 'prop' ? (
               <>
@@ -810,7 +810,7 @@ function AccountRadar({ trades, isDark }: { trades: Trade[], isDark: boolean }) 
   )
 
 }
-// Trading Heatmap — GitHub-style contribution grid
+// Trading Heatmap â GitHub-style contribution grid
 function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
   const surface = isDark ? '#1a1f2e' : '#ffffff'
   const border = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
@@ -823,7 +823,7 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
     const date = new Date(today)
     date.setDate(today.getDate() - d)
     const dateStr = date.toISOString().split('T')[0]
-    const tradePnl = trades.filter(t => t.date === dateStr).reduce((s, t) => s + t.pnl, 0)
+    const tradePnl = trades.filter(t => t.date === dateStr).reduce((s, t) => s + (t.pnl ?? 0), 0)
     week.push({ date: dateStr, pnl: tradePnl })
     if (week.length === 7) { weeks.push(week); week = [] }
   }
@@ -863,7 +863,7 @@ function TradingHeatmap({ trades, isDark }: { trades: Trade[]; isDark: boolean }
                 const cell = wk[di]
                 if (!cell) return <div key={`empty-${wi}-${di}`} />
                 return (
-                  <div key={`${wi}-${di}`} title={`${cell.date}: ${cell.pnl !== 0 ? (cell.pnl > 0 ? '+' : '') + cell.pnl.toFixed(2) : 'No trades'}`}
+                  <div key={`${wi}-${di}`} title={`${cell.date}: ${cell.pnl !== 0 ? (cell.pnl > 0 ? '+' : '') + (cell.pnl ?? 0).toFixed(2) : 'No trades'}`}
                     style={{ width: '100%', paddingBottom: '100%', borderRadius: 2, background: getCellColor(cell.pnl), cursor: cell.pnl !== 0 ? 'pointer' : 'default', transition: 'opacity 0.1s' }} />
                 )
               })}
@@ -904,7 +904,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     const startStr = weekStart.toISOString().split('T')[0]
     const endStr = weekEnd.toISOString().split('T')[0]
     const weekTrades = trades.filter(t => t.date >= startStr && t.date <= endStr)
-    const pnl = weekTrades.reduce((s, t) => s + t.pnl, 0)
+    const pnl = weekTrades.reduce((s, t) => s + (t.pnl ?? 0), 0)
     const uniqueDays = new Set(weekTrades.map(t => t.date)).size
     const weekWins = weekTrades.filter(t => t.pnl > 0).length
     const weekWinRate = weekTrades.length > 0 ? (weekWins / weekTrades.length) * 100 : 0
@@ -919,7 +919,7 @@ return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1px', color: '#94a3b8', textTransform: 'uppercase' }}>WEEKLY BREAKDOWN</span>
         <span style={{ fontSize: 13, fontWeight: 600, color: totalMonthPnl > 0 ? '#10b981' : totalMonthPnl < 0 ? '#ef4444' : '#94a3b8' }}>
-          {totalMonthPnl === 0 ? '—' : (totalMonthPnl > 0 ? '+' : '') + '$' + Math.abs(totalMonthPnl).toFixed(2)}
+          {totalMonthPnl === 0 ? 'â' : (totalMonthPnl > 0 ? '+' : '') + '$' + Math.abs(totalMonthPnl).toFixed(2)}
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -931,12 +931,12 @@ return (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#f9fafb' : '#0f172a' }}>Week {week.weekNum}</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: week.pnl > 0 ? '#10b981' : week.pnl < 0 ? '#ef4444' : '#94a3b8' }}>
-                  {week.pnl === 0 ? <span style={{ color: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}>—</span> : (week.pnl > 0 ? '+' : '') + '$' + Math.abs(week.pnl).toFixed(2)}
+                  {week.pnl === 0 ? <span style={{ color: isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }}>â</span> : (week.pnl > 0 ? '+' : '') + '$' + Math.abs(week.pnl).toFixed(2)}
                 </span>
               </div>
               {week.trades > 0 && (
                 <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                  {week.trades} trade{week.trades !== 1 ? 's' : ''} · {Math.round(week.winRate)}% WR
+                  {week.trades} trade{week.trades !== 1 ? 's' : ''} Â· {Math.round(week.winRate)}% WR
                 </div>
               )}
             </div>
@@ -981,7 +981,7 @@ function EquityCurve({ trades, isDark }: { trades: Trade[]; isDark: boolean }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>EQUITY CURVE</p>
         <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: totalPnl >= 0 ? '#00c48c' : '#ff4d6a' }}>
-          {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
+          {totalPnl >= 0 ? '+' : ''}${(totalPnl ?? 0).toFixed(2)}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={180}>
@@ -1031,7 +1031,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
   }, [trades])
   const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
   const monthTrades = trades.filter(t => t.date.startsWith(monthStr))
-  const monthPnl = monthTrades.reduce((s, t) => s + t.pnl, 0)
+  const monthPnl = monthTrades.reduce((s, t) => s + (t.pnl ?? 0), 0)
   const monthWins = monthTrades.filter(t => t.pnl > 0)
   const monthWinRate = monthTrades.length > 0 ? ((monthWins.length / monthTrades.length) * 100).toFixed(0) : '0'
   const calendarDays = useMemo(() => {
@@ -1069,7 +1069,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
             <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary }}>{monthWinRate}% WR</span>
             {monthPnl !== 0 && (
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 700, color: monthPnl > 0 ? '#00c48c' : '#ff4d6a' }}>
-                {monthPnl > 0 ? '+' : ''}${monthPnl.toFixed(0)}
+                {monthPnl > 0 ? '+' : ''}${(monthPnl ?? 0).toFixed(0)}
               </span>
             )}
           </div>
@@ -1107,7 +1107,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
               {hasTrades && (
                 <>
                   <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, marginTop: 2, color: pnlColor, lineHeight: 1.2 }}>
-                    {Math.abs(pnl) >= 1000 ? (pnl > 0 ? '+' : '-') + '$' + (Math.abs(pnl)/1000).toFixed(2) + 'K' : (pnl > 0 ? '+' : '') + '$' + pnl.toFixed(0)}
+                    {Math.abs(pnl) >= 1000 ? (pnl > 0 ? '+' : '-') + '$' + (Math.abs(pnl)/1000).toFixed(2) + 'K' : (pnl > 0 ? '+' : '') + '$' + (pnl ?? 0).toFixed(0)}
                   </span>
                   <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: textSecondary, marginTop: 2 }}>{dayData!.tradeCount} trade{dayData!.tradeCount !== 1 ? 's' : ''}</span>
                   <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: textSecondary }}>{dayData!.winRate.toFixed(2)}%</span>
@@ -1119,7 +1119,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
       </div>
       {selectedDay && selectedTrades.length > 0 && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${border}` }}>
-          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#60a5fa', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Trades — {selectedDay}</p>
+          <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#60a5fa', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10 }}>Trades â {selectedDay}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {selectedTrades.map(trade => (
               <div key={trade.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 6, background: trade.pnl >= 0 ? 'rgba(0,196,140,0.06)' : 'rgba(255,77,106,0.06)', border: `1px solid ${trade.pnl >= 0 ? 'rgba(0,196,140,0.2)' : 'rgba(255,77,106,0.2)'}` }}>
@@ -1127,7 +1127,7 @@ function TradingCalendar({ trades, isMobile, isDark }: { trades: Trade[]; isMobi
                 {trade.symbol && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, color: textPrimary, flexShrink: 0 }}>{trade.symbol}</span>}
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textPrimary, flexShrink: 0 }}>{trade.time || '--:--'}</span>
                 {trade.notes && <span style={{ fontSize: 11, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textPrimary }}>{trade.notes}</span>}
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, marginLeft: 'auto', flexShrink: 0, color: trade.pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>{trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}</span>
+                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 700, marginLeft: 'auto', flexShrink: 0, color: trade.pnl >= 0 ? '#00c48c' : '#ff4d6a' }}>{trade.pnl >= 0 ? '+' : ''}${(trade.pnl ?? 0).toFixed(2)}</span>
                 <span style={{ fontSize: 13, flexShrink: 0 }}>{EMOTIONS[(trade.emotion || 3) - 1]}</span>
               </div>
             ))}
@@ -1153,7 +1153,7 @@ function TradingJournalInner() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
 
-  // ── sendToTrading ────────────────────────────────────────────────
+  // ââ sendToTrading ââââââââââââââââââââââââââââââââââââââââââââââââ
   const sendToTrading = async (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || chatLoading) return
@@ -1310,25 +1310,25 @@ function TradingJournalInner() {
   }
 
   // Stats calculations
-  const totalPnl = filteredTrades.reduce((s, t) => s + t.pnl, 0)
+  const totalPnl = filteredTrades.reduce((s, t) => s + (t.pnl ?? 0), 0)
   const wins = filteredTrades.filter(t => t.pnl > 0)
   const losses = filteredTrades.filter(t => t.pnl < 0)
   const winRate = filteredTrades.length > 0 ? ((wins.length / filteredTrades.length) * 100).toFixed(1) : '0'
-  const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
-  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0
-  const profitFactor = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
-  const avgRR = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—'
+  const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + (t.pnl ?? 0), 0) / wins.length : 0
+  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + (t.pnl ?? 0), 0) / losses.length) : 0
+  const profitFactor = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : 'â'
+  const avgRR = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : 'â'
   const sortedDates = Array.from(new Set(filteredTrades.map(t => t.date))).sort().reverse()
   let streak = 0
   for (const d of sortedDates) {
-    const dayPnl = filteredTrades.filter(t => t.date === d).reduce((s, t) => s + t.pnl, 0)
+    const dayPnl = filteredTrades.filter(t => t.date === d).reduce((s, t) => s + (t.pnl ?? 0), 0)
     if (dayPnl > 0) streak++; else break
   }
   const todayStr = new Date().toISOString().split('T')[0]
   const todayTrades = filteredTrades.filter(t => t.date === todayStr)
-  const todayPnl = todayTrades.reduce((s, t) => s + t.pnl, 0)
+  const todayPnl = todayTrades.reduce((s, t) => s + (t.pnl ?? 0), 0)
   const todayWins = todayTrades.filter(t => t.pnl > 0)
-  const todayWR = todayTrades.length > 0 ? ((todayWins.length / todayTrades.length) * 100).toFixed(0) : '—'
+  const todayWR = todayTrades.length > 0 ? ((todayWins.length / todayTrades.length) * 100).toFixed(0) : 'â'
   const winRateNum = parseFloat(winRate)
   const winRateColor = winRateNum > 50 ? '#00c48c' : winRateNum < 50 ? '#ff4d6a' : textPrimary
   const pnlColor = totalPnl > 0 ? '#00c48c' : totalPnl < 0 ? '#ff4d6a' : textPrimary
@@ -1391,9 +1391,9 @@ function TradingJournalInner() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 16px', borderRadius: 8, background: surface, border: `1px solid ${border}`, marginBottom: 16, flexWrap: 'wrap', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today</span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayTrades.length} trades</span>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayWR !== '—' ? todayWR + '% WR' : '—'}</span>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: textSecondary }}>{todayWR !== 'â' ? todayWR + '% WR' : 'â'}</span>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: todayPnl > 0 ? '#00c48c' : todayPnl < 0 ? '#ff4d6a' : textPrimary }}>
-            {todayTrades.length > 0 ? (todayPnl > 0 ? '+' : '') + '$' + todayPnl.toFixed(2) : 'No trades today'}
+            {todayTrades.length > 0 ? (todayPnl > 0 ? '+' : '') + '$' + (todayPnl ?? 0).toFixed(2) : 'No trades today'}
           </span>
         </div>
 
@@ -1406,8 +1406,8 @@ function TradingJournalInner() {
           {/* TOTAL TRADES */}
           <StatCard
             label="TOTAL TRADES"
-            value={filteredTrades.length > 0 ? String(filteredTrades.length) : '—'}
-            sub={filteredTrades.length > 0 ? `${wins.length}W · ${losses.length}L` : 'no trades yet'}
+            value={filteredTrades.length > 0 ? String(filteredTrades.length) : 'â'}
+            sub={filteredTrades.length > 0 ? `${wins.length}W Â· ${losses.length}L` : 'no trades yet'}
             accentColor="#60a5fa"
             isEmpty={filteredTrades.length === 0}
             size="sm"
@@ -1415,8 +1415,8 @@ function TradingJournalInner() {
           {/* WIN RATE */}
           <StatCard
             label="WIN RATE"
-            value={filteredTrades.length > 0 ? `${parseFloat(winRate).toFixed(1)}%` : '—'}
-            sub={filteredTrades.length > 0 ? `${wins.length}W · ${losses.length}L` : 'no trades yet'}
+            value={filteredTrades.length > 0 ? `${parseFloat(winRate).toFixed(1)}%` : 'â'}
+            sub={filteredTrades.length > 0 ? `${wins.length}W Â· ${losses.length}L` : 'no trades yet'}
             accentColor="#ef4444"
             isEmpty={filteredTrades.length === 0}
             size="sm"
@@ -1424,7 +1424,7 @@ function TradingJournalInner() {
           {/* NET P&L */}
           <StatCard
             label="NET P&L"
-            value={filteredTrades.length > 0 ? `$${totalPnl >= 0 ? '' : '-'}${Math.abs(totalPnl).toFixed(2)}` : '—'}
+            value={filteredTrades.length > 0 ? `$${totalPnl >= 0 ? '' : '-'}${Math.abs(totalPnl).toFixed(2)}` : 'â'}
             sub={filteredTrades.length > 0 ? MONTH_NAMES[new Date().getMonth()] : 'no trades yet'}
             accentColor="#10b981"
             isEmpty={filteredTrades.length === 0}
@@ -1434,7 +1434,7 @@ function TradingJournalInner() {
           {/* PROFIT FACTOR */}
           <StatCard
             label="PROFIT FACTOR"
-            value={wins.length > 0 ? String(profitFactor) : '—'}
+            value={wins.length > 0 ? String(profitFactor) : 'â'}
             sub={wins.length > 0 ? 'gross W/L ratio' : 'no trades yet'}
             accentColor="#10b981"
             isEmpty={wins.length === 0}
@@ -1443,15 +1443,15 @@ function TradingJournalInner() {
           {/* AVG R:R */}
           <StatCard
             label="AVG R:R"
-            value={avgRR !== '—' && avgRR !== '0.00' ? String(avgRR) : '—'}
-            sub={avgRR !== '—' && avgRR !== '0.00' ? 'risk to reward' : 'no trades yet'}
+            value={avgRR !== 'â' && avgRR !== '0.00' ? String(avgRR) : 'â'}
+            sub={avgRR !== 'â' && avgRR !== '0.00' ? 'risk to reward' : 'no trades yet'}
             accentColor="#a78bfa"
-            isEmpty={avgRR === '—' || avgRR === '0.00'}
+            isEmpty={avgRR === 'â' || avgRR === '0.00'}
             size="sm"
           />
         </div>
 
-        {/* ===== ACCOUNT RADAR — FULL WIDTH ===== */}
+        {/* ===== ACCOUNT RADAR â FULL WIDTH ===== */}
         <div style={{ marginBottom: 16 }}>
           <AccountRadar trades={filteredTrades} isDark={isDark} />
         </div>
@@ -1485,7 +1485,7 @@ function TradingJournalInner() {
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Building2 size={12} style={{ color: textMuted }} />
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textPrimary }}>Manual logging — all account types supported</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: textPrimary }}>Manual logging â all account types supported</span>
               </div>
             </div>
 
@@ -1570,7 +1570,7 @@ function TradingJournalInner() {
                     {formRR ? (
                       <span style={{ color: parseFloat(formRR) >= 1 ? '#00c48c' : '#f59e0b', fontWeight: 700 }}>1:{formRR}</span>
                     ) : (
-                      <span style={{ color: textMuted }}>—</span>
+                      <span style={{ color: textMuted }}>â</span>
                     )}
                   </div>
                 </div>
@@ -1613,12 +1613,12 @@ function TradingJournalInner() {
               {/* Chart Screenshot Upload */}
               <div style={{ marginBottom: 20 }}>
                 <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textMuted, display: 'block', marginBottom: 4, fontWeight: 500 }}>Chart Screenshot</label>
-                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, opacity: 0.7, marginBottom: 8 }}>optional · PNG, JPG up to 5MB</span>
+                <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 11, color: textMuted, opacity: 0.7, marginBottom: 8 }}>optional Â· PNG, JPG up to 5MB</span>
                 {form.tradeImage ? (
                   <div style={{ position: 'relative', display: 'inline-block' }}>
                     <img src={form.tradeImage} alt='Trade screenshot' style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6, border: `1px solid ${border}` }} />
                     <button type='button' onClick={() => setForm(f => ({ ...f, tradeImage: '' }))} style={{ position: 'absolute', top: -6, right: -6, width: 18, height: 18, borderRadius: '50%', background: '#ff4d6a', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                      <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>×</span>
+                      <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>Ã</span>
                     </button>
                   </div>
                 ) : (
@@ -1637,7 +1637,7 @@ function TradingJournalInner() {
                 )}
               </div>
 
-              {/* Action buttons — ADD TRADE full width */}
+              {/* Action buttons â ADD TRADE full width */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button type='submit' style={{ width: '100%', height: 48, background: '#60a5fa', border: 'none', borderRadius: '6px', color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em', transition: 'background 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#1d4ed8')}
@@ -1659,7 +1659,7 @@ function TradingJournalInner() {
         <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 12, overflow: 'hidden', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ padding: '14px 20px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: isDark ? 'rgba(255,255,255,0.5)' : '#0f172a', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
-              TRADE LOG · {filteredTrades.length} ENTRIES
+              TRADE LOG Â· {filteredTrades.length} ENTRIES
             </h3>
           </div>
           {loading ? (
@@ -1667,7 +1667,7 @@ function TradingJournalInner() {
               <Skeleton height='40px' /><Skeleton height='40px' /><Skeleton height='40px' />
             </div>
           ) : filteredTrades.length === 0 ? (
-            <EmptyState icon={BarChart2} heading='NO TRADES LOGGED YET' subtext='Click "Log Trade" above to log your first trade — works for all account types.' />
+            <EmptyState icon={BarChart2} heading='NO TRADES LOGGED YET' subtext='Click "Log Trade" above to log your first trade â works for all account types.' />
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
@@ -1682,20 +1682,20 @@ function TradingJournalInner() {
                   {[...filteredTrades].reverse().map(trade => {
                     const tradePnl = trade.pnl
                     const tradeAvgLoss = avgLoss
-                    const rr = tradeAvgLoss > 0 ? (tradePnl / tradeAvgLoss).toFixed(1) : '—'
+                    const rr = tradeAvgLoss > 0 ? (tradePnl / tradeAvgLoss).toFixed(1) : 'â'
                     const emotionWord = EMOTION_WORDS.find(e => e.value === trade.emotion)
                     return (
                       <tr key={trade.id} className='trade-row' style={{ borderBottom: `1px solid ${border}`, height: 40 }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary, whiteSpace: 'nowrap' }}>{trade.date}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, whiteSpace: 'nowrap' }}>{trade.time || '—'}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, whiteSpace: 'nowrap' }}>{trade.time || 'â'}</td>
                         <td style={{ padding: '6px 14px' }}>
                           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, color: trade.direction === 'Long' ? '#60a5fa' : '#ff4d6a', background: trade.direction === 'Long' ? 'rgba(37,99,235,0.1)' : 'rgba(255,77,106,0.1)' }}>{trade.direction}</span>
                         </td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, fontWeight: 600 }}>{trade.symbol || '—'}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textPrimary, fontWeight: 600 }}>{trade.symbol || 'â'}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: textSecondary }}>{trade.contracts}</td>
-                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#16a34a' : '#dc2626' }}>${trade.pnl.toFixed(2)}</td>
+                        <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: trade.pnl >= 0 ? '#16a34a' : '#dc2626' }}>${(trade.pnl ?? 0).toFixed(2)}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'JetBrains Mono, monospace', color: parseFloat(rr) >= 1 ? '#00c48c' : parseFloat(rr) < 0 ? '#ff4d6a' : textPrimary }}>{rr}</td>
                         <td style={{ padding: '6px 14px', fontFamily: 'Inter, sans-serif', fontSize: 11, color: emotionWord ? emotionWord.color : textPrimary }}>{emotionWord ? emotionWord.label : EMOTIONS[(trade.emotion || 3) - 1]}</td>
                         <td style={{ padding: '6px 14px', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: textPrimary }}>{trade.notes}</td>
