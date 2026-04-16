@@ -1245,10 +1245,11 @@ function TradingJournalInner() {
     setEditingId(trade.id)
     setForm({
       date: trade.date, time: trade.time || '', direction: trade.direction,
-      realizedPnl: String(trade.realizedPnl ?? ''),
+      realizedPnl: String(trade.pnl ?? ''),
       contracts: String(trade.contracts), notes: trade.notes || '',
       emotion: trade.emotion || 3, playbookId: trade.playbookId || '',
-      symbol: trade.symbol || '', stopLoss: '', takeProfit: '',
+      symbol: trade.symbol || '', stopLoss: String(trade.stopLoss ?? ''),
+      takeProfit: String(trade.takeProfit ?? ''),
       accountType: trade.accountType || 'live', tradeImage: trade.tradeImage || '',
     })
     setShowForm(true)
@@ -1283,6 +1284,9 @@ function TradingJournalInner() {
       date: form.date, time: form.time, direction: form.direction,
       contracts: parseFloat(form.contracts), notes: form.notes, emotion: form.emotion,
       pnl: parseFloat(form.realizedPnl) || 0,
+      stopLoss: parseFloat(form.stopLoss) || null,
+      takeProfit: parseFloat(form.takeProfit) || null,
+      rr: formRR ? parseFloat(formRR) : null,
       playbookId: form.playbookId || null, symbol: form.symbol || undefined,
       accountType: form.accountType, tradeImage: form.tradeImage || undefined,
     }
