@@ -131,7 +131,6 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
       <>
         {showTradovateBanner && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
-            <XCircle size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />
             <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected — manual logging available for all account types</span>
             <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#60a5fa', textDecoration: 'none' }}>Connect →</Link>
             <button
