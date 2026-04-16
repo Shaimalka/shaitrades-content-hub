@@ -131,7 +131,7 @@ function PlaybookRules({
       </div>
       {rules.length === 0 && !showInput && (
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: textMuted, margin: '0 0 8px' }}>
-          No rules yet — add rules to enforce this setup.
+          No rules yet â add rules to enforce this setup.
         </p>
       )}
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -208,6 +208,8 @@ export default function PlaybookPage() {
   const [newSession, setNewSession] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [analyzing, setAnalyzing] = useState<string | null>(null)
+  const [analyses, setAnalyses] = useState<Record<string, string>>({})
 
   const createFormRef = useRef<HTMLDivElement>(null)
 
@@ -308,6 +310,73 @@ export default function PlaybookPage() {
       setError('Network error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function analyzePlaybook(pb: Playbook) {
+    const s = statsByPlaybook[pb.id]
+    if (!s || s.totalTrades < 10) return
+    setAnalyzing(pb.id)
+
+    const taggedTrades = trades.filter(t => t.playbookId === pb.id)
+    const wins = taggedTrades.filter(t => t.pnl > 0)
+    const losses = taggedTrades.filter(t => t.pnl < 0)
+    const winRate = ((wins.length / taggedTrades.length) * 100).toFixed(1)
+    const avgWin = wins.length > 0 ? (wins.reduce((s, t) => s + t.pnl, 0) / wins.length).toFixed(2) : '0'
+    const avgLoss = losses.length > 0 ? (Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length)).toFixed(2) : '0'
+    const totalPnl = taggedTrades.reduce((s, t) => s + t.pnl, 0).toFixed(2)
+
+    const tradeDetails = taggedTrades.map(t =>
+      `Date: ${t.date}, Time: ${(t.time as string) || 'N/A'}, Direction: ${(t.direction as string) || 'N/A'}, P&L: ${t.pnl}, Session: ${(t.session as string) || 'N/A'}, Emotion: ${(t.emotion as string) || 'N/A'}, Notes: ${(t.notes as string) || 'none'}`
+    ).join('\n')
+
+    const prompt = `You are Coach Shai — an elite trading coach with deep knowledge of professional traders including Larry Williams (COT analysis, volatility stops, risk 10-15% on futures, seasonal patterns), Mark Douglas (Trading in the Zone — probabilities, no attachment, consistency through process), ICT/Michael Huddleston (kill zones, avoid first 15min NY open, institutional order flow), and Van Tharp (position sizing is everything, think in R-multiples).
+
+A trader is using the "${pb.name}" playbook setup.
+
+Symbol: ${pb.symbol || 'Not specified'}
+Timeframe: ${pb.timeframe || 'Not specified'}
+Session: ${pb.session || 'Not specified'}
+Rules: ${pb.rules?.join(', ') || 'No rules defined'}
+
+PERFORMANCE DATA:
+Total Trades: ${taggedTrades.length}
+Win Rate: ${winRate}%
+Avg Win: ${avgWin}
+Avg Loss: ${avgLoss}
+Total P&L: ${totalPnl}
+
+TRADE HISTORY:
+${tradeDetails}
+
+Analyze this trader's performance on this specific setup. Be direct, specific, and actionable. Reference specific elite trader principles where relevant (e.g. "Larry Williams recommends...", "As Mark Douglas teaches...", "ICT warns against...").
+
+Structure your response as:
+
+🟢 WHAT'S WORKING
+[2-3 specific observations about what is going well]
+
+🔴 WHAT'S HURTING YOU
+[2-3 specific patterns that are costing money]
+
+⚡ COACH SHAI'S VERDICT
+[1-2 sentences of direct actionable advice referencing elite trader principles]
+
+Keep the total response under 300 words. Be specific to their actual trade data, not generic.`
+
+    try {
+      const response = await fetch('/api/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt, history: [] })
+      })
+      const data = await response.json()
+      const text = data.response || data.message || 'Analysis unavailable'
+      setAnalyses(prev => ({ ...prev, [pb.id]: text }))
+    } catch {
+      setAnalyses(prev => ({ ...prev, [pb.id]: 'Analysis failed. Please try again.' }))
+    } finally {
+      setAnalyzing(null)
     }
   }
 
@@ -481,7 +550,46 @@ export default function PlaybookPage() {
                         </div>
                       </>
                     )}
-                    <PlaybookRules pb={pb} isDark={isDark} onRulesChange={handleRulesChange} />
+                    {hasEnoughData && (
+            <div style={{ marginTop: 16 }}>
+              {!analyses[pb.id] ? (
+                <button
+                  onClick={() => analyzePlaybook(pb)}
+                  disabled={analyzing === pb.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: analyzing === pb.id ? 'rgba(96,165,250,0.1)' : 'rgba(96,165,250,0.08)',
+                    border: '1px solid rgba(96,165,250,0.3)',
+                    borderRadius: 8, padding: '10px 16px', cursor: analyzing === pb.id ? 'not-allowed' : 'pointer',
+                    fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600,
+                    color: '#60a5fa', width: '100%', justifyContent: 'center'
+                  }}
+                >
+                  🧠 {analyzing === pb.id ? 'Coach Shai is analyzing...' : 'Analyze with Coach Shai'}
+                </button>
+              ) : (
+                <div style={{
+                  background: isDark ? '#0f1117' : '#f8fafc',
+                  border: '1px solid rgba(96,165,250,0.2)',
+                  borderRadius: 8, padding: '14px 16px', marginTop: 8
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#60a5fa' }}>🧠 COACH SHAI ANALYSIS</span>
+                    <button
+                      onClick={() => setAnalyses(prev => { const n = {...prev}; delete n[pb.id]; return n })}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 12 }}
+                    >
+                      Re-analyze
+                    </button>
+                  </div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: isDark ? '#f9fafb' : '#0f172a', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                    {analyses[pb.id]}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <PlaybookRules pb={pb} isDark={isDark} onRulesChange={handleRulesChange} />
                   </div>
                 )
               })}
