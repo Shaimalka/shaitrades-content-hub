@@ -101,6 +101,7 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   const [status, setStatus] = useState<{ connected: boolean; lastSync: string | null } | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+  const [showTradovateBanner, setShowTradovateBanner] = React.useState(true)
   const border = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
   const textMuted = isDark ? 'rgba(255,255,255,0.4)' : '#94a3b8'
   const bgPage = isDark ? '#0f1117' : '#f8fafc'
@@ -127,11 +128,21 @@ function TradovateStatusBar({ onSyncComplete }: { onSyncComplete: () => void }) 
   if (!status) return null
   if (!status.connected) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
-        <XCircle size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected — manual logging available for all account types</span>
-        <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#60a5fa', textDecoration: 'none' }}>Connect →</Link>
-      </div>
+      <>
+        {showTradovateBanner && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 16px', borderRadius: 8, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
+            <XCircle size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#f59e0b' }}>Tradovate not connected — manual logging available for all account types</span>
+            <Link href="/life/trading/settings" style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#60a5fa', textDecoration: 'none' }}>Connect →</Link>
+            <button
+              onClick={() => setShowTradovateBanner(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f59e0b', fontSize: 16, marginLeft: 12, lineHeight: 1 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </>
     )
   }
   return (
