@@ -898,7 +898,7 @@ function WeeklyBreakdown({ trades, isDark }: { trades: Trade[]; isDark: boolean 
     const uniqueDays = new Set(weekTrades.map(t => t.date)).size
     const weekWins = weekTrades.filter(t => t.pnl > 0).length
     const weekWinRate = weekTrades.length > 0 ? (weekWins / weekTrades.length) * 100 : 0
-    weeks.push({ weekNum, startStr, endStr, pnl, trades: weekTrades.length, days: uniqueDays, wins: weekWins, wiRate: weekWinRate })
+    weeks.push({ weekNum, startStr, endStr, pnl, trades: weekTrades.length, days: uniqueDays, wins: weekWins, wiate: weekWinRate })
     weekStart = new Date(weekEnd)
     weekStart.setDate(weekEnd.getDate() + 1)
     weekNum++
@@ -1426,6 +1426,7 @@ function TradingJournalInner() {
             accentColor="#10b981"
             isEmpty={filteredTrades.length === 0}
             size="sm"
+            valueColor={totalPnl >= 0 ? '#10b981' : '#ef4444'}
           />
           {/* PROFIT FACTOR */}
           <StatCard
