@@ -12,7 +12,7 @@ type Playbook = {
   rules: string[]
   category?: string
   tags?: string[]
-  winRate?: number
+  winRate?: numbe
   totalTrades?: number
   isActive?: boolean
   notes?: string
@@ -131,7 +131,7 @@ function PlaybookRules({
       </div>
       {rules.length === 0 && !showInput && (
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: textMuted, margin: '0 0 8px' }}>
-          No rules yet â add rules to enforce this setup.
+          No rules yet — add rules to enforce this setup.
         </p>
       )}
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
