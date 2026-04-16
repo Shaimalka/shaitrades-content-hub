@@ -26,7 +26,7 @@ type CoachInsight = { text: string; visible: boolean; fading: boolean }
 const EMOTION_WORDS = [
   { label: 'Confident', value: 1, color: '#00c48c', bg: 'rgba(0,196,140,0.15)', border: 'rgba(0,196,140,0.4)' },
   { label: 'Disciplined', value: 2, color: '#60a5fa', bg: 'rgba(37,99,235,0.15)', border: 'rgba(37,99,235,0.4)' },
-  { label: 'Neutral', value: 3, color: 'rgba(255,255,255,0.5)', bg: 'rgba(255,255,255,0.08)', border: 'rgba(255,255,255,0.2)' },
+  { label: 'Neutral', value: 3, color: '#94a3b8', bg: 'rgba(148,163,184,0.15)', border: 'rgba(148,163,184,0.4)' },
   { label: 'Nervous', value: 4, color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.4)' },
   { label: 'FOMO', value: 5, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
   { label: 'Revenge', value: 6, color: '#ff4d6a', bg: 'rgba(255,77,106,0.15)', border: 'rgba(255,77,106,0.4)' },
