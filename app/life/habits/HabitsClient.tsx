@@ -16,6 +16,7 @@ type Habit = {
   customDays: number[]
   createdAt: string
   challengeLength?: number
+  bestStreak?: number
 }
 type Completions = Record<string, Record<string, boolean>>
 type MissLog = Record<string, Record<string, string>>
@@ -86,6 +87,24 @@ function getStreak(habitId: string, completions: Completions): number {
     if (completions[dateStr]?.[habitId]) { streak++ } else { break }
   }
   return streak
+}
+
+function getBestStreak(habitId: string, completions: Completions): number {
+  const dateKeys = Object.keys(completions).sort()
+  let best = 0
+  let run = 0
+  let prev: Date | null = null
+  for (const dateStr of dateKeys) {
+    if (!completions[dateStr]?.[habitId]) { run = 0; prev = null; continue }
+    const d = new Date(dateStr)
+    if (prev) {
+      const diff = (d.getTime() - prev.getTime()) / 86400000
+      if (diff === 1) { run++ } else { run = 1 }
+    } else { run = 1 }
+    if (run > best) best = run
+    prev = d
+  }
+  return best
 }
 function getCompletionRate(habitId: string, completions: Completions, days = 7): number {
   let done = 0
@@ -682,6 +701,7 @@ function HabitsInner() {
                         {stackItems.map(h => {
                           const done = completions[today]?.[h.id] || false
                           const streak = getStreak(h.id, completions)
+                          const bestStreak = getBestStreak(h.id, completions)
                           const isEditing = editModeHabit === h.id
                           return (
                             <div key={h.id}>
@@ -692,11 +712,17 @@ function HabitsInner() {
                                 </button>
                                 <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: done ? '#94a3b8' : textPrimary, textDecoration: done ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
                                 {streak > 0 && (
-                                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: '#f59e0b', flexShrink: 0 }}>
-                                    {streak}d 🔥
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: '#f59e0b' }}>
+                                      {streak}d 🔥
+                                    </span>
+                                    {bestStreak > 0 && (
+                                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                                        · Best {bestStreak}d
+                                      </span>
+                                    )}
                                   </span>
                                 )}
-                                <button onClick={() => {
                                   if (isEditing) {
                                     setEditModeHabit(null)
                                     setForm({ name: '', stack: DEFAULT_STACK, intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
