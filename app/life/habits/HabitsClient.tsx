@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Plus, Trash2, Flame, CheckCircle2, X, Settings } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
-type Stack = 'Morning' | 'Trading' | 'Evening'
+type Stack = string
 type Frequency = 'Daily' | 'Weekdays' | 'Custom'
 type Habit = {
   id: string
@@ -23,11 +23,17 @@ type MilestoneCard = { habitId: string; message: string; milestone: number }
 
 const CHALLENGE_PRESETS = [21, 30, 66, 90]
 const DEFAULT_CHALLENGE_LENGTH = 66
+const STACK_PRESETS = ['Morning', 'Afternoon', 'Evening', 'Anytime']
+const DEFAULT_STACK = 'Morning'
 
 function getChallengeLength(habit: Habit): number {
   return typeof habit.challengeLength === 'number' && habit.challengeLength >= 1
     ? habit.challengeLength
     : DEFAULT_CHALLENGE_LENGTH
+}
+function getStackDisplayName(stack: string): string {
+  if (stack === 'Morning Stack') return 'Morning'
+  return stack
 }
 const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
   { key: 'Morning', label: 'Morning Stack', icon: '🌅', color: '#f59e0b' },
