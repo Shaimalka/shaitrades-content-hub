@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, Suspense } from 'react'
-import { Plus, Trash2, Flame, CheckSquare, CheckCircle2, X } from 'lucide-react'
+import { Plus, Trash2, Flame, CheckSquare, CheckCircle2, X, Settings, Zap } from 'lucide-react'
 import LifeHubChat from '@/components/LifeHubChat'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
@@ -21,11 +21,12 @@ type Habit = {
 type Completions = Record<string, Record<string, boolean>>
 type MissLog = Record<string, Record<string, string>>
 type MilestoneCard = { habitId: string; message: string; milestone: number }
+type Trade = { date: string; pnl: number; win: boolean; morningDone?: boolean }
 
 const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
-  { key: 'Morning', label: 'MORNING STACK', icon: 'ð', color: '#f59e0b' },
-  { key: 'Trading', label: 'TRADING STACK', icon: 'ð', color: '#2563eb' },
-  { key: 'Evening', label: 'EVENING STACK', icon: 'ð', color: '#a78bfa' },
+  { key: 'Morning', label: 'MORNING STACK', icon: '🌅', color: '#f59e0b' },
+  { key: 'Trading', label: 'TRADING STACK', icon: '📈', color: '#2563eb' },
+  { key: 'Evening', label: 'EVENING STACK', icon: '🌙', color: '#a78bfa' },
 ]
 const MISS_REASONS = ['No time', 'Forgot', 'Too tired', 'Chose not to', 'Other']
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -99,9 +100,9 @@ function getWeakestDay(habitId: string, completions: Completions): string {
 }
 
 function getFireEmoji(streak: number): string {
-  if (streak >= 66) return 'ð¥ð¥ð¥'
-  if (streak >= 30) return 'ð¥ð¥'
-  if (streak >= 7) return 'ð¥'
+  if (streak >= 66) return '🔥🔥🔥'
+  if (streak >= 30) return '🔥🔥'
+  if (streak >= 7) return '🔥'
   return ''
 }
 
@@ -173,6 +174,8 @@ function HabitsInner() {
   const [showWeeklyReview, setShowWeeklyReview] = useState(false)
   const [milestoneCards, setMilestoneCards] = useState<Record<string, MilestoneCard>>({})
   const [fetchingMilestone, setFetchingMilestone] = useState<Record<string, boolean>>({})
+  const [trades, setTrades] = useState<Trade[]>([])
+  const [editModeHabit, setEditModeHabit] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '',
     stack: 'Morning' as Stack,
@@ -221,6 +224,11 @@ function HabitsInner() {
       const stored = localStorage.getItem(MISS_KEY)
       if (stored) setMissLog(JSON.parse(stored))
     } catch {}
+    // Fetch trades for correlation
+    fetch('/api/life/trading')
+      .then(r => r.json())
+      .then(d => { if (d.trades) setTrades(d.trades) })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -317,12 +325,69 @@ function HabitsInner() {
   const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
   const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
   const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
-  const scoreColor = dailyScore === null
-    ? '#94a3b8'
-    : dailyScore >= 80 ? '#10b981'
-    : dailyScore >= 50 ? '#60a5fa'
-    : '#f59e0b'
   const stackHabits = (stack: Stack) => validHabits.filter(h => (h.stack || 'Morning') === stack)
+
+  // --- Stats calculations ---
+  // Best streak ever across all habits
+  const bestStreakEver = validHabits.reduce((max, h) => {
+    const s = getStreak(h.id, completions)
+    return s > max ? s : max
+  }, 0)
+
+  // 30-day consistency: % of last 30 days with at least one habit done
+  const last30DaysArr = getLast30Days()
+  const daysWithAtLeastOne = last30DaysArr.filter(date =>
+    validHabits.some(h => completions[date]?.[h.id])
+  ).length
+  const consistency30 = last30DaysArr.length > 0 ? Math.round((daysWithAtLeastOne / 30) * 100) : 0
+
+  // Habits locked in (streak >= 66)
+  const habitsLockedIn = validHabits.filter(h => getStreak(h.id, completions) >= 66).length
+
+  // Days to next lock (habit closest to 66 but not yet there)
+  const habitsNotLocked = validHabits.filter(h => getStreak(h.id, completions) < 66)
+  let daysToNextLock = 0
+  if (habitsNotLocked.length > 0) {
+    const closest = habitsNotLocked.reduce((best, h) => {
+      const s = getStreak(h.id, completions)
+      return s > getStreak(best.id, completions) ? h : best
+    }, habitsNotLocked[0])
+    daysToNextLock = Math.max(0, 66 - getStreak(closest.id, completions))
+  }
+
+  // --- Correlation calculations ---
+  const morningHabits = stackHabits('Morning')
+  const hasEnoughTradeData = trades.length >= 5
+  let winRateMorningDone = 0, winRateMorningSkipped = 0
+  let avgPnlDone = 0, avgPnlSkipped = 0
+
+  if (hasEnoughTradeData && morningHabits.length > 0) {
+    const tradeDates = trades.map(t => ({ ...t, morningDone: morningHabits.every(h => completions[t.date]?.[h.id]) }))
+    const doneDays = tradeDates.filter(t => t.morningDone)
+    const skippedDays = tradeDates.filter(t => !t.morningDone)
+    winRateMorningDone = doneDays.length > 0 ? Math.round((doneDays.filter(t => t.win).length / doneDays.length) * 100) : 0
+    winRateMorningSkipped = skippedDays.length > 0 ? Math.round((skippedDays.filter(t => t.win).length / skippedDays.length) * 100) : 0
+    avgPnlDone = doneDays.length > 0 ? Math.round(doneDays.reduce((s, t) => s + (t.pnl || 0), 0) / doneDays.length) : 0
+    avgPnlSkipped = skippedDays.length > 0 ? Math.round(skippedDays.reduce((s, t) => s + (t.pnl || 0), 0) / skippedDays.length) : 0
+  }
+
+  // Top 2 habits for lock-in card (highest streak, not locked yet)
+  const top2ForLockIn = [...validHabits]
+    .sort((a, b) => getStreak(b.id, completions) - getStreak(a.id, completions))
+    .filter(h => getStreak(h.id, completions) < 66)
+    .slice(0, 2)
+
+  // Coach Shai today's insight - use first available milestone card or generate from completion
+  const firstMilestoneCard = Object.values(milestoneCards)[0] || null
+  const todayInsight = firstMilestoneCard
+    ? firstMilestoneCard.message.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')
+    : dailyScore !== null
+      ? dailyScore >= 80
+        ? `You're on fire today — ${todayCompleted} of ${validHabits.length} habits locked. Consistency like this builds the identity you're after.`
+        : dailyScore >= 50
+          ? `Solid progress — ${todayCompleted} done. Even partial wins compound. Finish the day strong.`
+          : `Every habit skipped is a vote against the identity you want. You still have time today to flip the script.`
+      : 'Add habits and start tracking to unlock your daily brief.'
 
   return (
     <div style={{ background: pageBg, minHeight: '100vh' }}>
@@ -336,11 +401,6 @@ function HabitsInner() {
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#475569', marginTop: 4, marginBottom: 0 }}>Track your daily habit stacks</p>
           </div>
           <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
-            {validHabits.length > 0 && (
-              <div style={{ background: 'rgba(96,165,250,0.1)', color: '#60a5fa', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600, border: '1px solid rgba(96,165,250,0.2)', fontFamily: 'Inter, sans-serif' }}>
-                {todayCompleted}/{validHabits.length} today
-              </div>
-            )}
             <button
               onClick={() => setShowWeeklyReview(!showWeeklyReview)}
               style={{ background: 'transparent', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 13, color: isDark ? '#f9fafb' : '#0f172a', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
@@ -356,81 +416,95 @@ function HabitsInner() {
           </div>
         </div>
 
-        {/* Daily Habit Score compact stat card */}
-        <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24, padding: '14px 20px' }}>
-          <div>
-            <div style={{ ...labelStyle, marginBottom: 4 }}>TODAY'S HABIT SCORE</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 32, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>
-              {dailyScore === null ? '--' : `${dailyScore}%`}
+        {/* Identity Card */}
+        <div style={{ background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: 12, padding: '20px 24px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#60a5fa', marginBottom: 8 }}>TODAY'S IDENTITY</div>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, color: textPrimary, margin: '0 0 12px 0', lineHeight: 1.4 }}>
+              I am someone who shows up every single day, no matter what.
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10b981' }}>
+                {todayCompleted} of {validHabits.length} done today
+              </span>
+              {bestStreakEver > 0 && (
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#f59e0b' }}>
+                  🔥 Day {bestStreakEver} streak
+                </span>
+              )}
             </div>
           </div>
-          {dailyScore !== null && (
-            <div style={{ flex: 1, maxWidth: 200 }}>
-              <div style={{ height: 6, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: dailyScore + '%', background: scoreColor, borderRadius: 4, transition: 'width 0.7s ease' }} />
+          <div style={{ textAlign: 'center', flexShrink: 0 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 44, fontWeight: 700, color: '#f59e0b', lineHeight: 1 }}>
+              {dailyScore === null ? '--' : `${dailyScore}%`}
+            </div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#94a3b8', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>today's score</div>
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+          {/* Best Streak Ever */}
+          <div style={{ ...cardStyle, borderTop: '3px solid #f59e0b', padding: '14px 16px' }}>
+            <div style={{ ...labelStyle, marginBottom: 6 }}>Best Streak Ever</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: '#f59e0b', lineHeight: 1 }}>{bestStreakEver}<span style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8', marginLeft: 2 }}>d</span></div>
+          </div>
+          {/* 30-day Consistency */}
+          <div style={{ ...cardStyle, borderTop: '3px solid #10b981', padding: '14px 16px' }}>
+            <div style={{ ...labelStyle, marginBottom: 6 }}>30-Day Consistency</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: '#10b981', lineHeight: 1 }}>{consistency30}<span style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8', marginLeft: 1 }}>%</span></div>
+          </div>
+          {/* Habits Locked In */}
+          <div style={{ ...cardStyle, borderTop: '3px solid #60a5fa', padding: '14px 16px' }}>
+            <div style={{ ...labelStyle, marginBottom: 6 }}>Habits Locked In</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: '#60a5fa', lineHeight: 1 }}>{habitsLockedIn}</div>
+          </div>
+          {/* Days to Next Lock */}
+          <div style={{ ...cardStyle, borderTop: '3px solid #a78bfa', padding: '14px 16px' }}>
+            <div style={{ ...labelStyle, marginBottom: 6 }}>Days to Next Lock</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: '#a78bfa', lineHeight: 1 }}>
+              {habitsNotLocked.length > 0 ? daysToNextLock : <span style={{ fontSize: 18 }}>All 🔒</span>}
+              {habitsNotLocked.length > 0 && <span style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8', marginLeft: 2 }}>d</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Correlation Card */}
+        <div style={{ borderTop: '3px solid #10b981', background: isDark ? '#1a1f2e' : '#ffffff', borderRadius: 12, padding: '18px 22px', marginBottom: 24, border: `1px solid ${borderColor}`, borderTopColor: '#10b981', borderTopWidth: 3 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Zap size={14} style={{ color: '#10b981' }} />
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: textPrimary }}>Habit → Trading Performance Correlation</span>
               </div>
-              <div style={{ ...labelStyle, marginTop: 6, fontSize: 10 }}>{todayCompleted} of {validHabits.length} habits done</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#94a3b8' }}>Based on your last 30 trading days</div>
+            </div>
+          </div>
+          {!hasEnoughTradeData ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 0', color: '#475569', fontFamily: 'Inter, sans-serif', fontSize: 13 }}>
+              Log more trades to unlock correlation data
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 12 }}>
+              <div style={{ background: isDark ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10b981', marginBottom: 4 }}>Win Rate — Morning ✓</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: '#10b981' }}>{winRateMorningDone}%</div>
+              </div>
+              <div style={{ background: isDark ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ef4444', marginBottom: 4 }}>Win Rate — Morning ✗</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: '#ef4444' }}>{winRateMorningSkipped}%</div>
+              </div>
+              <div style={{ background: isDark ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#10b981', marginBottom: 4 }}>Avg P&L — Habits Done</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: '#10b981' }}>${avgPnlDone >= 0 ? '+' : ''}{avgPnlDone}</div>
+              </div>
+              <div style={{ background: isDark ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ef4444', marginBottom: 4 }}>Avg P&L — Habits Skipped</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: '#ef4444' }}>${avgPnlSkipped >= 0 ? '+' : ''}{avgPnlSkipped}</div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* TODAY'S HABITS */}
-        {validHabits.length > 0 && (
-          <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <div style={{ ...labelStyle, marginBottom: 16 }}>TODAY'S HABITS</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {STACKS.map(({ key, label, icon, color }) => {
-                const stackItems = stackHabits(key)
-                if (stackItems.length === 0) return null
-                return (
-                  <div key={key}>
-                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color, marginBottom: 6, textTransform: 'uppercase' }}>{icon} {label}</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                      {stackItems.map(h => {
-                        const done = completions[today]?.[h.id] || false
-                        const streak = getStreak(h.id, completions)
-                        const fireEmoji = getFireEmoji(streak)
-                        return (
-                          <button
-                            key={h.id}
-                            onClick={() => toggleHabit(h.id, today)}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 10,
-                              padding: '10px 12px', borderRadius: 8,
-                              border: `1px solid ${done ? '#60a5fa40' : borderColor}`,
-                              background: done ? 'rgba(96,165,250,0.06)' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'),
-                              cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
-                            }}
-                          >
-                            <div style={{
-                              width: 18, height: 18, borderRadius: '50%',
-                              border: `2px solid ${done ? '#60a5fa' : (isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1')}`,
-                              background: done ? '#60a5fa' : 'transparent',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              flexShrink: 0, transition: 'all 0.15s',
-                            }}>
-                              {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>&#10003;</span>}
-                            </div>
-                            <span style={{
-                              fontFamily: 'Inter, sans-serif', fontSize: 14,
-                              color: done ? '#94a3b8' : textPrimary,
-                              textDecoration: done ? 'line-through' : 'none', flex: 1,
-                            }}>{h.name}</span>
-                            {streak > 0 && (
-                              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                                <Flame size={10} />{streak}d {fireEmoji}
-                              </span>
-                            )}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Weekly Review */}
         {showWeeklyReview && validHabits.length > 0 && (
@@ -509,13 +583,7 @@ function HabitsInner() {
                     {DAY_NAMES.map((d, i) => (
                       <button key={i} type="button"
                         onClick={() => setForm(f => ({ ...f, customDays: f.customDays.includes(i) ? f.customDays.filter(x => x !== i) : [...f.customDays, i] }))}
-                        style={{
-                          flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, padding: '6px 0', borderRadius: 6,
-                          background: form.customDays.includes(i) ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
-                          border: `1px solid ${form.customDays.includes(i) ? 'rgba(37,99,235,0.5)' : borderColor}`,
-                          color: form.customDays.includes(i) ? '#60a5fa' : '#94a3b8',
-                          cursor: 'pointer',
-                        }}>{d}</button>
+                        style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, padding: '6px 0', borderRadius: 6, background: form.customDays.includes(i) ? 'rgba(37,99,235,0.15)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${form.customDays.includes(i) ? 'rgba(37,99,235,0.5)' : borderColor}`, color: form.customDays.includes(i) ? '#60a5fa' : '#94a3b8', cursor: 'pointer' }}>{d}</button>
                     ))}
                   </div>
                 </div>
@@ -532,7 +600,7 @@ function HabitsInner() {
                 <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))} style={inputStyle}
                   onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)' }}
                   onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none' }}
-                  placeholder="One line â why does this habit matter?" />
+                  placeholder="One line — why does this habit matter?" />
               </div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
                 <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 20px', cursor: 'pointer' }}>Add Habit</button>
@@ -550,168 +618,172 @@ function HabitsInner() {
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#475569', marginBottom: 16 }}>{validHabits.find(h => h.id === missPrompt.habitId)?.name}</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                 {MISS_REASONS.map(reason => (
-                  <button key={reason} onClick={() => setMissReason(reason)} style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 12px', borderRadius: 8,
-                    background: missReason === reason ? 'rgba(96,165,250,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
-                    border: `1px solid ${missReason === reason ? 'rgba(96,165,250,0.5)' : borderColor}`,
-                    color: missReason === reason ? '#60a5fa' : '#475569',
-                    cursor: 'pointer',
-                  }}>{reason}</button>
+                  <button key={reason} onClick={() => setMissReason(reason)}
+                    style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 12px', borderRadius: 8, background: missReason === reason ? 'rgba(96,165,250,0.15)' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'), border: `1px solid ${missReason === reason ? 'rgba(96,165,250,0.5)' : borderColor}`, color: missReason === reason ? '#60a5fa' : '#475569', cursor: 'pointer' }}>{reason}</button>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveMissReason} disabled={!missReason} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 0', cursor: missReason ? 'pointer' : 'not-allowed', flex: 1, opacity: missReason ? 1 : 0.4 }}>Log It</button>
-                <button onClick={() => setMissPrompt(null)} style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 8, color: '#475569', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 0', cursor: 'pointer', flex: 1 }}>Skip</button>
+                <button onClick={saveMissReason} disabled={!missReason}
+                  style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 0', cursor: missReason ? 'pointer' : 'not-allowed', flex: 1, opacity: missReason ? 1 : 0.4 }}>Log It</button>
+                <button onClick={() => setMissPrompt(null)}
+                  style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 8, color: '#475569', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 0', cursor: 'pointer', flex: 1 }}>Skip</button>
               </div>
             </div>
           </div>
         )}
 
-        {/* MANAGE HABITS */}
+        {/* Two Column Layout */}
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
-            <Skeleton height="50px" />
-            <Skeleton height="50px" />
-            <Skeleton height="50px" />
-            <Skeleton height="50px" />
+            <Skeleton height="50px" /><Skeleton height="50px" /><Skeleton height="50px" /><Skeleton height="50px" />
           </div>
         ) : validHabits.length === 0 ? (
-          <EmptyState icon={CheckCircle2} heading="NO HABITS YET" isDark={isDark} subtext="Add your first habit below to start building your streak." />
+          <EmptyState icon={CheckCircle2} heading="NO HABITS YET" isDark={isDark} subtext="Add your first habit above to start building your streak." />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ ...labelStyle, marginBottom: 4 }}>MANAGE HABITS</div>
-            {STACKS.map(({ key, label, icon, color }) => {
-              const items = stackHabits(key)
-              if (items.length === 0) return null
-              const isExpanded = expandedStack === key
-              const doneCount = items.filter(h => completions[today]?.[h.id]).length
-              return (
-                <div key={key} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-                  <button
-                    onClick={() => setExpandedStack(isExpanded ? null : key)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontSize: 20 }}>{icon}</span>
-                      <div>
-                        <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color, margin: 0, textTransform: 'uppercase' }}>{label}</h3>
-                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#94a3b8', margin: '2px 0 0 0' }}>{doneCount}/{items.length} done today</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 80, height: 4, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: (items.length > 0 ? (doneCount / items.length * 100) : 0) + '%', background: color, borderRadius: 4, transition: 'width 0.5s ease' }} />
-                      </div>
-                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#94a3b8' }}>{isExpanded ? '▲' : '▼'}</span>
-                    </div>
-                  </button>
-                  {isExpanded && (
-                    <div style={{ padding: '0 20px 20px', borderTop: `1px solid ${borderColor}`, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {items.map(habit => {
-                        const streak = getStreak(habit.id, completions)
-                        const todayDone = completions[today]?.[habit.id] || false
-                        const fireEmoji = getFireEmoji(streak)
-                        const isLockedIn = streak >= 66
-                        const milestoneCard = milestoneCards[habit.id]
-                        return (
-                          <div key={habit.id} style={{ background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', border: `1px solid ${borderColor}`, borderRadius: 10, padding: '14px 16px', marginTop: 12 }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                              <button
-                                onClick={() => toggleHabit(habit.id, today)}
-                                style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${todayDone ? '#60a5fa' : (isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1')}`, background: todayDone ? '#60a5fa' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', marginTop: 2 }}
-                              >
-                                {todayDone && <span style={{ color: '#ffffff', fontSize: 11, fontWeight: 700 }}>&#10003;</span>}
-                              </button>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: todayDone ? '#94a3b8' : textPrimary, textDecoration: todayDone ? 'line-through' : 'none' }}>{habit.name}</span>
-                                  {isLockedIn && (
-                                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', padding: '2px 6px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', color: '#f59e0b', textTransform: 'uppercase' }}>LOCKED IN &#127942;</span>
-                                  )}
-                                  {streak > 0 && (
-                                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2 }}><Flame size={10} />{streak}d {fireEmoji}</span>
-                                  )}
-                                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', padding: '2px 6px', borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', color: '#94a3b8', textTransform: 'uppercase' }}>{habit.frequency || 'Daily'}</span>
-                                </div>
-                                <div style={{ fontSize: 11, color: '#60a5fa', fontFamily: 'Inter, sans-serif', marginTop: 4 }}>
-                                  {streak > 0 ? `Day ${streak} Â· ${Math.max(0, 66 - streak)} days to make it permanent` : 'Start your streak today'}
-                                </div>
-                                <div style={{ height: 2, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 1, marginTop: 4 }}>
-                                  <div style={{ height: 2, width: `${Math.min(100, (streak / 66) * 100)}%`, background: streak >= 66 ? '#10b981' : '#60a5fa', borderRadius: 1, transition: 'width 0.3s ease' }} />
-                                </div>
-                                {habit.intention && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#475569', marginTop: 4 }}>{habit.intention}</p>}
-                                {habit.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{habit.whyMatters}</p>}
-                                {habit.twoMinute && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#94a3b8', marginTop: 2, fontStyle: 'italic' }}>2-min: {habit.twoMinute}</p>}
-                              </div>
-                              <button onClick={() => deleteHabit(habit.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, flexShrink: 0 }}>
-                                <Trash2 size={11} style={{ color: '#ef4444' }} />
-                              </button>
-                            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 380px', gap: 20, alignItems: 'start' }}>
 
-                            {/* Coach Shai Milestone Card */}
-                            {milestoneCard && (
-                              <div style={{ position: 'relative', background: isDark ? 'rgba(96,165,250,0.05)' : 'rgba(37,99,235,0.04)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                                <button onClick={() => dismissMilestone(habit.id)} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: 2 }}>
-                                  <X size={12} />
+            {/* LEFT: Today's Habits */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ ...labelStyle }}>TODAY'S HABITS</div>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#94a3b8' }}>{todayCompleted}/{validHabits.length} done</span>
+              </div>
+              <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {STACKS.map(({ key, label, icon, color }) => {
+                  const stackItems = stackHabits(key)
+                  if (stackItems.length === 0) return null
+                  return (
+                    <div key={key}>
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color, marginBottom: 10, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: `1px solid ${borderColor}` }}>
+                        <span>{icon}</span> {label}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {stackItems.map(h => {
+                          const done = completions[today]?.[h.id] || false
+                          const streak = getStreak(h.id, completions)
+                          const fireEmoji = getFireEmoji(streak)
+                          const isEditing = editModeHabit === h.id
+                          const milestoneCard = milestoneCards[h.id]
+                          return (
+                            <div key={h.id}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: `1px solid ${done ? '#60a5fa40' : borderColor}`, background: done ? 'rgba(96,165,250,0.06)' : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'), transition: 'all 0.15s' }}>
+                                <button
+                                  onClick={() => toggleHabit(h.id, today)}
+                                  style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${done ? '#60a5fa' : (isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1')}`, background: done ? '#60a5fa' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s' }}
+                                >
+                                  {done && <span style={{ color: '#ffffff', fontSize: 10, fontWeight: 700 }}>&#10003;</span>}
                                 </button>
-                                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#60a5fa', textTransform: 'uppercase', marginBottom: 6 }}>&#9889; COACH SHAI</p>
-                                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, lineHeight: 1.5, margin: 0, paddingRight: 20 }}>{milestoneCard.message.replace(/**(.*?)**/g, '$1').replace(/*(.*?)*/g, '$1')}</p>
+                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: done ? '#94a3b8' : textPrimary, textDecoration: done ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
+                                {streak > 0 && (
+                                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                                    <Flame size={10} />{streak}d {fireEmoji}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => setEditModeHabit(isEditing ? null : h.id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, flexShrink: 0, padding: 2, display: 'flex', alignItems: 'center' }}
+                                  title="Settings"
+                                >
+                                  <Settings size={12} style={{ color: isDark ? '#94a3b8' : '#475569' }} />
+                                </button>
                               </div>
-                            )}
-                            <div>
-                              <p style={{ ...labelStyle, marginBottom: 6 }}>LAST 30 DAYS</p>
-                              <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                                {last30.map(date => {
-                                  const done = completions[date]?.[habit.id]
-                                  const isToday = date === today
-                                  const hasMissReason = missLog[date]?.[habit.id]
-                                  return (
-                                    <button
-                                      key={date}
-                                      onClick={() => toggleHabit(habit.id, date)}
-                                      title={date + (hasMissReason ? ' â Missed: ' + hasMissReason : '')}
-                                      style={{
-                                        width: 18, height: 18, borderRadius: 3,
-                                        background: done ? color : hasMissReason ? 'rgba(239,68,68,0.25)' : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'),
-                                        border: isToday ? `1px solid ${color}` : `1px solid ${borderColor}`,
-                                        cursor: 'pointer', opacity: done ? 1 : 0.7, transition: 'transform 0.1s',
-                                      }}
-                                    />
-                                  )
-                                })}
-                              </div>
+                              {isEditing && (
+                                <div style={{ marginTop: 6, padding: '10px 12px', borderRadius: 8, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', border: `1px solid ${borderColor}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                  {h.intention && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#60a5fa', margin: 0 }}>📍 {h.intention}</p>}
+                                  {h.whyMatters && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#94a3b8', margin: 0 }}>💡 {h.whyMatters}</p>}
+                                  {h.twoMinute && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#94a3b8', margin: 0, fontStyle: 'italic' }}>⚡ 2-min: {h.twoMinute}</p>}
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#94a3b8' }}>{h.frequency || 'Daily'} · Day {getStreak(h.id, completions)} · {Math.max(0, 66 - getStreak(h.id, completions))}d to lock</span>
+                                    <button onClick={() => { deleteHabit(h.id); setEditModeHabit(null) }} style={{ background: 'none', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, cursor: 'pointer', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: 4, color: '#ef4444', fontFamily: 'Inter, sans-serif', fontSize: 11 }}>
+                                      <Trash2 size={10} /> Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                              {milestoneCard && (
+                                <div style={{ position: 'relative', background: isDark ? 'rgba(96,165,250,0.05)' : 'rgba(37,99,235,0.04)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 8, padding: 10, marginTop: 6 }}>
+                                  <button onClick={() => dismissMilestone(h.id)} style={{ position: 'absolute', top: 6, right: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: 2 }}>
+                                    <X size={11} />
+                                  </button>
+                                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: '#60a5fa', textTransform: 'uppercase', marginBottom: 4 }}>⚡ COACH SHAI</p>
+                                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: textPrimary, lineHeight: 1.5, margin: 0, paddingRight: 16 }}>{milestoneCard.message.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')}</p>
+                                </div>
+                              )}
                             </div>
-                            {missLog[today]?.[habit.id] && (
-                              <div style={{ marginTop: 8 }}>
-                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', padding: '4px 8px', borderRadius: 6, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', textTransform: 'uppercase' }}>Missed: {missLog[today][habit.id]}</span>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
+                          )
+                        })}
+                      </div>
                     </div>
-                  )}
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* Coach Shai Daily Brief */}
+              <div style={{ background: isDark ? '#0f1117' : '#ffffff', borderLeft: '3px solid #2563eb', borderRadius: 12, padding: '18px 20px', border: `1px solid ${borderColor}`, borderLeftColor: '#2563eb', borderLeftWidth: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 14 }}>🧠</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#60a5fa' }}>Coach Shai — Daily Brief</span>
                 </div>
-              )
-            })}
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, lineHeight: 1.6, margin: 0 }}>{todayInsight}</p>
+                {firstMilestoneCard && (
+                  <button onClick={() => dismissMilestone(firstMilestoneCard.habitId)} style={{ marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#475569', padding: 0 }}>Dismiss ×</button>
+                )}
+              </div>
+
+              {/* 66-Day Lock-In Card */}
+              {top2ForLockIn.length > 0 && (
+                <div style={{ ...cardStyle }}>
+                  <div style={{ ...labelStyle, marginBottom: 14 }}>66-DAY LOCK-IN</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {top2ForLockIn.map(h => {
+                      const streak = getStreak(h.id, completions)
+                      const pct = Math.min(100, Math.round((streak / 66) * 100))
+                      return (
+                        <div key={h.id}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: textPrimary }}>{h.name}</span>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#f59e0b', fontWeight: 600 }}>Day {streak} / 66</span>
+                          </div>
+                          <div style={{ height: 5, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 3, overflow: 'hidden', marginBottom: 8 }}>
+                            <div style={{ height: '100%', width: pct + '%', background: streak >= 30 ? '#10b981' : '#60a5fa', borderRadius: 3, transition: 'width 0.5s ease' }} />
+                          </div>
+                          <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                            {last30.map(date => {
+                              const done = completions[date]?.[h.id]
+                              const isToday = date === today
+                              const hasMissReason = missLog[date]?.[h.id]
+                              return (
+                                <button key={date} onClick={() => toggleHabit(h.id, date)} title={date + (hasMissReason ? ' — Missed: ' + hasMissReason : '')}
+                                  style={{ width: 14, height: 14, borderRadius: 2, background: done ? (STACKS.find(s => s.key === h.stack)?.color || '#60a5fa') : hasMissReason ? 'rgba(239,68,68,0.25)' : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'), border: isToday ? `1px solid ${STACKS.find(s => s.key === h.stack)?.color || '#60a5fa'}` : `1px solid ${borderColor}`, cursor: 'pointer', opacity: done ? 1 : 0.7 }} />
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
         )}
+
       </div>
       <LifeHubChat
         section="habits"
         apiRoute="/api/life/habits/chat"
         contextData={{
           habits: validHabits.map(h => ({
-            name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters,
-            frequency: h.frequency, streak: getStreak(h.id, completions),
-            completionRate7d: getCompletionRate(h.id, completions, 7),
-            completionRate30d: getCompletionRate(h.id, completions, 30),
-            weakestDay: getWeakestDay(h.id, completions),
-            todayDone: !!completions[today]?.[h.id],
+            name: h.name, stack: h.stack, intention: h.intention, whyMatters: h.whyMatters, frequency: h.frequency,
+            streak: getStreak(h.id, completions), completionRate7d: getCompletionRate(h.id, completions, 7),
+            completionRate30d: getCompletionRate(h.id, completions, 30), weakestDay: getWeakestDay(h.id, completions), todayDone: !!completions[today]?.[h.id],
           })),
-          totalHabits: validHabits.length,
-          todayCompleted,
-          missLog,
+          totalHabits: validHabits.length, todayCompleted, missLog,
         }}
         systemPrompt="You are Coach Shai, a behavioral science-based habit AI. You have access to the user's habit stacks (Morning, Trading, Evening), each habit's implementation intention, why it matters, current streak, 7-day and 30-day completion rates, weakest day of week, today's status, and miss reason logs. Analyze patterns, celebrate streaks, identify skip patterns, and give sharp, science-backed advice to improve consistency. Reference specific habits and data when coaching."
         defaultOpen={chatOpen}
