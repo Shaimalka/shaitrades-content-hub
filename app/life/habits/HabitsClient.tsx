@@ -310,6 +310,20 @@ function HabitsInner() {
       fetch('/api/life/habits').then(r => r.json()).then(d => { if (d.habits) setHabits(d.habits) }).catch(() => {})
     }
   }
+  async function updateHabit(id: string, updates: Record<string, any>) {
+    const res = await fetch('/api/life/habits', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, updates }),
+    })
+    const data = await res.json()
+    if (data.habits) setHabits(data.habits)
+    setEditModeHabit(null)
+    setForm({ name: '', stack: DEFAULT_STACK, intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
+    setChallengeLengthMode('preset')
+    setStackMode('preset')
+    setCustomStackName('')
+  }
   const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
   const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
   const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
@@ -682,18 +696,179 @@ function HabitsInner() {
                                     {streak}d 🔥
                                   </span>
                                 )}
-                                <button onClick={() => setEditModeHabit(isEditing ? null : h.id)}
+                                <button onClick={() => {
+                                  if (isEditing) {
+                                    setEditModeHabit(null)
+                                    setForm({ name: '', stack: DEFAULT_STACK, intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
+                                    setChallengeLengthMode('preset')
+                                    setStackMode('preset')
+                                    setCustomStackName('')
+                                  } else {
+                                    setEditModeHabit(h.id)
+                                    setStackMode(STACK_PRESETS.includes(h.stack) ? 'preset' : 'custom')
+                                    setCustomStackName(STACK_PRESETS.includes(h.stack) ? '' : h.stack)
+                                    setChallengeLengthMode(CHALLENGE_PRESETS.includes(h.challengeLength ?? DEFAULT_CHALLENGE_LENGTH) ? 'preset' : 'custom')
+                                    setForm({
+                                      name: h.name,
+                                      stack: h.stack,
+                                      intention: h.intention ?? '',
+                                      twoMinute: h.twoMinute ?? '',
+                                      whyMatters: h.whyMatters ?? '',
+                                      frequency: h.frequency ?? 'Daily',
+                                      customDays: h.customDays ?? [],
+                                      challengeLength: h.challengeLength ?? DEFAULT_CHALLENGE_LENGTH,
+                                    })
+                                  }
+                                }}
                                   style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, flexShrink: 0, padding: 2, display: 'flex', alignItems: 'center' }}>
                                   <Settings size={12} style={{ color: isDark ? '#94a3b8' : '#475569' }} />
                                 </button>
                               </div>
                               {isEditing && (
-                                <div style={{ marginTop: 6, padding: '10px 12px', borderRadius: 8, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', border: `1px solid ${borderColor}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                  <button onClick={() => { deleteHabit(h.id); setEditModeHabit(null) }}
-                                    style={{ background: 'none', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 6, cursor: 'pointer', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 4, color: '#ef4444', fontFamily: 'Inter, sans-serif', fontSize: 11 }}>
-                                    <Trash2 size={10} />
-                                    Delete
-                                  </button>
+                                <div style={{ marginTop: 6 }}>
+                                  <div style={{ ...labelStyle, marginBottom: 16 }}>EDIT HABIT</div>
+                                  <form
+                                    onSubmit={async (e) => {
+                                      e.preventDefault()
+                                      await updateHabit(h.id, { ...form })
+                                    }}
+                                    style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}
+                                  >
+                                    <div>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>HABIT NAME</label>
+                                      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                                        style={{ ...inputStyle, width: '100%' }}
+                                        placeholder="e.g. Morning meditation" required />
+                                    </div>
+                                    <div>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>STACK</label>
+                                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        {STACK_PRESETS.map(preset => (
+                                          <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => { setStackMode('preset'); setForm(f => ({ ...f, stack: preset })) }}
+                                            style={{
+                                              padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                              border: `1px solid ${stackMode === 'preset' && form.stack === preset ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                                              background: stackMode === 'preset' && form.stack === preset ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                                              color: stackMode === 'preset' && form.stack === preset ? '#60a5fa' : '#94a3b8',
+                                            }}
+                                          >{preset}</button>
+                                        ))}
+                                        <button
+                                          type="button"
+                                          onClick={() => { setStackMode('custom'); setForm(f => ({ ...f, stack: customStackName || '' })) }}
+                                          style={{
+                                            padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                            border: `1px solid ${stackMode === 'custom' ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                                            background: stackMode === 'custom' ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                                            color: stackMode === 'custom' ? '#60a5fa' : '#94a3b8',
+                                          }}
+                                        >Custom</button>
+                                      </div>
+                                      {stackMode === 'custom' && (
+                                        <input
+                                          type="text"
+                                          value={customStackName}
+                                          onChange={e => { setCustomStackName(e.target.value); setForm(f => ({ ...f, stack: e.target.value })) }}
+                                          style={{ ...inputStyle, width: 200, marginTop: 6 }}
+                                          placeholder="e.g. Night, Pre-market…"
+                                        />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>CHALLENGE LENGTH</label>
+                                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        {CHALLENGE_PRESETS.map(preset => (
+                                          <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => { setChallengeLengthMode('preset'); setForm(f => ({ ...f, challengeLength: preset })) }}
+                                            style={{
+                                              padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                              border: `1px solid ${challengeLengthMode === 'preset' && form.challengeLength === preset ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                                              background: challengeLengthMode === 'preset' && form.challengeLength === preset ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                                              color: challengeLengthMode === 'preset' && form.challengeLength === preset ? '#60a5fa' : '#94a3b8',
+                                            }}
+                                          >{preset} days</button>
+                                        ))}
+                                        <button
+                                          type="button"
+                                          onClick={() => setChallengeLengthMode('custom')}
+                                          style={{
+                                            padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                            border: `1px solid ${challengeLengthMode === 'custom' ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                                            background: challengeLengthMode === 'custom' ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                                            color: challengeLengthMode === 'custom' ? '#60a5fa' : '#94a3b8',
+                                          }}
+                                        >Custom</button>
+                                      </div>
+                                      {challengeLengthMode === 'custom' && (
+                                        <input
+                                          type="number"
+                                          min={1} max={365}
+                                          value={form.challengeLength}
+                                          onChange={e => {
+                                            const v = Math.max(1, Math.min(365, parseInt(e.target.value) || 1))
+                                            setForm(f => ({ ...f, challengeLength: v }))
+                                          }}
+                                          style={{ ...inputStyle, width: 100, marginTop: 6 }}
+                                          placeholder="e.g. 45"
+                                        />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>IMPLEMENTATION INTENTION</label>
+                                      <input value={form.intention} onChange={e => setForm(f => ({ ...f, intention: e.target.value }))}
+                                        style={{ ...inputStyle, width: '100%' }}
+                                        placeholder="After [habit], I will [new habit]" />
+                                    </div>
+                                    <div>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>FREQUENCY</label>
+                                      <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value as Frequency, customDays: [] }))}
+                                        style={{ ...inputStyle, width: '100%' }}>
+                                        <option value="Daily">Daily</option>
+                                        <option value="Weekdays">Weekdays</option>
+                                        <option value="Custom">Custom Days</option>
+                                      </select>
+                                    </div>
+                                    {form.frequency === 'Custom' && (
+                                      <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                                        <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>CUSTOM DAYS</label>
+                                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day, idx) => (
+                                            <button key={day} type="button"
+                                              onClick={() => setForm(f => ({ ...f, customDays: f.customDays.includes(idx) ? f.customDays.filter(d => d !== idx) : [...f.customDays, idx] }))}
+                                              style={{
+                                                padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
+                                                border: `1px solid ${form.customDays.includes(idx) ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                                                background: form.customDays.includes(idx) ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                                                color: form.customDays.includes(idx) ? '#60a5fa' : '#94a3b8',
+                                              }}
+                                            >{day}</button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>2-MINUTE VERSION</label>
+                                      <input value={form.twoMinute} onChange={e => setForm(f => ({ ...f, twoMinute: e.target.value }))}
+                                        style={{ ...inputStyle, width: '100%' }}
+                                        placeholder="What's the 2-min version?" />
+                                    </div>
+                                    <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                                      <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>WHY IT MATTERS</label>
+                                      <input value={form.whyMatters} onChange={e => setForm(f => ({ ...f, whyMatters: e.target.value }))}
+                                        style={{ ...inputStyle, width: '100%' }}
+                                        placeholder="Your core motivation…" />
+                                    </div>
+                                    <div style={{ gridColumn: isMobile ? '1' : '1 / -1', display: 'flex', gap: 10 }}>
+                                      <button type="submit" style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '10px 20px', cursor: 'pointer' }}>Save Changes</button>
+                                      <button type="button" onClick={() => { deleteHabit(h.id); setEditModeHabit(null) }} style={{ background: 'none', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, cursor: 'pointer', padding: '10px 20px', color: '#ef4444', fontFamily: 'Inter, sans-serif', fontSize: 13 }}>Delete</button>
+                                      <button type="button" onClick={() => { setEditModeHabit(null); setForm({ name: '', stack: DEFAULT_STACK, intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH }); setChallengeLengthMode('preset'); setStackMode('preset'); setCustomStackName('') }} style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 8, color: '#475569', fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '10px 20px', cursor: 'pointer' }}>Cancel</button>
+                                    </div>
+                                  </form>
                                 </div>
                               )}
                             </div>
