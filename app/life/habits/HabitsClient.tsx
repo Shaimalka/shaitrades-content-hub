@@ -313,7 +313,19 @@ function HabitsInner() {
   const validHabits = habits.filter(h => h.name && h.name.trim() !== '')
   const todayCompleted = validHabits.filter(h => completions[today]?.[h.id]).length
   const dailyScore = validHabits.length === 0 ? null : Math.round((todayCompleted / validHabits.length) * 100)
-  const stackHabits = (stack: Stack) => validHabits.filter(h => (h.stack || 'Morning') === stack)
+  function getStackMeta(stack: string): { icon: string; color: string } {
+    if (stack === 'Morning')   return { icon: '🌅', color: '#f59e0b' }
+    if (stack === 'Afternoon') return { icon: '☀️',  color: '#f97316' }
+    if (stack === 'Evening')   return { icon: '🌙', color: '#a78bfa' }
+    if (stack === 'Anytime')   return { icon: '⚡',  color: '#10b981' }
+    return { icon: '📋', color: '#60a5fa' }
+  }
+  const ORDER = ['Morning', 'Afternoon', 'Evening', 'Anytime']
+  const allStackKeys = Array.from(new Set(validHabits.map(h => getStackDisplayName(h.stack || 'Morning'))))
+  const orderedStacks = [
+    ...ORDER.filter(s => allStackKeys.includes(s)),
+    ...allStackKeys.filter(s => !ORDER.includes(s)).sort(),
+  ]
   const firstMilestoneCard = Object.values(milestoneCards)[0] || null
   const todayInsight = firstMilestoneCard
     ? firstMilestoneCard.message.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')
@@ -642,14 +654,15 @@ function HabitsInner() {
                 <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#94a3b8' }}>{todayCompleted}/{validHabits.length} done</span>
               </div>
               <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {STACKS.map(({ key, label, icon, color }) => {
-                  const stackItems = stackHabits(key)
+                {orderedStacks.map(stackName => {
+                  const stackItems = validHabits.filter(h => getStackDisplayName(h.stack || 'Morning') === stackName)
                   if (stackItems.length === 0) return null
+                  const { icon, color } = getStackMeta(stackName)
                   return (
-                    <div key={key}>
+                    <div key={stackName}>
                       <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color, marginBottom: 10, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: `1px solid ${borderColor}` }}>
                         <span>{icon}</span>
-                        {label}
+                        {stackName}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {stackItems.map(h => {
