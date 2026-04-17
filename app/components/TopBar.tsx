@@ -1,24 +1,11 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import { Bell } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 
-const pageTitles: Record<string, string> = {
-    '/life': 'Dashboard',
-    '/life/trading': 'Trading Journal',
-    '/life/trading/playbook': 'Playbook',
-    '/life/habits': 'Habits',
-    '/life/goals': 'Goals'
-    '/life/finance': 'Finance',
-    '/life/health': 'Health',
-    '/life/journal': 'Journal',
-    '/settings': 'Settings',
-}
-
 export default function TopBar() {
-    const pathname = usePathname()
     const router = useRouter()
     const { isDark } = useTheme()
     const { data: session } = useSession()
@@ -33,15 +20,15 @@ export default function TopBar() {
     const text = isDark ? '#ffffff' : '#0a0a0f'
     const textMuted = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
 
-
   // Debug: log the full session user object so we can see which fields are populated
   console.log('TopBar session user:', JSON.stringify(session?.user))
 
   const rawName = session?.user?.name || session?.user?.email || (session?.user as any)?.id || ''
     const parts = rawName.trim().split(/\s+/).filter(Boolean)
-    const initials = parts.length >= 2
-      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-          : rawName.slice(0, 2).toUpperCase() || '?'
+    const initials =
+          parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+            : rawName.slice(0, 2).toUpperCase() || '?'
 
   useEffect(() => {
         function handleClickOutsideBell(event: MouseEvent) {
@@ -65,9 +52,16 @@ export default function TopBar() {
 
   return React.createElement('div', {
         style: {
-                height: '56px', background: surface, borderBottom: `1px solid ${border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '0 24px', position: 'sticky' as const, top: 0, zIndex: 50,
+                height: '56px',
+                background: surface,
+                borderBottom: `1px solid ${border}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 24px',
+                position: 'sticky' as const,
+                top: 0,
+                zIndex: 50,
         }
   },
                                  React.createElement('div', {
@@ -115,10 +109,16 @@ export default function TopBar() {
                                                                                                    onMouseEnter: () => setHovered(true),
                                                                                                    onMouseLeave: () => setHovered(false),
                                                                                                    style: {
-                                                                                                                 width: '32px', height: '32px', borderRadius: '50%',
+                                                                                                                 width: '32px',
+                                                                                                                 height: '32px',
+                                                                                                                 borderRadius: '50%',
                                                                                                                  background: hovered ? '#1d4ed8' : '#2563eb',
-                                                                                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                                                                 color: '#fff', fontSize: '12px', fontWeight: 'bold',
+                                                                                                                 display: 'flex',
+                                                                                                                 alignItems: 'center',
+                                                                                                                 justifyContent: 'center',
+                                                                                                                 color: '#fff',
+                                                                                                                 fontSize: '12px',
+                                                                                                                 fontWeight: 'bold',
                                                                                                                  cursor: 'pointer',
                                                                                                                  transform: hovered ? 'scale(1.08)' : 'scale(1)',
                                                                                                                  transition: 'background 0.15s, transform 0.15s',
@@ -143,9 +143,14 @@ export default function TopBar() {
                                                                                                                                      React.createElement('div', {
                                                                                                                                                    onClick: () => router.push('/settings'),
                                                                                                                                                    style: {
-                                                                                                                                                                   fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)',
-                                                                                                                                                                   padding: '10px 16px', borderRadius: '6px', cursor: 'pointer',
-                                                                                                                                                                   display: 'block', width: '100%',
+                                                                                                                                                                   fontSize: '13px',
+                                                                                                                                                                   fontWeight: 500,
+                                                                                                                                                                   color: 'var(--text-primary)',
+                                                                                                                                                                   padding: '10px 16px',
+                                                                                                                                                                   borderRadius: '6px',
+                                                                                                                                                                   cursor: 'pointer',
+                                                                                                                                                                   display: 'block',
+                                                                                                                                                                   width: '100%',
                                                                                                                                                      },
                                                                                                                                                    onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => {
                                                                                                                                                                    (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-page)'
@@ -157,9 +162,14 @@ export default function TopBar() {
                                                                                                                                      React.createElement('div', {
                                                                                                                                                    onClick: () => router.push('/settings'),
                                                                                                                                                    style: {
-                                                                                                                                                                   fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)',
-                                                                                                                                                                   padding: '10px 16px', borderRadius: '6px', cursor: 'pointer',
-                                                                                                                                                                   display: 'block', width: '100%',
+                                                                                                                                                                   fontSize: '13px',
+                                                                                                                                                                   fontWeight: 500,
+                                                                                                                                                                   color: 'var(--text-primary)',
+                                                                                                                                                                   padding: '10px 16px',
+                                                                                                                                                                   borderRadius: '6px',
+                                                                                                                                                                   cursor: 'pointer',
+                                                                                                                                                                   display: 'block',
+                                                                                                                                                                   width: '100%',
                                                                                                                                                      },
                                                                                                                                                    onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => {
                                                                                                                                                                    (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-page)'
@@ -171,9 +181,14 @@ export default function TopBar() {
                                                                                                                                      React.createElement('div', {
                                                                                                                                                    onClick: () => signOut(),
                                                                                                                                                    style: {
-                                                                                                                                                                   fontSize: '13px', fontWeight: 500, color: '#ef4444',
-                                                                                                                                                                   padding: '10px 16px', borderRadius: '6px', cursor: 'pointer',
-                                                                                                                                                                   display: 'block', width: '100%',
+                                                                                                                                                                   fontSize: '13px',
+                                                                                                                                                                   fontWeight: 500,
+                                                                                                                                                                   color: '#ef4444',
+                                                                                                                                                                   padding: '10px 16px',
+                                                                                                                                                                   borderRadius: '6px',
+                                                                                                                                                                   cursor: 'pointer',
+                                                                                                                                                                   display: 'block',
+                                                                                                                                                                   width: '100%',
                                                                                                                                                      },
                                                                                                                                                    onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => {
                                                                                                                                                                    (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-page)'
