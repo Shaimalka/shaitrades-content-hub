@@ -33,7 +33,6 @@ export default function TopBar() {
     const text = isDark ? '#ffffff' : '#0a0a0f'
     const textMuted = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'
 
-  const title = pageTitles[pathname] || 'TRABITS'
 
   // Debug: log the full session user object so we can see which fields are populated
   console.log('TopBar session user:', JSON.stringify(session?.user))
@@ -71,9 +70,6 @@ export default function TopBar() {
                 padding: '0 24px', position: 'sticky' as const, top: 0, zIndex: 50,
         }
   },
-                                 React.createElement('span', {
-                                         style: { color: text, fontSize: '16px', fontWeight: 600, fontFamily: 'Inter, sans-serif' }
-                                 }, title),
                                  React.createElement('div', {
                                          style: { display: 'flex', alignItems: 'center', gap: '16px' }
                                  },
