@@ -10,7 +10,7 @@ const pageTitles: Record<string, string> = {
     '/life/trading': 'Trading Journal',
     '/life/trading/playbook': 'Playbook',
     '/life/habits': 'Habits',
-    '/life/goals': 'Goals',
+    '/life/goals': 'Goals'
     '/life/finance': 'Finance',
     '/life/health': 'Health',
     '/life/journal': 'Journal',
@@ -71,7 +71,7 @@ export default function TopBar() {
         }
   },
                                  React.createElement('div', {
-                                         style: { display: 'flex', alignItems: 'center', gap: '16px' }
+                                         style: { display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }
                                  },
                                                            React.createElement('div', {
                                                                      ref: bellRef,
