@@ -174,9 +174,11 @@ function HabitsInner() {
   const [fetchingMilestone, setFetchingMilestone] = useState<Record<string, boolean>>({})
   const [editModeHabit, setEditModeHabit] = useState<string | null>(null)
   const [challengeLengthMode, setChallengeLengthMode] = useState<'preset' | 'custom'>('preset')
+  const [stackMode, setStackMode] = useState<'preset' | 'custom'>('preset')
+  const [customStackName, setCustomStackName] = useState('')
   const [form, setForm] = useState({
     name: '',
-    stack: 'Morning' as Stack,
+    stack: DEFAULT_STACK as Stack,
     intention: '',
     twoMinute: '',
     whyMatters: '',
@@ -293,8 +295,10 @@ function HabitsInner() {
     const data = await res.json()
     setHabits(data.habits || [])
     setShowForm(false)
-    setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
+    setForm({ name: '', stack: DEFAULT_STACK, intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
     setChallengeLengthMode('preset')
+    setStackMode('preset')
+    setCustomStackName('')
   }
   async function deleteHabit(id: string) {
     setHabits(prev => prev.filter(h => h.id !== id))
@@ -428,11 +432,60 @@ function HabitsInner() {
               </div>
               <div>
                 <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>STACK</label>
-                <select value={form.stack} onChange={e => setForm(f => ({ ...f, stack: e.target.value as Stack }))} style={selectStyle}>
-                  <option value="Morning">Morning Stack</option>
-                  <option value="Trading">Trading Stack</option>
-                  <option value="Evening">Evening Stack</option>
-                </select>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {STACK_PRESETS.map(preset => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => { setStackMode('preset'); setForm(f => ({ ...f, stack: preset })) }}
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        padding: '6px 14px',
+                        borderRadius: 12,
+                        border: `1px solid ${stackMode === 'preset' && form.stack === preset ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                        background: stackMode === 'preset' && form.stack === preset ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                        color: stackMode === 'preset' && form.stack === preset ? '#2563eb' : '#94a3b8',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => { setStackMode('custom'); setForm(f => ({ ...f, stack: customStackName || '' })) }}
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: '6px 14px',
+                      borderRadius: 12,
+                      border: `1px solid ${stackMode === 'custom' ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                      background: stackMode === 'custom' ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                      color: stackMode === 'custom' ? '#2563eb' : '#94a3b8',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + Custom
+                  </button>
+                </div>
+                {stackMode === 'custom' && (
+                  <div style={{ marginTop: 8 }}>
+                    <input
+                      type="text"
+                      maxLength={24}
+                      value={customStackName}
+                      onChange={e => { setCustomStackName(e.target.value); setForm(f => ({ ...f, stack: e.target.value })) }}
+                      style={{ ...inputStyle, width: 200 }}
+                      onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)' }}
+                      onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none' }}
+                      placeholder="e.g. Night, Pre-market…"
+                    />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#94a3b8', marginLeft: 8 }}>max 24 chars</span>
+                  </div>
+                )}
               </div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
                 <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>CHALLENGE LENGTH</label>
