@@ -15,10 +15,20 @@ type Habit = {
   frequency: Frequency
   customDays: number[]
   createdAt: string
+  challengeLength?: number
 }
 type Completions = Record<string, Record<string, boolean>>
 type MissLog = Record<string, Record<string, string>>
 type MilestoneCard = { habitId: string; message: string; milestone: number }
+
+const CHALLENGE_PRESETS = [21, 30, 66, 90]
+const DEFAULT_CHALLENGE_LENGTH = 66
+
+function getChallengeLength(habit: Habit): number {
+  return typeof habit.challengeLength === 'number' && habit.challengeLength >= 1
+    ? habit.challengeLength
+    : DEFAULT_CHALLENGE_LENGTH
+}
 const STACKS: { key: Stack; label: string; icon: string; color: string }[] = [
   { key: 'Morning', label: 'Morning Stack', icon: '🌅', color: '#f59e0b' },
   { key: 'Trading', label: 'Trading Stack', icon: '📈', color: '#2563eb' },
@@ -157,6 +167,7 @@ function HabitsInner() {
   const [milestoneCards, setMilestoneCards] = useState<Record<string, MilestoneCard>>({})
   const [fetchingMilestone, setFetchingMilestone] = useState<Record<string, boolean>>({})
   const [editModeHabit, setEditModeHabit] = useState<string | null>(null)
+  const [challengeLengthMode, setChallengeLengthMode] = useState<'preset' | 'custom'>('preset')
   const [form, setForm] = useState({
     name: '',
     stack: 'Morning' as Stack,
@@ -165,6 +176,7 @@ function HabitsInner() {
     whyMatters: '',
     frequency: 'Daily' as Frequency,
     customDays: [] as number[],
+    challengeLength: DEFAULT_CHALLENGE_LENGTH,
   })
   const today = new Date().toISOString().split('T')[0]
   const currentHour = new Date().getHours()
@@ -275,7 +287,8 @@ function HabitsInner() {
     const data = await res.json()
     setHabits(data.habits || [])
     setShowForm(false)
-    setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [] })
+    setForm({ name: '', stack: 'Morning', intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
+    setChallengeLengthMode('preset')
   }
   async function deleteHabit(id: string) {
     setHabits(prev => prev.filter(h => h.id !== id))
@@ -414,6 +427,67 @@ function HabitsInner() {
                   <option value="Trading">Trading Stack</option>
                   <option value="Evening">Evening Stack</option>
                 </select>
+              </div>
+              <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
+                <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>CHALLENGE LENGTH</label>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {CHALLENGE_PRESETS.map(preset => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, challengeLength: preset })); setChallengeLengthMode('preset') }}
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        padding: '6px 14px',
+                        borderRadius: 8,
+                        border: `1px solid ${challengeLengthMode === 'preset' && form.challengeLength === preset ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                        background: challengeLengthMode === 'preset' && form.challengeLength === preset ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                        color: challengeLengthMode === 'preset' && form.challengeLength === preset ? '#60a5fa' : '#94a3b8',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {preset} days
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => { setChallengeLengthMode('custom'); setForm(f => ({ ...f, challengeLength: 66 })) }}
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: '6px 14px',
+                      borderRadius: 8,
+                      border: `1px solid ${challengeLengthMode === 'custom' ? 'rgba(37,99,235,0.5)' : borderColor}`,
+                      background: challengeLengthMode === 'custom' ? 'rgba(37,99,235,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
+                      color: challengeLengthMode === 'custom' ? '#60a5fa' : '#94a3b8',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Custom
+                  </button>
+                </div>
+                {challengeLengthMode === 'custom' && (
+                  <div style={{ marginTop: 8 }}>
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={form.challengeLength}
+                      onChange={e => {
+                        const v = Math.max(1, Math.min(365, parseInt(e.target.value) || 1))
+                        setForm(f => ({ ...f, challengeLength: v }))
+                      }}
+                      style={{ ...inputStyle, width: 120 }}
+                      onFocus={e => { e.target.style.borderColor = 'rgba(37,99,235,0.5)'; e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)' }}
+                      onBlur={e => { e.target.style.borderColor = borderColor; e.target.style.boxShadow = 'none' }}
+                      placeholder="1-365"
+                    />
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#94a3b8', marginLeft: 8 }}>days (1–365)</span>
+                  </div>
+                )}
               </div>
               <div style={{ gridColumn: isMobile ? '1' : '1 / -1' }}>
                 <label style={{ ...labelStyle, display: 'block', marginBottom: 6 }}>IMPLEMENTATION INTENTION</label>
@@ -571,24 +645,25 @@ function HabitsInner() {
                 </button>
               )}
             </div>
-            {validHabits.filter(h => getStreak(h.id, completions) < 66).length > 0 && (
+            {validHabits.filter(h => getStreak(h.id, completions) < getChallengeLength(h)).length > 0 && (
               <div style={{ ...cardStyle, marginBottom: 20 }}>
-                <div style={{ ...labelStyle, marginBottom: 16 }}>66-DAY LOCK-IN</div>
+                <div style={{ ...labelStyle, marginBottom: 16 }}>CHALLENGE PROGRESS</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {validHabits
-                    .filter(h => getStreak(h.id, completions) < 66)
+                    .filter(h => getStreak(h.id, completions) < getChallengeLength(h))
                     .sort((a, b) => getStreak(b.id, completions) - getStreak(a.id, completions))
                     .map(h => {
                       const streak = getStreak(h.id, completions)
-                      const pct = Math.min(100, Math.round((streak / 66) * 100))
+                      const cl = getChallengeLength(h)
+                      const pct = Math.min(100, Math.round((streak / cl) * 100))
                       return (
                         <div key={h.id}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: textPrimary }}>{h.name}</span>
-                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#f59e0b', fontWeight: 600 }}>Day {streak} / 66</span>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#f59e0b', fontWeight: 600 }}>Day {streak} / {cl}</span>
                           </div>
                           <div style={{ height: 6, background: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-                            <div style={{ height: '100%', width: pct + '%', background: streak >= 30 ? '#10b981' : '#60a5fa', borderRadius: 3, transition: 'width 0.5s ease' }} />
+                            <div style={{ height: '100%', width: pct + '%', background: streak >= Math.round(cl * 0.45) ? '#10b981' : '#60a5fa', borderRadius: 3, transition: 'width 0.5s ease' }} />
                           </div>
                         </div>
                       )
