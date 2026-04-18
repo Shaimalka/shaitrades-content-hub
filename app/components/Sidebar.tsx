@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import {
   LayoutDashboard,
@@ -12,9 +12,9 @@ import {
   DollarSign,
   Heart,
   NotebookPen,
+  Settings,
   Sun,
   Moon,
-  Settings,
   ChevronLeft,
   ChevronRight,
   FlaskConical,
@@ -31,14 +31,13 @@ const navItems = [
   { href: '/life/finance', label: 'Finance', icon: DollarSign, section: null },
   { href: '/life/health', label: 'Health', icon: Heart, section: null },
   { href: '/life/journal', label: 'Journal', icon: NotebookPen, section: null },
+  { href: '/settings', label: 'Settings', icon: Settings, section: null },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
   const { isDark, toggle } = useTheme()
   const { data: session } = useSession()
-  const [mobileOpen, setMobileOpen] = React.useState(false)
   const [collapsed, setCollapsed] = React.useState(() => {
     if (typeof window === 'undefined') return false
     try {
@@ -127,7 +126,7 @@ export default function Sidebar() {
     // Nav
     React.createElement('nav', { style: { flex: 1, padding: '8px 0' } },
       navItems.map((item) => {
-        const isActive = pathname === item.href
+        const isActive = pathname === item.href || (item.href === '/settings' && pathname.startsWith('/settings'))
         const Icon = item.icon
         return React.createElement(React.Fragment, { key: item.href },
           item.section && !collapsed && !isMobile &&
@@ -220,7 +219,6 @@ export default function Sidebar() {
           justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
         }
       },
-        // Light/Dark toggle
         collapsed && !isMobile
         ? React.createElement('button', {
             onClick: toggle,
@@ -238,8 +236,8 @@ export default function Sidebar() {
             }
           },
           isDark
-          ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.5)' })
-          : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.5)' })
+            ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.5)' })
+            : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.5)' })
           )
         : React.createElement('button', {
             onClick: toggle,
@@ -258,30 +256,10 @@ export default function Sidebar() {
             }
           },
           isDark
-          ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.5)' })
-          : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.5)' }),
+            ? React.createElement(Sun, { size: 14, color: 'rgba(255,255,255,0.5)' })
+            : React.createElement(Moon, { size: 14, color: 'rgba(255,255,255,0.5)' }),
           isDark ? 'Light Mode' : 'Dark Mode'
-          ),
-
-        // Settings icon (hide in collapsed)
-        (!collapsed || isMobile) && React.createElement('button', {
-          onClick: () => router.push('/settings'),
-          title: 'Settings',
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '8px',
-            padding: '8px 10px',
-            color: 'rgba(255,255,255,0.5)',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }
-        },
-          React.createElement(Settings, { size: 14, color: 'rgba(255,255,255,0.5)' })
-        )
+          )
       ),
 
       session?.user && React.createElement('div', {
