@@ -403,12 +403,30 @@ function HabitsInner() {
             </button>
           </div>
         </div>
+        <div style={{ background: isDark ? '#0f1117' : '#f8fafc', borderLeft: '3px solid #60a5fa', borderRadius: 12, padding: '18px 20px', marginBottom: 20, border: `1px solid ${borderColor}`, borderLeftColor: '#60a5fa', borderLeftWidth: 3 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#60a5fa', marginBottom: 10 }}>
+            🧠 COACH SHAI
+          </div>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, lineHeight: 1.6, margin: 0 }}>{todayInsight}</p>
+          {firstMilestoneCard && (
+            <button onClick={() => dismissMilestone(firstMilestoneCard.habitId)}
+              style={{ marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#475569', padding: 0 }}>
+              Dismiss ×
+            </button>
+          )}
+        </div>
         {validHabits.length > 0 && (
           <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, fontWeight: 500 }}>
-                {todayCompleted} of {validHabits.length} habits done today
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: todayCompleted > 0 ? 8 : 0 }}>
+              {todayCompleted > 0 ? (
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, fontWeight: 500 }}>
+                  {todayCompleted} of {validHabits.length} habits done today
+                </span>
+              ) : (
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#64748b', fontWeight: 500 }}>
+                  {"Let’s start — check off your first habit to begin the day"}
+                </span>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: shieldActive ? '#10b981' : '#94a3b8', display: 'inline' }}>
                   {`🛡️ ${shieldActive ? 'Shield Active' : (7 - bestStreak) + ' days to earn shield'}`}
@@ -421,14 +439,18 @@ function HabitsInner() {
                 }}>
                   {currentTier.emoji} {currentTier.key}
                 </span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: '#10b981' }}>
-                  {dailyScore}%
-                </span>
+                {todayCompleted > 0 && (
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: '#10b981' }}>
+                    {dailyScore}%
+                  </span>
+                )}
               </div>
             </div>
-            <div style={{ height: 6, background: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${dailyScore ?? 0}%`, background: '#10b981', borderRadius: 3, transition: 'width 0.4s ease' }} />
-            </div>
+            {todayCompleted > 0 && (
+              <div style={{ height: 6, background: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${dailyScore ?? 0}%`, background: '#10b981', borderRadius: 3, transition: 'width 0.4s ease' }} />
+              </div>
+            )}
           </div>
         )}
         {showWeeklyReview && validHabits.length > 0 && (
@@ -906,18 +928,6 @@ function HabitsInner() {
                   )
                 })}
               </div>
-            </div>
-            <div style={{ background: isDark ? '#0f1117' : '#f8fafc', borderLeft: '3px solid #60a5fa', borderRadius: 12, padding: '18px 20px', marginBottom: 20, border: `1px solid ${borderColor}`, borderLeftColor: '#60a5fa', borderLeftWidth: 3 }}>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#60a5fa', marginBottom: 10 }}>
-                🧠 COACH SHAI
-              </div>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textPrimary, lineHeight: 1.6, margin: 0 }}>{todayInsight}</p>
-              {firstMilestoneCard && (
-                <button onClick={() => dismissMilestone(firstMilestoneCard.habitId)}
-                  style={{ marginTop: 10, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#475569', padding: 0 }}>
-                  Dismiss ×
-                </button>
-              )}
             </div>
             {validHabits.filter(h => getStreak(h.id, completions) < getChallengeLength(h)).length > 0 && (
               <div style={{ ...cardStyle, marginBottom: 20 }}>
