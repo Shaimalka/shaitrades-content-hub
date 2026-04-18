@@ -723,6 +723,7 @@ function HabitsInner() {
                                     )}
                                   </span>
                                 )}
+                                <button onClick={() => {
                                   if (isEditing) {
                                     setEditModeHabit(null)
                                     setForm({ name: '', stack: DEFAULT_STACK, intention: '', twoMinute: '', whyMatters: '', frequency: 'Daily', customDays: [], challengeLength: DEFAULT_CHALLENGE_LENGTH })
