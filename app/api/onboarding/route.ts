@@ -10,12 +10,20 @@ const redis = new Redis({
     token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^"+|"+$/g, ''),
 })
 
+function requireUserId(session: any): string | null {
+    const userId = session?.user?.email
+    if (!userId) return null
+    return userId
+}
+
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const userId = requireUserId(session)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
-        const userId = session.user?.email || 'default'
         const key = `onboarding:${userId}`
         const value = await redis.get(key)
         return NextResponse.json({ complete: value === true || value === 'true' })
@@ -28,8 +36,10 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const userId = requireUserId(session)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
-        const userId = session.user?.email || 'default'
         const key = `onboarding:${userId}`
         await redis.set(key, true)
         return NextResponse.json({ success: true })
