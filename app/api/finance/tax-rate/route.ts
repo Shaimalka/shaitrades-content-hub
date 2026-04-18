@@ -10,12 +10,20 @@ const redis = new Redis({
     token: (process.env.UPSTASH_REDIS_REST_TOKEN || '').replace(/^["]+|["]+$/g, ''),
 })
 
+function requireUserId(session: any): string | null {
+    const userId = session?.user?.email
+    if (!userId) return null
+    return userId
+}
+
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const userId = requireUserId(session)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
-        const userId = session.user?.email || 'default'
         const key = `user:${userId}:taxReservePercent`
         const value = await redis.get(key)
         const taxReservePercent = value !== null ? Number(value) : 30
@@ -29,19 +37,19 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const userId = requireUserId(session)
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   try {
         const body = await req.json()
         const { taxReservePercent } = body
-
-      const parsed = Number(taxReservePercent)
+        const parsed = Number(taxReservePercent)
         if (isNaN(parsed) || parsed < 1 || parsed > 99) {
                 return NextResponse.json(
                   { error: 'taxReservePercent must be a number between 1 and 99' },
                   { status: 400 }
                         )
         }
-
-      const userId = session.user?.email || 'default'
         const key = `user:${userId}:taxReservePercent`
         await redis.set(key, parsed)
         return NextResponse.json({ success: true, taxReservePercent: parsed })
