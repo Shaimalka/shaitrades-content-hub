@@ -14,12 +14,14 @@ const redis = new Redis({
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? '127.0.0.1'
     const { success } = await checkRateLimit(ip)
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     try {
-          const connected = await redis.get('tradovate:connected')
-          const lastSync = await redis.get('tradovate:lastSync')
+          const connected = await redis.get(`tradovate:${userId}:connected`)
+          const lastSync = await redis.get(`tradovate:${userId}:lastSync`)
           return NextResponse.json({ connected: connected === 'true', lastSync: lastSync || null })
     } catch {
           return NextResponse.json({ connected: false, lastSync: null })
