@@ -12,12 +12,12 @@ const redis = new Redis({
 })
 
 const TRADOVATE_LIVE = 'https://live.tradovateapi.com/v1'
-const TRADING_KEY = 'life:trading:logs'
 
-async function getValidToken(): Promise<string> {
-    const token = await redis.get<string>('tradovate:token')
+
+async function getValidToken(userId: string): Promise<string> {
+    const token = await redis.get<string>(`tradovate:${userId}:token`)
     if (!token) throw new Error('Not connected to Tradovate. Please connect in Settings.')
-    const expiry = await redis.get<string>('tradovate:token:expiry')
+    const expiry = await redis.get<string>(`tradovate:${userId}:token:expiry`)
     const expiryTime = expiry ? new Date(expiry).getTime() : 0
     const msUntilExpiry = expiryTime - Date.now()
     if (msUntilExpiry < 5 * 60 * 1000) {
@@ -28,8 +28,8 @@ async function getValidToken(): Promise<string> {
           if (renewRes.ok) {
                   const renewed = await renewRes.json()
                   if (renewed.accessToken) {
-                            await redis.set('tradovate:token', renewed.accessToken)
-                            await redis.set('tradovate:token:expiry', renewed.expirationTime || new Date(Date.now() + 80 * 60 * 1000).toISOString())
+                            await redis.set(`tradovate:${userId}:token`, renewed.accessToken)
+                            await redis.set(`tradovate:${userId}:token:expiry`, renewed.expirationTime || new Date(Date.now() + 80 * 60 * 1000).toISOString())
                             return renewed.accessToken
                   }
           }
@@ -54,11 +54,14 @@ type Fill = {
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? '127.0.0.1'
     const { success } = await checkRateLimit(ip)
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     try {
-          const token = await getValidToken()
+    const TRADING_KEY = `trading:${userId}:logs`
+          const token = await getValidToken(userId)
           const headers: Record<string, string> = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
           const acctRes = await fetch(`${TRADOVATE_LIVE}/account/list`, { headers })
           if (!acctRes.ok) throw new Error('Failed to fetch accounts from Tradovate')
@@ -122,7 +125,7 @@ export async function POST(req: NextRequest) {
                 }
           const merged = existingTrades.concat(newTrades)
           await redis.set(TRADING_KEY, merged)
-          await redis.set('tradovate:lastSync', new Date().toISOString())
+          await redis.set(`tradovate:${userId}:lastSync`, new Date().toISOString())
           return NextResponse.json({ imported: newTrades.length, total: merged.length, trades: newTrades })
     } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : 'Sync failed'
