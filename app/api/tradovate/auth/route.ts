@@ -16,6 +16,8 @@ const TRADOVATE_LIVE = 'https://live.tradovateapi.com/v1'
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? '127.0.0.1'
     const { success } = await checkRateLimit(ip)
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
@@ -34,15 +36,15 @@ export async function POST(req: NextRequest) {
                   return NextResponse.json({ error: `Tradovate error: ${err}` }, { status: res.status })
           }
           const data = await res.json()
-          const { accessToken, userId, expirationTime } = data
+          const { accessToken, userId: tradovateUserId, expirationTime } = data
           if (!accessToken) {
                   return NextResponse.json({ error: 'No access token returned from Tradovate' }, { status: 400 })
           }
-          await redis.set('tradovate:token', accessToken)
-          await redis.set('tradovate:userId', userId)
-          await redis.set('tradovate:token:expiry', expirationTime || new Date(Date.now() + 80 * 60 * 1000).toISOString())
-          await redis.set('tradovate:connected', 'true')
-          return NextResponse.json({ success: true, userId })
+          await redis.set(`tradovate:${userId}:token`, accessToken)
+          await redis.set(`tradovate:${userId}:tradovateUserId`, tradovateUserId)
+          await redis.set(`tradovate:${userId}:token:expiry`, expirationTime || new Date(Date.now() + 80 * 60 * 1000).toISOString())
+          await redis.set(`tradovate:${userId}:connected`, 'true')
+          return NextResponse.json({ success: true, userId: tradovateUserId })
     } catch (e: any) {
           return NextResponse.json({ error: e.message || 'Auth failed' }, { status: 500 })
     }
@@ -51,11 +53,13 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     try {
-          await redis.del('tradovate:token')
-          await redis.del('tradovate:userId')
-          await redis.del('tradovate:token:expiry')
-          await redis.set('tradovate:connected', 'false')
+          await redis.del(`tradovate:${userId}:token`)
+          await redis.del(`tradovate:${userId}:tradovateUserId`)
+          await redis.del(`tradovate:${userId}:token:expiry`)
+          await redis.set(`tradovate:${userId}:connected`, 'false')
           return NextResponse.json({ success: true })
     } catch (e: any) {
           return NextResponse.json({ error: e.message }, { status: 500 })
@@ -65,11 +69,13 @@ export async function DELETE(req: NextRequest) {
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? '127.0.0.1'
     const { success } = await checkRateLimit(ip)
     if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     try {
-          const connected = await redis.get('tradovate:connected')
+          const connected = await redis.get(`tradovate:${userId}:connected`)
           const lastSync = await redis.get('tradovate:lastSync')
           return NextResponse.json({ connected: connected === 'true', lastSync: lastSync || null })
     } catch {
