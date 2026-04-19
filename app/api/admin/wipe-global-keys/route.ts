@@ -41,6 +41,11 @@ export async function GET(req: NextRequest) {
             'life:finance:streams',
             'life:reviews',
             'life:goals',
+            'tradovate:token',
+            'tradovate:userId',
+            'tradovate:token:expiry',
+            'tradovate:connected',
+            'tradovate:lastSync',
           ]
 
   for (const key of staticKeys) {
