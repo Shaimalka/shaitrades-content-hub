@@ -34,8 +34,8 @@ const NW_STORAGE_KEY = 'trabits_net_worth_history'
 const GOAL_STORAGE_KEY = 'trabits_trading_monthly_goal'
 const PRESET_COLORS = ['#00c48c', '#2563eb', '#f59e0b', '#ff4d6a', '#a78bfa', '#f97316']
 const DEFAULT_STREAMS: IncomeStream[] = [
-  { id: 'trading', name: 'Trading', color: '#00c48c', emoji: 'ð' },
-  { id: 'content', name: 'Content', color: '#2563eb', emoji: 'ð¬' },
+  { id: 'trading', name: 'Trading', color: '#00c48c', emoji: '📈' },
+  { id: 'content', name: 'Content', color: '#2563eb', emoji: '🎬' },
 ]
 
 function today() { return new Date().toISOString().split('T')[0] }
@@ -49,9 +49,9 @@ function getNetWorthVerdict(history: NetWorthEntry[]): string {
   if (!prev) return 'Current net worth: ' + fmt(latest.assets) + '. Keep tracking monthly.'
   const diff = latest.assets - prev.assets
   const pct = prev.assets > 0 ? Math.round((diff / prev.assets) * 100) : 0
-  if (diff > 0) return 'Up ' + fmt(diff) + ' (' + pct + '%) from last month â momentum is real.'
-  if (diff < 0) return 'Down ' + fmt(Math.abs(diff)) + ' (' + Math.abs(pct) + '%) from last month â stay the course.'
-  return 'Net worth held flat this month â stability is underrated.'
+  if (diff > 0) return 'Up ' + fmt(diff) + ' (' + pct + '%) from last month — momentum is real.'
+  if (diff < 0) return 'Down ' + fmt(Math.abs(diff)) + ' (' + Math.abs(pct) + '%) from last month — stay the course.'
+  return 'Net worth held flat this month — stability is underrated.'
 }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
@@ -83,7 +83,7 @@ function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id
   const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const [name, setName] = useState('')
   const [color, setColor] = useState('#00c48c')
-  const [emoji, setEmoji] = useState('ð°')
+  const [emoji, setEmoji] = useState('💰')
   return (
     <div style={{ ...cardStyle, marginBottom: 16 }}>
       <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), marginBottom: 12 }}>New Income Stream</h3>
@@ -94,7 +94,7 @@ function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id
         </div>
         <div>
           <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>EMOJI</label>
-          <input value={emoji} onChange={e => setEmoji(e.target.value)} style={{ ...inputStyle, width: '60px' }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="ð°" maxLength={2} />
+          <input value={emoji} onChange={e => setEmoji(e.target.value)} style={{ ...inputStyle, width: '60px' }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="💰" maxLength={2} />
         </div>
         <div>
           <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>COLOR</label>
@@ -272,7 +272,7 @@ function FinancePage() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
           <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>â LIFE HUB</Link>
+            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
             <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: 0 }}>Finance</h1>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 2 }}>Track income, expenses, and net worth</p>
           </div>
@@ -286,20 +286,20 @@ function FinancePage() {
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: '#00c48c', display: 'block', marginBottom: 4 }}>COACH SHAI</span>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{shaiMsg}</p>
             </div>
-            <button onClick={() => setShaiMsg(null)} style={{ background: 'none', border: 'none', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer', fontSize: 14 }}>â</button>
+            <button onClick={() => setShaiMsg(null)} style={{ background: 'none', border: 'none', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer', fontSize: 14 }}>✕</button>
           </div>
         )}
 
-        {/* âââââââââââââââââââ NET WORTH HERO âââââââââââââââââââ */}
+        {/* ═══════════════════ NET WORTH HERO ═══════════════════ */}
         <div style={{ ...cardStyle, marginBottom: 24, background: isDark ? '#0d0d14' : '#f8f9ff', border: `1px solid ${netWorthPositive ? 'rgba(0,196,140,0.2)' : 'rgba(255,77,106,0.2)'}`, borderRadius: 16 }}>
           {/* Hero stat */}
           <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, marginBottom: 24 }}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), marginBottom: 12 }}>NET WORTH</p>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 40 : 56, fontWeight: 800, color: netWorthPositive ? '#16a34a' : '#dc2626', margin: 0, letterSpacing: '-0.02em', lineHeight: 1 }}>
-              {netWorthPositive ? '' : 'â'}{fmt(Math.abs(netWorth))}
+              {netWorthPositive ? '' : '−'}{fmt(Math.abs(netWorth))}
             </p>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'), marginTop: 8 }}>
-              Assets {fmt(totalAssets)} â Liabilities {fmt(totalLiabilities)}
+              Assets {fmt(totalAssets)} − Liabilities {fmt(totalLiabilities)}
             </p>
           </div>
 
@@ -423,7 +423,7 @@ function FinancePage() {
             </div>
           </div>
         </div>
-        {/* âââââââââââââââââââ END NET WORTH âââââââââââââââââââ */}
+        {/* ═══════════════════ END NET WORTH ═══════════════════ */}
         {/* Stats Row */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
           <div style={statCardStyle}>
@@ -476,7 +476,7 @@ function FinancePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>TRADING GOAL â {currentMonth}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>TRADING GOAL — {currentMonth}</p>
                   <button onClick={() => setEditingGoal(!editingGoal)} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', cursor: 'pointer' }}>{editingGoal ? 'cancel' : 'edit'}</button>
                 </div>
                 {editingGoal ? (
@@ -510,7 +510,7 @@ function FinancePage() {
                 <TrendingUp size={20} style={{ color: '#00c48c', flexShrink: 0 }} />
                 <div>
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>BEST INCOME MONTH</p>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#00c48c', margin: '2px 0 0 0' }}>{bestMonth[0]} â {fmt(bestMonth[1])}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#00c48c', margin: '2px 0 0 0' }}>{bestMonth[0]} — {fmt(bestMonth[1])}</p>
                 </div>
               </div>
             )}
@@ -520,7 +520,7 @@ function FinancePage() {
                 <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>BIGGEST EXPENSE CATEGORY</p>
                 <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#ff4d6a', margin: '2px 0 0 0' }}>
                   {expenses.length > 0 ? (
-                    <span>{biggestCat?.[0] ?? 'No expenses yet'} â {fmt(biggestCat?.[1] ?? 0)}</span>
+                    <span>{biggestCat?.[0] ?? 'No expenses yet'} — {fmt(biggestCat?.[1] ?? 0)}</span>
                   ) : (
                     <span style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)' }}>No expenses logged yet</span>
                   )}
@@ -554,7 +554,7 @@ function FinancePage() {
                 {s.emoji} {s.name.toUpperCase()}
               </button>
               {!['trading','content'].includes(s.id) && (
-                <button onClick={() => deleteStream(s.id)} style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#ff4d6a', color: (isDark ? '#ffffff' : '#0a0a0f'), border: 'none', fontSize: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0 }} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>Ã</button>
+                <button onClick={() => deleteStream(s.id)} style={{ position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%', background: '#ff4d6a', color: (isDark ? '#ffffff' : '#0a0a0f'), border: 'none', fontSize: 9, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0 }} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>×</button>
               )}
             </div>
           ))}
@@ -615,7 +615,7 @@ function FinancePage() {
               <>
                 <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                   <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: activeStream.color, margin: 0 }}>
-                    {activeStream.emoji} {activeStream.name.toUpperCase()} INCOME Â· {activeIncome.length} ENTRIES Â· {fmt(activeIncome.reduce((s,e)=>s+e.amount,0))}
+                    {activeStream.emoji} {activeStream.name.toUpperCase()} INCOME · {activeIncome.length} ENTRIES · {fmt(activeIncome.reduce((s,e)=>s+e.amount,0))}
                   </h3>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
@@ -631,9 +631,9 @@ function FinancePage() {
                       {[...activeIncome].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
                         <tr key={e.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                           <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{e.date}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? '#ffffff' : '#0a0a0f') }}>{e.account || e.source || 'â'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? '#ffffff' : '#0a0a0f') }}>{e.account || e.source || '—'}</td>
                           <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#00c48c' }}>{fmt(e.amount)}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || 'â'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
                           <td style={{ padding: '12px 16px' }}>
                             <button onClick={() => deleteEntry(e.id, 'income')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
                               <Trash2 size={12} style={{ color: '#ff4d6a' }} />
@@ -651,7 +651,7 @@ function FinancePage() {
               <>
                 <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
                   <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: 0 }}>
-                    EXPENSES Â· {expenses.length} ENTRIES Â· {fmt(expenses.reduce((s,e)=>s+e.amount,0))}
+                    EXPENSES · {expenses.length} ENTRIES · {fmt(expenses.reduce((s,e)=>s+e.amount,0))}
                   </h3>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
@@ -669,7 +669,7 @@ function FinancePage() {
                           <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{e.date}</td>
                           <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>{e.category}</span></td>
                           <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#ff4d6a' }}>{fmt(e.amount)}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || 'â'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
                           <td style={{ padding: '12px 16px' }}>
                             <button onClick={() => deleteEntry(e.id, 'expense')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
                               <Trash2 size={12} style={{ color: '#ff4d6a' }} />
@@ -702,12 +702,12 @@ function FinancePage() {
               <input type="month" value={nwDate} onChange={e => setNwDate(e.target.value)} style={{ ...inputStyle, width: 140, colorScheme: 'dark' }} />
               <input type="number" value={nwInput} onChange={e => setNwInput(e.target.value)} style={{ ...inputStyle, width: isMobile ? '100%' : 180 }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Snapshot total assets ($)" onKeyDown={ev => { if (ev.key === 'Enter') saveNetWorth() }} />
               <button onClick={saveNetWorth} disabled={!nwInput} style={{ background: nwInput ? '#2563eb' : (isDark ? '#111118' : '#ffffff'), border: nwInput ? 'none' : '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: nwInput ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 16px', cursor: nwInput ? 'pointer' : 'not-allowed' }}>
-                {nwSaved ? 'â Saved' : 'Update'}
+                {nwSaved ? '✓ Saved' : 'Update'}
               </button>
             </div>
           </div>
           {nwChartData.length === 0 ? (
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textAlign: 'center', padding: '32px 0' }}>No history yet â enter a snapshot above to track progress over time</p>
+            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textAlign: 'center', padding: '32px 0' }}>No history yet — enter a snapshot above to track progress over time</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={nwChartData}>
@@ -725,7 +725,7 @@ function FinancePage() {
                 <div key={e.date} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.15)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
                   <span style={{ color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{e.date}</span>
                   <span style={{ color: '#2563eb', fontWeight: 600 }}>{fmt(e.assets)}</span>
-                  <button onClick={() => { const updated = nwHistory.filter(x => x.date !== e.date); setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d6a', opacity: 0.5, fontSize: 12 }}>Ã</button>
+                  <button onClick={() => { const updated = nwHistory.filter(x => x.date !== e.date); setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d6a', opacity: 0.5, fontSize: 12 }}>×</button>
                 </div>
               ))}
             </div>
