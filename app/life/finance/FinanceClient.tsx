@@ -400,6 +400,7 @@ function FinancePage() {
         )}
 
         {/* ═══════════════════ NET WORTH HERO ═══════════════════ */}
+        {activeSection === 'networth' && (
         <div style={{ ...cardStyle, marginBottom: 24, background: isDark ? '#0d0d14' : '#f8f9ff', border: `1px solid ${netWorthPositive ? 'rgba(0,196,140,0.2)' : 'rgba(255,77,106,0.2)'}`, borderRadius: 16 }}>
           {/* Hero stat */}
           <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, marginBottom: 24 }}>
@@ -532,8 +533,10 @@ function FinancePage() {
             </div>
           </div>
         </div>
+        )}
         {/* ═══════════════════ END NET WORTH ═══════════════════ */}
         {/* Stats Row */}
+        {activeSection === 'overview' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
           <div style={statCardStyle}>
             <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>TOTAL IN (YTD)</p>
@@ -562,8 +565,10 @@ function FinancePage() {
             )}
           </div>
         </div>
+        )}
 
         {/* Per-stream breakdown */}
+        {activeSection === 'overview' && (<>
         {streamTotals.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
             {streamTotals.map(s => (
@@ -578,8 +583,10 @@ function FinancePage() {
             ))}
           </div>
         )}
+        </>)}
 
         {/* Monthly Trading Goal */}
+        {activeSection === 'overview' && (<>
         {tradingStream && (
           <div style={{ ...cardStyle, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -610,8 +617,10 @@ function FinancePage() {
             </div>
           </div>
         )}
+        </>)}
 
         {/* Best month / biggest expense */}
+        {activeSection === 'overview' && (<>
         {(bestMonth || expenses.length > 0 || biggestCat) && (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 24 }}>
             {bestMonth && (
@@ -638,8 +647,10 @@ function FinancePage() {
             </div>
           </div>
         )}
+        </>)}
 
         {/* Chart */}
+        {activeSection === 'overview' && (<>
         {chartData.length > 0 && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
             <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginBottom: 16 }}>MONTHLY INCOME vs EXPENSES</h3>
@@ -655,7 +666,9 @@ function FinancePage() {
             </ResponsiveContainer>
           </div>
         )}
+        </>)}
         {/* Stream Tabs */}
+        {activeSection === 'income' && (<>
         <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           {streams.map(s => (
             <div key={s.id} style={{ position: 'relative' }}>
@@ -679,8 +692,10 @@ function FinancePage() {
         </div>
 
         {showNewStream && <NewStreamForm onSave={addStream} onCancel={() => setShowNewStream(false)} />}
+        </>)}
 
         {/* Income Form */}
+        {activeSection === 'income' && (<>
         {showForm && activeTab !== 'expenses' && activeStream && (
           <div style={{ ...cardStyle, marginBottom: 16 }}>
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: activeStream.color, marginBottom: 12 }}>New {activeStream.name} Income {activeStream.emoji}</h3>
@@ -696,8 +711,10 @@ function FinancePage() {
             </form>
           </div>
         )}
+        </>)}
 
         {/* Expense Form */}
+        {activeSection === 'expenses' && (<>
         {showForm && activeTab === 'expenses' && (
           <div style={{ ...cardStyle, marginBottom: 16 }}>
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), marginBottom: 12 }}>New Expense</h3>
@@ -713,7 +730,9 @@ function FinancePage() {
             </form>
           </div>
         )}
+        </>)}
         {/* Data Table */}
+        {(activeSection === 'income' || activeSection === 'expenses') && (<>
         {loading ? (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
             <Skeleton height="60px" /><div style={{ height: 8 }} /><Skeleton height="60px" /><div style={{ height: 8 }} /><Skeleton height="60px" />
@@ -794,8 +813,10 @@ function FinancePage() {
             )}
           </div>
         )}
+        </>)}
 
         {/* Net Worth Chart Tracker (legacy monthly snapshot) */}
+        {activeSection === 'networth' && (
         <div style={{ ...cardStyle, marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
             <div>
@@ -840,6 +861,17 @@ function FinancePage() {
             </div>
           )}
         </div>
+        )}
+        {activeSection === 'debts' && (
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontStyle: 'italic', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: 0 }}>Debts tracking coming in next build step</p>
+          </div>
+        )}
+        {activeSection === 'plan' && (
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontStyle: 'italic', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: 0 }}>Financial plan generator coming in next build step</p>
+          </div>
+        )}
       </div>
       <LifeHubChat section="finance" apiRoute="/api/life/finance/chat" contextData={{ income, expenses, streams, assets, liabilities, netWorth }} systemPrompt="You are Coach Shai, a finance AI. Analyze income across all streams, expenses, assets, liabilities, and net worth. Be direct and insightful." defaultOpen={defaultChatOpen} />
     </div>
