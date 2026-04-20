@@ -185,10 +185,6 @@ export default function LifeHubPage() {
   const [briefVisible, setBriefVisible] = useState(true)
   const [briefFading, setBriefFading] = useState(false)
   const [newBriefAvailable, setNewBriefAvailable] = useState(false)
-  // ── weekly review state ──
-  const [weeklyReview, setWeeklyReview] = useState<any>(null)
-  const [weeklyLoading, setWeeklyLoading] = useState(true)
-  const [weeklyError, setWeeklyError] = useState(false)
   const [tradingData, setTradingData] = useState<any[]>([])
   const [habitsData, setHabitsData] = useState<{ habits: any[]; completions: any }>({ habits: [], completions: {} })
   const [financeData, setFinanceData] = useState<{ income: any[]; trading: any[] }>({ income: [], trading: [] })
@@ -337,25 +333,6 @@ export default function LifeHubPage() {
     setBriefVisible(true); setBriefFading(false); setNewBriefAvailable(false)
     fetchBrief(true)
   }
-  const fetchWeeklyReview = useCallback(async () => {
-    setWeeklyLoading(true); setWeeklyError(false)
-    try {
-      const res = await fetch('/api/life/weekly-review')
-      if (!res.ok) { setWeeklyError(true); setWeeklyReview(null) }
-      else {
-        const data = await res.json()
-        if (data.error) { setWeeklyError(true); setWeeklyReview(null) }
-        else setWeeklyReview(data)
-      }
-    } catch {
-      setWeeklyError(true); setWeeklyReview(null)
-    } finally {
-      setWeeklyLoading(false)
-    }
-  }, [])
-  useEffect(() => {
-    if (onboardingChecked && !showOnboarding) fetchWeeklyReview()
-  }, [fetchWeeklyReview, onboardingChecked, showOnboarding])
 
   // ââ data loading (unchanged) ââââââââââââââââââââââââââââââââââââââ
   useEffect(() => {
@@ -699,109 +676,6 @@ export default function LifeHubPage() {
             <RefreshCw size={12} />New brief from Coach Shai
           </button>
         )}
-        {/* ── Coach Shai WEEKLY REVIEW Card ── */}
-        {(() => {
-          const isSunday = new Date().getDay() === 0
-          const s = weeklyReview?.stats
-          const hasAnyData = !!s && (
-            (s.trades?.count ?? 0) > 0 ||
-            (s.habits?.totalHabits ?? 0) > 0 ||
-            (s.goals?.active ?? 0) > 0 ||
-            (s.journal?.entries ?? 0) > 0
-          )
-          const shouldShow = weeklyLoading || (!weeklyError && (isSunday || hasAnyData))
-          if (!shouldShow) return null
-
-          const fmtRange = () => {
-            if (!weeklyReview?.weekStart || !weeklyReview?.weekEnd) return ''
-            const ws = new Date(weeklyReview.weekStart)
-            const we = new Date(weeklyReview.weekEnd)
-            const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
-            return `Week of ${ws.toLocaleDateString('en-US', opts)} – ${we.toLocaleDateString('en-US', opts)}`
-          }
-
-          const goalsLabel = (() => {
-            if (!s?.goals) return '—'
-            if ((s.goals.behind ?? 0) > 0) return `${s.goals.behind} behind`
-            if ((s.goals.ahead ?? 0) > 0) return `${s.goals.ahead} ahead`
-            if ((s.goals.active ?? 0) > 0) return 'on track'
-            return '—'
-          })()
-
-          const tradesLabel = (() => {
-            if (!s?.trades) return '—'
-            const c = s.trades.count ?? 0
-            const p = s.trades.netPnl ?? 0
-            if (c === 0) return '0'
-            const sign = p >= 0 ? '+' : '-'
-            return `${c} · ${sign}$${Math.abs(p).toLocaleString()}`
-          })()
-
-          const statItems = [
-            { icon: '📊', label: 'TRADES', value: tradesLabel },
-            { icon: '🎯', label: 'GOALS', value: goalsLabel },
-            { icon: '✅', label: 'HABITS', value: s?.habits?.completionRate ?? '—' },
-            { icon: '📝', label: 'JOURNAL', value: s?.journal?.entries != null ? `${s.journal.entries} entries` : '—' },
-          ]
-
-          return (
-            <div style={{
-              background: isDark ? 'rgba(96,165,250,0.06)' : '#0f1117',
-              borderLeft: '3px solid #60a5fa',
-              borderRadius: 'var(--radius-lg)',
-              padding: '16px 20px',
-              position: 'relative',
-              marginTop: 4
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>🧠 COACH SHAI · WEEKLY REVIEW</span>
-                  {weeklyReview?.weekStart && weeklyReview?.weekEnd && (
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{fmtRange()}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => fetchWeeklyReview()}
-                  disabled={weeklyLoading}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '4px 10px', color: 'rgba(255,255,255,0.4)', background: 'transparent', border: 'none', cursor: weeklyLoading ? 'default' : 'pointer' }}
-                >
-                  <RefreshCw size={12} style={{ animation: weeklyLoading ? 'spin 1s linear infinite' : 'none' }} />Refresh
-                </button>
-              </div>
-
-              {weeklyLoading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.06)', width: '92%' }} />
-                  <div style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.06)', width: '85%' }} />
-                  <div style={{ height: 12, borderRadius: 4, background: 'rgba(255,255,255,0.06)', width: '70%' }} />
-                </div>
-              ) : (
-                <>
-                  {weeklyReview?.review && (
-                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                      {weeklyReview.review}
-                    </p>
-                  )}
-
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '14px 0 12px' }} />
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 8 }}>
-                    {statItems.map(item => (
-                      <div key={item.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase' }}>
-                          <span style={{ marginRight: 4 }}>{item.icon}</span>{item.label}
-                        </div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )
-        })()}
-
-
         {/* ââ Coach Shai Card ââ */}
         <div style={{ display: briefVisible || briefFading ? 'block' : 'none', opacity: briefFading ? 0 : 1, transition: 'opacity 0.3s ease', background: isDark ? 'rgba(96,165,250,0.06)' : '#0f1117', borderLeft: '3px solid #60a5fa', borderRadius: 'var(--radius-lg)', padding: '16px 20px', position: 'relative', marginTop: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
