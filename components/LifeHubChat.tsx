@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageSquare, X, Send, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react' 
+import { MessageCircle, MessageSquare, X, Send, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
 interface Message {
@@ -127,201 +127,196 @@ export default function LifeHubChat({
   const label = sectionLabels[section] || 'Life Hub AI'
 
   return (
-    <>
-      {/* Mobile/bottom: toggle button */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-xs font-sans tracking-wide shadow-lg transition-all duration-200 hover:scale-105 lg:hidden"
-          style={{
-            background: '#60a5fa',
-            border: 'none',
-            color: '#ffffff',
-            boxShadow: 'none',
-          }}
-        >
-          <MessageSquare size={15} />
-          {label}
-        </button>
-      )}
-
-      {/* Desktop: right side panel */}
-      <div
-        className={`fixed top-0 right-0 h-full z-40 flex flex-col transition-all duration-300 ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{
-          width: '360px',
-          background: '#1a1f2e',
-          border: '1px solid rgba(96,165,250,0.2)',
-          borderRadius: 12,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-        }}
-      >
-        {/* Header */}
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 24,
+        right: 24,
+        zIndex: 50,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: 12,
+      }}
+    >
+      {/* Popup (anchored above the bubble) */}
+      {isOpen && (
         <div
-          className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
+          className="flex flex-col"
           style={{
-            background: '#0f1117',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '12px 12px 0 0',
+            width: 400,
+            height: 560,
+            maxHeight: 'calc(100vh - 120px)',
+            background: 'var(--bg-card, #1a1f2e)',
+            borderRadius: 'var(--radius-xl, 12px)',
+            border: '1px solid var(--border, rgba(96,165,250,0.2))',
+            boxShadow: 'var(--shadow-lg, 0 4px 24px rgba(0,0,0,0.2))',
+            overflow: 'hidden',
           }}
         >
-          <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded flex items-center justify-center"
-              style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)' }}
-            >
-              <MessageSquare size={12} style={{ color: '#60a5fa' }} />
-            </div>
-            <span
-              className="text-xs font-sans font-semibold tracking-widest uppercase"
-              style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}
-            >
-              {label}
-            </span>
-          </div>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="w-7 h-7 flex items-center justify-center rounded transition-colors hover:bg-white/5"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <X size={14} />
-          </button>
-        </div>
-
-        {/* System hint */}
-        {messages.length === 0 && (
+          {/* Header */}
           <div
-            className="px-4 py-3 mx-3 mt-3 rounded-lg text-xs"
+            className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
             style={{
-              background: 'rgba(96,165,250,0.04)',
-              border: '1px solid rgba(96,165,250,0.08)',
-              color: 'var(--text-muted)',
-            }}>
-            <span style={{ color: '#60a5fa' }}>Coach Shai</span> has access to all your {section} data. Ask anything about your trends, patterns, or progress.
+              background: '#0f1117',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px 12px 0 0',
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className="w-6 h-6 rounded flex items-center justify-center"
+                style={{ background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.2)' }}
+              >
+                <MessageSquare size={12} style={{ color: '#60a5fa' }} />
+              </div>
+              <span
+                className="text-xs font-sans font-semibold tracking-widest uppercase"
+                style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}
+              >
+                {label}
+              </span>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-7 h-7 flex items-center justify-center rounded transition-colors hover:bg-white/5"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <X size={14} />
+            </button>
           </div>
-        )}
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {msg.role === 'user' ? (
-                <div
-                  className="max-w-[82%] px-4 py-2.5 text-xs leading-relaxed rounded-2xl"
-                  style={{
-                    background: '#1a1f2e',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  <span className="whitespace-pre-wrap">{msg.content}</span>
-                </div>
-              ) : (
-                <div className="max-w-[90%]" style={{ backgroundColor: '#1a1f2e' }}>
+          {/* System hint */}
+          {messages.length === 0 && (
+            <div
+              className="px-4 py-3 mx-3 mt-3 rounded-lg text-xs"
+              style={{
+                background: 'rgba(96,165,250,0.04)',
+                border: '1px solid rgba(96,165,250,0.08)',
+                color: 'var(--text-muted)',
+              }}>
+              <span style={{ color: '#60a5fa' }}>Coach Shai</span> has access to all your {section} data. Ask anything about your trends, patterns, or progress.
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+            {messages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.role === 'user' ? (
+                  <div
+                    className="max-w-[82%] px-4 py-2.5 text-xs leading-relaxed rounded-2xl"
+                    style={{
+                      background: '#1a1f2e',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    <span className="whitespace-pre-wrap">{msg.content}</span>
+                  </div>
+                ) : (
+                  <div className="max-w-[90%]" style={{ backgroundColor: '#1a1f2e' }}>
+                    <span
+                      className="block text-[9px] font-sans tracking-widest mb-1 font-semibold"
+                      style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', fontVariant: 'small-caps' }}
+                    >
+                      COACH SHAI
+                    </span>
+                    <div className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="pl-0">
                   <span
                     className="block text-[9px] font-sans tracking-widest mb-1 font-semibold"
                     style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', fontVariant: 'small-caps' }}
                   >
                     COACH SHAI
                   </span>
-                  <div className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
+                  <Loader2 size={13} className="animate-spin" style={{ color: '#60a5fa' }} />
                 </div>
-              )}
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="pl-0">
-                <span
-                  className="block text-[9px] font-sans tracking-widest mb-1 font-semibold"
-                  style={{ color: '#60a5fa', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', fontVariant: 'small-caps' }}
-                >
-                  COACH SHAI
-                </span>
-                <Loader2 size={13} className="animate-spin" style={{ color: '#60a5fa' }} />
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-        {/* Input */}
-        <div
-          className="px-3 py-3 border-t flex-shrink-0"
-          style={{ borderColor: 'rgba(255,255,255,0.08)' }}
-        >
+          {/* Input */}
           <div
-            className="flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-150"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
+            className="px-3 py-3 border-t flex-shrink-0"
+            style={{ borderColor: 'rgba(255,255,255,0.08)' }}
           >
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask Coach Shai about your data..."
-              className="flex-1 bg-transparent outline-none text-xs"
-              style={{ color: '#f9fafb' }}
-              onFocus={e => {
-                const parent = e.currentTarget.parentElement
-                if (parent) {
-                  parent.style.boxShadow = '0 0 0 1px rgba(96,165,250,0.35), 0 0 8px rgba(96,165,250,0.15)'
-                  parent.style.borderColor = 'rgba(96,165,250,0.4)'
-                }
-              }}
-              onBlur={e => {
-                const parent = e.currentTarget.parentElement
-                if (parent) {
-                  parent.style.boxShadow = ''
-                  parent.style.borderColor = 'rgba(255,255,255,0.08)'
-                }
-              }}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!input.trim() || loading}
-              className="w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150 disabled:opacity-40"
+            <div
+              className="flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-150"
               style={{
-                background: '#60a5fa',
-                border: 'none',
-                color: '#ffffff',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
               }}
             >
-              <Send size={11} />
-            </button>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask Coach Shai about your data..."
+                className="flex-1 bg-transparent outline-none text-xs"
+                style={{ color: '#f9fafb' }}
+                onFocus={e => {
+                  const parent = e.currentTarget.parentElement
+                  if (parent) {
+                    parent.style.boxShadow = '0 0 0 1px rgba(96,165,250,0.35), 0 0 8px rgba(96,165,250,0.15)'
+                    parent.style.borderColor = 'rgba(96,165,250,0.4)'
+                  }
+                }}
+                onBlur={e => {
+                  const parent = e.currentTarget.parentElement
+                  if (parent) {
+                    parent.style.boxShadow = ''
+                    parent.style.borderColor = 'rgba(255,255,255,0.08)'
+                  }
+                }}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || loading}
+                className="w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150 disabled:opacity-40"
+                style={{
+                  background: '#60a5fa',
+                  border: 'none',
+                  color: '#ffffff',
+                }}
+              >
+                <Send size={11} />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Desktop toggle tab (side tab) */}
+      {/* Floating bubble (closed-state trigger; also toggles when open) */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-1.5 px-1.5 py-4 text-[10px] font-sans font-bold tracking-widest transition-all duration-200"
+        onClick={() => setIsOpen(p => !p)}
+        aria-label={isOpen ? `Close ${label}` : `Open ${label}`}
         style={{
-          background: '#60a5fa',
-          borderLeft: 'none',
-          borderTop: 'none',
-          borderBottom: 'none',
-          borderRadius: '8px 0 0 8px',
-          color: '#ffffff',
-          right: isOpen ? '360px' : '0px',
-          boxShadow: 'none',
-          textShadow: 'none',
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          background: '#0f1117',
+          border: '2px solid var(--brand, #60a5fa)',
+          boxShadow: 'var(--shadow-lg, 0 4px 24px rgba(0,0,0,0.2))',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
         }}
       >
-        {isOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-        <span style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}>
-          {label}
-        </span>
+        <MessageCircle size={22} color="var(--brand, #60a5fa)" />
       </button>
-    </>
+    </div>
   )
 }
