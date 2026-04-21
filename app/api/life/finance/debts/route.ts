@@ -17,8 +17,10 @@ export type Debt = {
   name: string
   type: 'credit_card' | 'student_loan' | 'personal_loan' | 'mortgage' | 'auto_loan' | 'other'
   balance: number
+  originalBalance: number
   interestRate: number
   minimumPayment: number
+  dueDate?: number
   createdAt: string
   updatedAt: string
 }
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest) {
 }
 
 // -- POST ---------------------------------------------------------------------
-// Body: { name, type, balance, interestRate, minimumPayment }
+// Body: { name, type, balance, interestRate, minimumPayment, originalBalance?, dueDate? }
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -66,7 +68,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { name, type, balance, interestRate, minimumPayment } = body
+    const { name, type, balance, interestRate, minimumPayment, originalBalance, dueDate } = body
 
     if (!name || !type || balance === undefined || interestRate === undefined || minimumPayment === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -81,6 +83,8 @@ export async function POST(req: NextRequest) {
       balance: Number(balance) || 0,
       interestRate: Number(interestRate) || 0,
       minimumPayment: Number(minimumPayment) || 0,
+      originalBalance: Number(originalBalance ?? balance) || 0,
+      dueDate: dueDate !== undefined && dueDate !== null && dueDate !== '' ? Number(dueDate) : undefined,
       createdAt: now,
       updatedAt: now,
     }
