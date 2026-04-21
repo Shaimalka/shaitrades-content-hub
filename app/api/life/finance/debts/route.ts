@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   try {
     const raw = ((await redis.get(debtsKey(userId))) as Debt[]) || []
-    // Migration: map legacy dueDate -> dueDayOfMonth on read
+    // Migration: map legacy dueDate -> dueDayOfMonth on read (backward compat)
     const debts = raw.map((d: any) => {
       if (d && d.dueDayOfMonth == null && d.dueDate != null) {
         const { dueDate, ...rest } = d
@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
 
 // -- POST ---------------------------------------------------------------------
 // Body: { name, type, balance, interestRate, minimumPayment, originalBalance?, dueDayOfMonth?, payoffDate? }
+// Accepts legacy `dueDate` as an alias for dueDayOfMonth for backward compat.
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -72,6 +73,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { name, type, balance, interestRate, minimumPayment, originalBalance, dueDayOfMonth, payoffDate } = body
+    // Backward-compat: accept legacy `dueDate` if dueDayOfMonth is not provided
+    const dueDayRaw = dueDayOfMonth !== undefined && dueDayOfMonth !== null && dueDayOfMonth !== ''
+      ? dueDayOfMonth
+      : (body.dueDate !== undefined && body.dueDate !== null && body.dueDate !== '' ? body.dueDate : undefined)
     if (!name || !type || balance === undefined || interestRate === undefined || minimumPayment === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
@@ -85,7 +90,7 @@ export async function POST(req: NextRequest) {
       interestRate: Number(interestRate) || 0,
       minimumPayment: Number(minimumPayment) || 0,
       originalBalance: Number(originalBalance ?? balance) || 0,
-      dueDayOfMonth: dueDayOfMonth !== undefined && dueDayOfMonth !== null && dueDayOfMonth !== '' ? Number(dueDayOfMonth) : undefined,
+      dueDayOfMonth: dueDayRaw !== undefined ? Number(dueDayRaw) : undefined,
       payoffDate: typeof payoffDate === 'string' && payoffDate.trim() !== '' ? payoffDate : undefined,
       createdAt: now,
       updatedAt: now,
@@ -101,6 +106,7 @@ export async function POST(req: NextRequest) {
 
 // -- PATCH --------------------------------------------------------------------
 // Body: { id, updates: Partial<Debt> }
+// Accepts legacy `dueDate` inside updates as an alias for dueDayOfMonth.
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -115,6 +121,12 @@ export async function PATCH(req: NextRequest) {
     if (!id || !updates) {
       return NextResponse.json({ error: 'id and updates required' }, { status: 400 })
     }
+    // Backward-compat: translate legacy `dueDate` key in updates to dueDayOfMonth
+    const normalizedUpdates: any = { ...updates }
+    if (normalizedUpdates.dueDate !== undefined && normalizedUpdates.dueDayOfMonth === undefined) {
+      normalizedUpdates.dueDayOfMonth = normalizedUpdates.dueDate
+    }
+    delete normalizedUpdates.dueDate
     const debts: Debt[] = ((await redis.get(debtsKey(userId))) as Debt[]) || []
     const idx = debts.findIndex((d: Debt) => d.id === id)
     if (idx === -1) {
@@ -124,7 +136,7 @@ export async function PATCH(req: NextRequest) {
       d.id === id
         ? {
             ...d,
-            ...updates,
+            ...normalizedUpdates,
             id: d.id,
             userId: d.userId,
             createdAt: d.createdAt,
