@@ -175,6 +175,16 @@ function FinancePage() {
     const g = localStorage.getItem(GOAL_STORAGE_KEY); if (g) { setMonthlyGoal(Number(g)); setGoalInput(g) }
     const nw = localStorage.getItem(NW_STORAGE_KEY); if (nw) { try { setNwHistory(JSON.parse(nw)) } catch {} }
   }, [])
+
+  useEffect(() => {
+    if (activeSection === 'expenses') {
+      setActiveTab('expenses')
+    } else if (activeSection === 'income') {
+      if (activeTab === 'expenses') {
+        setActiveTab('trading')
+      }
+    }
+  }, [activeSection])
   async function addStream(s: Omit<IncomeStream, 'id'>) {
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add_stream', stream: s }) })
     const data = await res.json(); if (data.streams) setStreams(data.streams); setShowNewStream(false); setActiveTab(data.streams?.[data.streams.length - 1]?.id || activeTab)
@@ -680,9 +690,6 @@ function FinancePage() {
               )}
             </div>
           ))}
-          <button onClick={() => { setActiveTab('expenses'); setShowForm(false) }} style={{ padding: '8px 16px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: activeTab === 'expenses' ? 'rgba(255,77,106,0.12)' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), border: activeTab === 'expenses' ? '1px solid rgba(255,77,106,0.3)' : '1px solid rgba(255,255,255,0.06)', borderBottom: activeTab === 'expenses' ? '2px solid #ff4d6a' : '2px solid transparent', color: activeTab === 'expenses' ? '#ff4d6a' : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>
-            EXPENSES
-          </button>
           <button onClick={() => setShowNewStream(!showNewStream)} style={{ padding: '8px 14px', fontFamily: 'Inter, sans-serif', fontSize: 12, borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px dashed rgba(37,99,235,0.3)', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Plus size={10} /> New Stream
           </button>
