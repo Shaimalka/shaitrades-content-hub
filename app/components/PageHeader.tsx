@@ -27,9 +27,9 @@ export default function PageHeader({ title, tabs, onTabClick }: Props) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '14px 0 0 0',
+        padding: '18px 0 0 0',
         borderBottom: `0.5px solid ${cardBorder}`,
-        marginBottom: 24,
+        marginBottom: 28,
         flexWrap: 'wrap',
         gap: 12,
       }}
@@ -37,17 +37,17 @@ export default function PageHeader({ title, tabs, onTabClick }: Props) {
       <h1
         style={{
           fontFamily: 'Inter, sans-serif',
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: 700,
           color: textPrimary,
-          margin: '0 0 12px 0',
+          margin: '0 0 14px 0',
           letterSpacing: '-0.01em',
         }}
       >
         {title}
       </h1>
       {tabs && tabs.length > 0 && (
-        <nav style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }} aria-label="Page tabs">
+        <nav style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }} aria-label="Page tabs">
           {tabs.map(tab => {
             const active = tab.active
             return (
@@ -58,14 +58,14 @@ export default function PageHeader({ title, tabs, onTabClick }: Props) {
                 aria-current={active ? 'page' : undefined}
                 style={{
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: active ? 700 : 500,
                   color: active ? textPrimary : textSecondary,
-                  padding: '0 0 12px 0',
+                  padding: '0 0 14px 0',
                   cursor: 'pointer',
                   background: 'none',
                   border: 'none',
-                  borderBottom: active ? `2px solid ${BRAND}` : '2px solid transparent',
+                  borderBottom: active ? `2.5px solid ${BRAND}` : '2.5px solid transparent',
                   marginBottom: -1,
                   transition: 'color 0.12s ease, border-color 0.12s ease',
                 }}
