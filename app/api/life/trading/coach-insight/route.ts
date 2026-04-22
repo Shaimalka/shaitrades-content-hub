@@ -20,8 +20,10 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    const { trade } = await req.json()
+    const body = await req.json()
+    const { trade, localDate: clientLocalDate } = body as { trade: any; localDate?: string }
     if (!trade) return NextResponse.json({ error: 'No trade data provided' }, { status: 400 })
+    const localDate = clientLocalDate || new Date().toISOString().split('T')[0]
 
     // Fetch trader profile and user settings for personalization + timezone
     const userId = session.user?.email || 'default'
@@ -83,8 +85,22 @@ export async function POST(req: NextRequest) {
 
     let systemPrompt = BASE_PROMPT
 
-    // Inject timezone context
-    systemPrompt += `\n\nUser's timezone: ${userTimezone}\nCurrent local time for user: ${localTime} (${timeOfDay})\nPrimary trading session: ${userSession} open (${sessionTime} in user's local time)\nUse this to make time-relevant comments. Never reference wrong times of day. Example: if it's 11pm for the user and they trade NY session, acknowledge the late night grind. Do NOT say "good morning" if it's evening for the user.`
+    // Inject timezone context — three-branch guard against UTC-fallback leaks
+    const hasTimezone = !!(settings?.timezone && settings.timezone !== 'UTC')
+    const serverUtcDate = new Date().toISOString().split('T')[0]
+    const datesMatch = localDate === serverUtcDate
+
+    if (hasTimezone) {
+      // User has a saved timezone — Intl.DateTimeFormat computation above is authoritative
+      systemPrompt += `\n\nUser's timezone: ${userTimezone}\nUser's local date: ${localDate}\nCurrent local time for user: ${localTime} (${timeOfDay})\nPrimary trading session: ${userSession} open (${sessionTime} in user's local time)\nUse this to make time-relevant comments. Never reference wrong times of day. Example: if it's 11pm for the user and they trade NY session, acknowledge the late night grind. Do NOT say "good morning" if it's evening for the user.`
+    } else if (!datesMatch) {
+      // No saved tz and client's local date differs from server UTC — clearly non-UTC user
+      // Skip timeOfDay entirely to avoid leaking a server-UTC assumption
+      systemPrompt += `\n\nUser's local date: ${localDate}. Time of day unknown — avoid assumptions about morning/evening.`
+    } else {
+      // No saved tz, dates match — existing UTC-adjacent fallback is acceptable
+      systemPrompt += `\n\nUser's timezone: ${userTimezone}\nUser's local date: ${localDate}\nCurrent local time for user: ${localTime} (${timeOfDay})\nPrimary trading session: ${userSession} open (${sessionTime} in user's local time)\nUse this to make time-relevant comments. Never reference wrong times of day. Example: if it's 11pm for the user and they trade NY session, acknowledge the late night grind. Do NOT say "good morning" if it's evening for the user.`
+    }
 
     if (profile) {
       const p = profile as any
