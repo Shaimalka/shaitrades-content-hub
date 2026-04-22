@@ -585,7 +585,7 @@ function FinancePage() {
                 <strong style={{ color: _tb.AMBER }}>Possible duplicate:</strong>{' '}
                 You have a Liability with the same name as a Debt ({duplicateMatches.map(m => m.name).join(', ')}). Debts are already included in Total Liabilities.
               </div>
-              <button onClick={dismissNwDuplicateWarning} style={{ background: 'none', border: 'none', cursor: 'pointer', color: _tb.textMuted, padding: 2 }} aria-label="Dismiss warning">
+              <button onClick={dismissNwDuplicateWarning} style={{ background: 'none', border: 'none', cursor: 'pointer', color: _tb.textMuted, padding: 2, borderRadius: 4, transition: 'color 0.12s ease, background 0.12s ease' }} aria-label="Dismiss warning" onMouseEnter={e => { e.currentTarget.style.color = _tb.textPrimary; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }} onMouseLeave={e => { e.currentTarget.style.color = _tb.textMuted; e.currentTarget.style.background = 'transparent' }} onFocus={e => { e.currentTarget.style.color = _tb.textPrimary; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }} onBlur={e => { e.currentTarget.style.color = _tb.textMuted; e.currentTarget.style.background = 'transparent' }}>
                 <X size={14} />
               </button>
             </div>
@@ -611,7 +611,7 @@ function FinancePage() {
             <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.GREEN, margin: 0 }}>ASSETS</h3>
-                <button onClick={() => { if (showAssetForm) { setShowAssetForm(false); setEditingAssetId(null); setAssetForm({ name: '', value: '', category: 'Cash', liquidity: 'liquid' }) } else { setShowAssetForm(true); setShowLiabilityForm(false); setEditingAssetId(null) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,0.1)', border: `1px solid #a7f3d0`, borderRadius: 6, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', transition: 'background 0.12s' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.16)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.1)')}>
+                <button onClick={() => { if (showAssetForm) { setShowAssetForm(false); setEditingAssetId(null); setAssetForm({ name: '', value: '', category: 'Cash', liquidity: 'liquid' }) } else { setShowAssetForm(true); setShowLiabilityForm(false); setEditingAssetId(null) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,0.06)', border: `1px solid #a7f3d0`, borderRadius: 6, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', transition: 'background 0.12s ease' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')} onFocus={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')} onBlur={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}>
                   <Plus size={11} /> {editingAssetId ? 'Cancel' : 'Add Asset'}
                 </button>
               </div>
@@ -657,7 +657,22 @@ function FinancePage() {
               {/* Assets list (grouped by liquidity) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {assets.length === 0 ? (
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), textAlign: 'center', padding: '20px 0' }}>No assets yet</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', border: `1px dashed ${_tb.cardBorder}`, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary, margin: 0, textAlign: 'center', lineHeight: 1.5, maxWidth: 280 }}>
+                      Start with your cash balance — most people begin with checking + savings.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAssetForm(true); setShowLiabilityForm(false); setEditingAssetId(null) }}
+                      style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(16,185,129,0.06)', border: '1px solid #a7f3d0', borderRadius: 8, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 14px', cursor: 'pointer', transition: 'background 0.12s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}
+                      onFocus={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')}
+                      onBlur={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}
+                    >
+                      <Plus size={12} /> Add your first asset
+                    </button>
+                  </div>
                 ) : (
                   (['liquid','illiquid'] as const).map(group => {
                     const rows = assets.filter(a => getAssetLiquidity(a) === group)
@@ -689,7 +704,7 @@ function FinancePage() {
             <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.RED, margin: 0 }}>LIABILITIES</h3>
-                <button onClick={() => { if (showLiabilityForm) { setShowLiabilityForm(false); setEditingLiabilityId(null); setLiabilityForm({ name: '', amount: '', category: 'Credit Card' }) } else { setShowLiabilityForm(true); setShowAssetForm(false); setEditingLiabilityId(null) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.1)', border: `1px solid #fecaca`, borderRadius: 6, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', transition: 'background 0.12s' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.16)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}>
+                <button onClick={() => { if (showLiabilityForm) { setShowLiabilityForm(false); setEditingLiabilityId(null); setLiabilityForm({ name: '', amount: '', category: 'Credit Card' }) } else { setShowLiabilityForm(true); setShowAssetForm(false); setEditingLiabilityId(null) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.06)', border: `1px solid #fecaca`, borderRadius: 6, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', transition: 'background 0.12s ease' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')} onFocus={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')} onBlur={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}>
                   <Plus size={11} /> {editingLiabilityId ? 'Cancel' : 'Add Liability'}
                 </button>
               </div>
@@ -722,7 +737,22 @@ function FinancePage() {
               {/* Editable user Liabilities list */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {liabilities.length === 0 ? (
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), textAlign: 'center', padding: '20px 0' }}>No liabilities yet</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', border: `1px dashed ${_tb.cardBorder}`, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary, margin: 0, textAlign: 'center', lineHeight: 1.5, maxWidth: 300 }}>
+                      No liabilities yet. Loans, credit cards, and other debts show up here.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowLiabilityForm(true); setShowAssetForm(false); setEditingLiabilityId(null) }}
+                      style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(239,68,68,0.06)', border: '1px solid #fecaca', borderRadius: 8, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 14px', cursor: 'pointer', transition: 'background 0.12s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}
+                      onFocus={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')}
+                      onBlur={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}
+                    >
+                      <Plus size={12} /> Add your first liability
+                    </button>
+                  </div>
                 ) : (
                   liabilities.map(l => (
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? '#111118' : '#f8f9fc', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}` }}>
@@ -741,7 +771,7 @@ function FinancePage() {
                 <div style={{ marginTop: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.textMuted }}>Merged from Debts</span>
-                    <button onClick={() => setActiveSection('debts')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.BRAND, padding: 0 }}>From Debts tab →</button>
+                    <button onClick={() => setActiveSection('debts')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, color: _tb.BRAND, padding: 0, transition: 'color 0.12s ease, text-decoration-color 0.12s ease', textDecoration: 'underline', textDecorationColor: 'transparent', textUnderlineOffset: 3 }} onMouseEnter={e => { e.currentTarget.style.color = _tb.BRAND_DARK; e.currentTarget.style.textDecorationColor = _tb.BRAND_DARK }} onMouseLeave={e => { e.currentTarget.style.color = _tb.BRAND; e.currentTarget.style.textDecorationColor = 'transparent' }} onFocus={e => { e.currentTarget.style.color = _tb.BRAND_DARK; e.currentTarget.style.textDecorationColor = _tb.BRAND_DARK }} onBlur={e => { e.currentTarget.style.color = _tb.BRAND; e.currentTarget.style.textDecorationColor = 'transparent' }}>From Debts tab →</button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {debts.map(d => (

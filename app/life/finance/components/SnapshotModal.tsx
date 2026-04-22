@@ -167,7 +167,7 @@ export default function SnapshotModal({ isOpen, onClose, isDark, defaultDate, pr
             onClick={onClose}
             disabled={submitting}
             style={{
-              background: 'transparent',
+              background: 'rgba(96,165,250,0.06)',
               border: `1px solid #bfdbfe`,
               borderRadius: 8,
               color: BLUE,
@@ -176,7 +176,12 @@ export default function SnapshotModal({ isOpen, onClose, isDark, defaultDate, pr
               fontWeight: 600,
               padding: '9px 14px',
               cursor: submitting ? 'wait' : 'pointer',
+              transition: 'background 0.12s ease',
             }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(96,165,250,0.14)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(96,165,250,0.06)')}
+            onFocus={e => (e.currentTarget.style.background = 'rgba(96,165,250,0.14)')}
+            onBlur={e => (e.currentTarget.style.background = 'rgba(96,165,250,0.06)')}
           >
             Cancel
           </button>

@@ -141,7 +141,12 @@ function AddForm({
           cursor: submitting ? 'wait' : 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
+          transition: 'filter 0.12s ease',
         }}
+        onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
+        onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+        onFocus={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
+        onBlur={e => (e.currentTarget.style.filter = 'none')}
         title="Save"
       >
         <Check size={14} />
@@ -158,7 +163,12 @@ function AddForm({
           cursor: 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
+          transition: 'background 0.12s ease, color 0.12s ease',
         }}
+        onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'; e.currentTarget.style.color = isDark ? '#f9fafb' : '#0f172a' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.65)' : '#475569' }}
+        onFocus={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'; e.currentTarget.style.color = isDark ? '#f9fafb' : '#0f172a' }}
+        onBlur={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.65)' : '#475569' }}
         title="Cancel"
       >
         <X size={14} />
@@ -244,7 +254,12 @@ function EditForm({
           cursor: submitting ? 'wait' : 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
+          transition: 'filter 0.12s ease',
         }}
+        onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
+        onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+        onFocus={e => (e.currentTarget.style.filter = 'brightness(1.08)')}
+        onBlur={e => (e.currentTarget.style.filter = 'none')}
         title="Save"
       >
         <Check size={14} />
@@ -261,7 +276,12 @@ function EditForm({
           cursor: 'pointer',
           display: 'inline-flex',
           alignItems: 'center',
+          transition: 'background 0.12s ease, color 0.12s ease',
         }}
+        onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'; e.currentTarget.style.color = isDark ? '#f9fafb' : '#0f172a' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.65)' : '#475569' }}
+        onFocus={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'; e.currentTarget.style.color = isDark ? '#f9fafb' : '#0f172a' }}
+        onBlur={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.65)' : '#475569' }}
         title="Cancel"
       >
         <X size={14} />

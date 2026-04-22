@@ -221,7 +221,7 @@ function EmptyPieCard({
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              background: 'transparent',
+              background: 'rgba(16,185,129,0.06)',
               border: `1px solid #a7f3d0`,
               borderRadius: 8,
               color: GREEN,
@@ -230,10 +230,12 @@ function EmptyPieCard({
               fontWeight: 600,
               padding: '7px 12px',
               cursor: 'pointer',
-              transition: 'background 0.12s',
+              transition: 'background 0.12s ease',
             }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.08)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}
+            onFocus={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')}
+            onBlur={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}
           >
             <Plus size={12} /> Add asset
           </button>
