@@ -9,6 +9,7 @@ import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import StatCard from '@/app/components/ui/StatCard'
 import Button from '@/app/components/ui/Button'
+import { getLocalDateString } from '@/lib/date'
 type Trade = {
   id: string; date: string; direction: 'Long' | 'Short'
   contracts: number
@@ -1265,7 +1266,7 @@ function TradingJournalInner() {
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
     setCoachInsight({ text: 'Coach Shai is watching...', visible: true, fading: false })
     try {
-      const res = await fetch('/api/life/trading/coach-insight', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trade }) })
+      const res = await fetch('/api/life/trading/coach-insight', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trade, localDate: getLocalDateString() }) })
       const data = await res.json()
       const insightText = data.insight || 'Keep grinding. Every trade is data.'
       setCoachInsight({ text: insightText, visible: true, fading: false })
