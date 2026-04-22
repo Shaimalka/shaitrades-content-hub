@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Target, Settings, X } from 'lucide-react'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 
 type TimeHorizon = 'weekly' | 'monthly' | 'quarterly'
 type GoalType = 'trading' | 'life'
@@ -523,11 +524,8 @@ function GoalsInner() {
   return (
     <div style={{ background: pageBg, minHeight: '100vh' }}>
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '24px 16px' : '32px 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: isMobile ? 24 : 28, fontWeight: 800, color: textPrimary, margin: 0, lineHeight: 1.2 }}>Goals</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: '#94a3b8', margin: '4px 0 0' }}>Weekly, monthly, and quarterly targets</p>
-          </div>
+        <PageHeader title="Goals" />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
           <button onClick={openNewForm} style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={14} /> New Goal
           </button>

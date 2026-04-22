@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 import { Settings, Plus, Gear, Trash2, X, ChevronDown } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -486,15 +487,7 @@ export default function SettingsClient() {
       )}
 
       <div style={{ maxWidth: 760 }}>
-        {/* Page header */}
-        <div style={{ marginBottom: 36 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: text, margin: '0 0 6px' }}>
-            Settings
-          </h1>
-          <p style={{ fontSize: 14, color: muted, margin: 0 }}>
-            Manage your accounts and preferences
-          </p>
-        </div>
+        <PageHeader title="Settings" />
 
         {/* ── Accounts Card ── */}
         <div style={{
