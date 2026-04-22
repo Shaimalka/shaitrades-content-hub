@@ -590,19 +590,19 @@ function FinancePage() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
             <div style={tbStatCard(_tb.BRAND)}>
               <p style={tbLabel}>NET WORTH</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 26 : 32, fontWeight: 800, color: netWorthPositive ? _tb.GREEN : _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: netWorthPositive ? _tb.GREEN : _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>
                 {netWorthPositive ? '' : '−'}{fmt(Math.abs(netWorth))}
               </p>
             </div>
             <div style={tbStatCard(_tb.GREEN)}>
               <p style={tbLabel}>TOTAL ASSETS</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 26 : 32, fontWeight: 800, color: _tb.GREEN, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalAssets)}</p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.textMuted, margin: '6px 0 0 0' }}>Liquid {fmt(liquidTotal)} · Illiquid {fmt(illiquidTotal)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: _tb.GREEN, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalAssets)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: _tb.textMuted, margin: '6px 0 0 0' }}>Liquid {fmt(liquidTotal)} · Illiquid {fmt(illiquidTotal)}</p>
             </div>
             <div style={tbStatCard(_tb.RED)}>
               <p style={tbLabel}>TOTAL LIABILITIES</p>
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 26 : 32, fontWeight: 800, color: _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalLiabilitiesCombined)}</p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.textMuted, margin: '6px 0 0 0' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalLiabilitiesCombined)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: _tb.textMuted, margin: '6px 0 0 0' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</p>
             </div>
           </div>
 
@@ -623,9 +623,9 @@ function FinancePage() {
           {/* Assets + Liabilities side by side */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             {/* ASSETS PANEL */}
-            <div>
+            <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: _tb.GREEN, margin: 0 }}>ASSETS</h3>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.GREEN, margin: 0 }}>ASSETS</h3>
                 <button onClick={() => { setShowAssetForm(!showAssetForm); setShowLiabilityForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,0.1)', border: `1px solid ${_tb.GREEN}40`, borderRadius: 6, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
                   <Plus size={10} /> Add Asset
                 </button>
@@ -681,8 +681,8 @@ function FinancePage() {
                     return (
                       <div key={group} style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 6 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 2px' }}>
-                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: _tb.textMuted }}>{group}</span>
-                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 700, color: _tb.textMuted }}>{fmt(groupTotal)}</span>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.textMuted }}>{group}</span>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: _tb.textMuted }}>{fmt(groupTotal)}</span>
                         </div>
                         {rows.map(a => (
                           <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? '#111118' : '#f8f9fc', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}` }}>
@@ -700,9 +700,9 @@ function FinancePage() {
             </div>
 
             {/* LIABILITIES PANEL */}
-            <div>
+            <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: _tb.RED, margin: 0 }}>LIABILITIES</h3>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.RED, margin: 0 }}>LIABILITIES</h3>
                 <button onClick={() => { setShowLiabilityForm(!showLiabilityForm); setShowAssetForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.1)', border: `1px solid ${_tb.RED}40`, borderRadius: 6, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
                   <Plus size={10} /> Add Liability
                 </button>
@@ -753,14 +753,14 @@ function FinancePage() {
               {debts.length > 0 && (
                 <div style={{ marginTop: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: _tb.textMuted }}>Merged from Debts</span>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.textMuted }}>Merged from Debts</span>
                     <button onClick={() => setActiveSection('debts')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.BRAND, padding: 0 }}>From Debts tab →</button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {debts.map(d => (
                       <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderRadius: 8, border: `1px dashed ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, opacity: 0.85 }}>
                         <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary }}>{d.name}</span>
-                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: _tb.RED }}>{fmt(d.balance || 0)}</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: _tb.RED }}>{fmt(d.balance || 0)}</span>
                       </div>
                     ))}
                   </div>
@@ -771,8 +771,8 @@ function FinancePage() {
               {(liabilities.length > 0 || debts.length > 0) && (
                 <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: _tb.textMuted, textTransform: 'uppercase' }}>TOTAL LIABILITIES</span>
-                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: _tb.RED }}>{fmt(totalLiabilitiesCombined)}</span>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: _tb.textMuted, textTransform: 'uppercase' }}>TOTAL LIABILITIES</span>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 700, color: _tb.RED }}>{fmt(totalLiabilitiesCombined)}</span>
                   </div>
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.textMuted, marginTop: 4, textAlign: 'right' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</div>
                 </div>
