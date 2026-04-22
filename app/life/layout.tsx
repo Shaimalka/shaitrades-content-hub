@@ -47,6 +47,7 @@ function LifeLayoutInner({ children }: { children: React.ReactNode }) {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
+          minWidth: 0,
           transition: 'margin-left 0.2s ease',
         }}
       >

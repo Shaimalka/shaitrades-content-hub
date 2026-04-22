@@ -77,6 +77,7 @@ function PieCard({
         padding: '18px 20px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         fontFamily: 'Inter, sans-serif',
+        minWidth: 0,
       }}
     >
       <h4
@@ -92,7 +93,7 @@ function PieCard({
       >
         {title}
       </h4>
-      <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 14, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '140px minmax(0, 1fr)', gap: 14, alignItems: 'center' }}>
         <div style={{ width: 140, height: 140 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -139,60 +140,84 @@ function PieCard({
   )
 }
 
-export default function NetWorthPies({ assets, isDark, onAddAsset }: Props) {
-  const total = assets.reduce((s, a) => s + a.value, 0)
+function EmptyPieCard({
+  title,
+  isDark,
+  onAddAsset,
+}: {
+  title: string
+  isDark: boolean
+  onAddAsset: () => void
+}) {
   const cardBg = isDark ? '#1a1f2e' : '#ffffff'
   const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
-  const textSecondary = isDark ? 'rgba(255,255,255,0.65)' : '#475569'
   const textMuted = isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8'
+  const textSecondary = isDark ? 'rgba(255,255,255,0.65)' : '#475569'
+  const ringColor = isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0'
   const GREEN = '#10b981'
 
-  if (assets.length === 0 || total === 0) {
-    return (
-      <div
+  return (
+    <div
+      style={{
+        background: cardBg,
+        border: `1px solid ${cardBorder}`,
+        borderRadius: 12,
+        padding: '18px 20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        fontFamily: 'Inter, sans-serif',
+        minWidth: 0,
+      }}
+    >
+      <h4
         style={{
-          background: cardBg,
-          border: `1px solid ${cardBorder}`,
-          borderRadius: 12,
-          padding: '18px 20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           fontFamily: 'Inter, sans-serif',
-          marginBottom: 16,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          color: textMuted,
+          margin: '0 0 12px 0',
         }}
       >
-        <h4
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            color: textMuted,
-            margin: '0 0 12px 0',
-          }}
-        >
-          ALLOCATION
-        </h4>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '32px 20px',
-            border: `1px dashed ${cardBorder}`,
-            borderRadius: 10,
-            background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc',
-          }}
-        >
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, margin: 0, textAlign: 'center' }}>
+        {title}
+      </h4>
+      <div style={{ display: 'grid', gridTemplateColumns: '140px minmax(0, 1fr)', gap: 14, alignItems: 'center' }}>
+        <div style={{ width: 140, height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 124,
+              height: 124,
+              borderRadius: '50%',
+              border: `2px dashed ${ringColor}`,
+              boxSizing: 'border-box',
+              position: 'relative',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 22,
+                left: 22,
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc',
+                border: `1px dashed ${ringColor}`,
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: textSecondary, margin: 0, lineHeight: 1.5 }}>
             Add assets to see your allocation.
           </p>
           <button
             type="button"
             onClick={onAddAsset}
             style={{
-              marginTop: 14,
+              alignSelf: 'flex-start',
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
@@ -203,7 +228,7 @@ export default function NetWorthPies({ assets, isDark, onAddAsset }: Props) {
               fontFamily: 'Inter, sans-serif',
               fontSize: 13,
               fontWeight: 600,
-              padding: '9px 14px',
+              padding: '7px 12px',
               cursor: 'pointer',
               transition: 'background 0.12s',
             }}
@@ -213,6 +238,26 @@ export default function NetWorthPies({ assets, isDark, onAddAsset }: Props) {
             <Plus size={12} /> Add asset
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+export default function NetWorthPies({ assets, isDark, onAddAsset }: Props) {
+  const total = assets.reduce((s, a) => s + a.value, 0)
+
+  if (assets.length === 0 || total === 0) {
+    return (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
+        <EmptyPieCard title="ALLOCATION BY CATEGORY" isDark={isDark} onAddAsset={onAddAsset} />
+        <EmptyPieCard title="ALLOCATION BY LIQUIDITY" isDark={isDark} onAddAsset={onAddAsset} />
       </div>
     )
   }
@@ -224,7 +269,7 @@ export default function NetWorthPies({ assets, isDark, onAddAsset }: Props) {
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         gap: 16,
         marginBottom: 16,
       }}

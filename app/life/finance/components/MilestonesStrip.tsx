@@ -399,7 +399,7 @@ export default function MilestonesStrip({
   })
 
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 16, minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <h4
           style={{
@@ -420,7 +420,8 @@ export default function MilestonesStrip({
           display: 'flex',
           gap: 10,
           overflowX: 'auto',
-          padding: '4px 2px 8px 2px',
+          padding: '6px 4px 10px 4px',
+          margin: '0 -4px',
           scrollbarWidth: 'thin',
         }}
       >

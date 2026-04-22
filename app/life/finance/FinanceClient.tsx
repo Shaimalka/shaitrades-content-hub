@@ -557,7 +557,7 @@ function FinancePage() {
         <div style={{ ...cardStyle, marginBottom: 24 }}>
 
           {/* 3 brand-kit stat cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
             <div style={tbStatCard(_tb.BRAND)}>
               <p style={tbLabel}>NET WORTH</p>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: netWorthPositive ? _tb.GREEN : _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>
@@ -606,7 +606,7 @@ function FinancePage() {
           />
 
           {/* Assets + Liabilities side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
             {/* ASSETS PANEL */}
             <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
