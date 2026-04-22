@@ -7,6 +7,7 @@ import CSVImportModal from '@/app/components/trading/CSVImportModal'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 import StatCard from '@/app/components/ui/StatCard'
 import Button from '@/app/components/ui/Button'
 import { getLocalDateString } from '@/lib/date'
@@ -1368,6 +1369,8 @@ function TradingJournalInner() {
         .stat-card-hover:hover { transform: translateY(-1px); transition: transform 0.15s ease; }
       `}} />
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '16px' : '24px 24px' }}>
+
+        <PageHeader title="Trading Journal" />
 
         {/* ===== ACTION BUTTONS ===== */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>

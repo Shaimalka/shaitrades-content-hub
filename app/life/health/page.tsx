@@ -6,6 +6,7 @@ import LifeHubChat from '@/components/LifeHubChat'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import PageHeader from '@/app/components/PageHeader'
 
 type HealthLog = { id: string; date: string; weight?: number; sleep?: number; sleepQuality?: number; gym: boolean; energy?: number; notes?: string }
 type CorrelationInsight = { text: string; icon: string; color: string }
@@ -192,15 +193,7 @@ function HealthInner() {
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-          <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>â LIFE HUB</Link>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Health</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#aaaaaa' : '#0f1117'), marginTop: 2 }}>Track sleep, energy, gym and wellbeing</p>
-          </div>
-          <Heart size={32} style={{ color: '#ff4d6a', opacity: 0.4 }} />
-        </div>
+        <PageHeader title="Health" />
 
         {/* Alerts */}
         {lowSleepWarning && (

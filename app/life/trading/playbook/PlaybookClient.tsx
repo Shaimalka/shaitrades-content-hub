@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Trash2, BookOpen, AlertTriangle, Plus, X } from 'lucide-react'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 
 type Playbook = {
   id: string
@@ -400,16 +401,8 @@ Keep the total response under 300 words. Be specific to their actual trade data,
       <style dangerouslySetInnerHTML={{ __html: '@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }' }} />
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-        {/* Page Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 32 }}>
-          <div>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em', margin: '0 0 6px' }}>
-              Trading Playbook
-            </h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: textSecondary, margin: 0 }}>
-              Define your setups. Know what works.
-            </p>
-          </div>
+        <PageHeader title="Trading Playbook" />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
           <button
             onClick={scrollToCreateForm}
             style={{

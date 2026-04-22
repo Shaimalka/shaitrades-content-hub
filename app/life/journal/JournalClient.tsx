@@ -6,6 +6,7 @@ import LifeHubChat from '@/components/LifeHubChat'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 
 type MoodTag = 'Focused' | 'Anxious' | 'Motivated' | 'Tired' | 'Grateful' | 'Neutral' | 'Proud' | 'Disappointed'
 type TradingMindset = 'Confident' | 'Cautious' | 'Uncertain' | 'Sharp' | 'Emotional'
@@ -187,15 +188,7 @@ function JournalInner() {
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[900px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, flexWrap: isMobile ? 'wrap' : 'nowrap', gap: 12 }}>
-          <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0f1117'), margin: 0 }}>Daily Journal</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 2 }}>Morning intentions · Evening reflection</p>
-          </div>
-          <NotebookPen size={32} style={{ color: '#a78bfa', opacity: 0.4, flexShrink: 0 }} />
-        </div>
+        <PageHeader title="Daily Journal" />
 
         {/* Date Picker */}
         <div style={{ marginBottom: 24 }}>

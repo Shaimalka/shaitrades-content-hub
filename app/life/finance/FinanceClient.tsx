@@ -6,6 +6,7 @@ import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, X, DollarSign, BarChart
 import { useSearchParams } from 'next/navigation'
 import LifeHubChat from '@/components/LifeHubChat'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 
 interface IncomeStream { id: string; name: string; color: string; emoji: string }
 interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string }
@@ -456,121 +457,18 @@ function FinancePage() {
     <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-          <div>
-            <Link href="/life" style={{ color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textDecoration: 'none', display: 'block', marginBottom: 4 }}>← LIFE HUB</Link>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: 0 }}>Finance</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), marginTop: 2 }}>Track income, expenses, and net worth</p>
-          </div>
-          <Wallet size={32} style={{ color: '#00c48c', opacity: 0.4 }} />
-        </div>
-
-        {/* Top-Level Tab Navigation */}
-        <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid ' + (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'), marginBottom: 20, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setActiveSection('overview')}
-            style={{
-              padding: '12px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: activeSection === 'overview' ? (isDark ? '#f9fafb' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeSection === 'overview' ? '2px solid #2563eb' : '2px solid transparent',
-              marginBottom: -1,
-              cursor: 'pointer',
-            }}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveSection('income')}
-            style={{
-              padding: '12px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: activeSection === 'income' ? (isDark ? '#f9fafb' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeSection === 'income' ? '2px solid #2563eb' : '2px solid transparent',
-              marginBottom: -1,
-              cursor: 'pointer',
-            }}
-          >
-            Income
-          </button>
-          <button
-            onClick={() => setActiveSection('expenses')}
-            style={{
-              padding: '12px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: activeSection === 'expenses' ? (isDark ? '#f9fafb' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeSection === 'expenses' ? '2px solid #2563eb' : '2px solid transparent',
-              marginBottom: -1,
-              cursor: 'pointer',
-            }}
-          >
-            Expenses
-          </button>
-          <button
-            onClick={() => setActiveSection('debts')}
-            style={{
-              padding: '12px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: activeSection === 'debts' ? (isDark ? '#f9fafb' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeSection === 'debts' ? '2px solid #2563eb' : '2px solid transparent',
-              marginBottom: -1,
-              cursor: 'pointer',
-            }}
-          >
-            Debts
-          </button>
-          <button
-            onClick={() => setActiveSection('networth')}
-            style={{
-              padding: '12px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: activeSection === 'networth' ? (isDark ? '#f9fafb' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeSection === 'networth' ? '2px solid #2563eb' : '2px solid transparent',
-              marginBottom: -1,
-              cursor: 'pointer',
-            }}
-          >
-            Net Worth
-          </button>
-          <button
-            onClick={() => setActiveSection('plan')}
-            style={{
-              padding: '12px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: activeSection === 'plan' ? (isDark ? '#f9fafb' : '#0f172a') : (isDark ? '#94a3b8' : '#64748b'),
-              background: 'transparent',
-              border: 'none',
-              borderBottom: activeSection === 'plan' ? '2px solid #2563eb' : '2px solid transparent',
-              marginBottom: -1,
-              cursor: 'pointer',
-            }}
-          >
-            Plan
-          </button>
-        </div>
+        <PageHeader
+          title="Finance"
+          tabs={[
+            { id: 'overview', label: 'Overview', active: activeSection === 'overview' },
+            { id: 'income', label: 'Income', active: activeSection === 'income' },
+            { id: 'expenses', label: 'Expenses', active: activeSection === 'expenses' },
+            { id: 'debts', label: 'Debts', active: activeSection === 'debts' },
+            { id: 'networth', label: 'Net Worth', active: activeSection === 'networth' },
+            { id: 'plan', label: 'Plan', active: activeSection === 'plan' },
+          ]}
+          onTabClick={(id) => setActiveSection(id as typeof activeSection)}
+        />
         {/* Coach Shai Banner */}
         {shaiMsg && (
           <div style={{ ...cardStyle, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, borderColor: 'rgba(0,196,140,0.2)' }}>

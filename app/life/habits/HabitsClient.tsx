@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { Plus, Trash2, Flame, CheckCircle2, X, Settings } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useTheme } from '@/app/contexts/ThemeContext'
+import PageHeader from '@/app/components/PageHeader'
 type Stack = string
 type Frequency = 'Daily' | 'Weekdays' | 'Custom'
 type Habit = {
@@ -386,22 +387,17 @@ function HabitsInner() {
     <div style={{ background: pageBg, minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
       <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: 24, fontWeight: 700, color: textPrimary, margin: 0 }}>Habits</h1>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#475569', marginTop: 4, marginBottom: 0 }}>Track your daily habit stacks</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={() => setShowWeeklyReview(!showWeeklyReview)}
-              style={{ background: 'transparent', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 13, color: isDark ? '#f9fafb' : '#0f172a', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
-              Weekly Review
-            </button>
-            <button onClick={() => setShowForm(!showForm)}
-              style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Plus size={14} />
-              New Habit
-            </button>
-          </div>
+        <PageHeader title="Habits" />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          <button onClick={() => setShowWeeklyReview(!showWeeklyReview)}
+            style={{ background: 'transparent', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', borderRadius: 8, padding: '6px 14px', fontSize: 13, color: isDark ? '#f9fafb' : '#0f172a', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+            Weekly Review
+          </button>
+          <button onClick={() => setShowForm(!showForm)}
+            style={{ background: '#2563eb', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Plus size={14} />
+            New Habit
+          </button>
         </div>
         <div style={{ background: isDark ? '#0f1117' : '#f8fafc', borderLeft: '3px solid #60a5fa', borderRadius: 12, padding: '18px 20px', marginBottom: 20, border: `1px solid ${borderColor}`, borderLeftColor: '#60a5fa', borderLeftWidth: 3 }}>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#60a5fa', marginBottom: 10 }}>
