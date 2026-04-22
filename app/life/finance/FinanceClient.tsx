@@ -1,17 +1,22 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import Link from 'next/link'
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, X, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Pencil, X, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import LifeHubChat from '@/components/LifeHubChat'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import PageHeader from '@/app/components/PageHeader'
+import TrendIndicators from './components/TrendIndicators'
+import NetWorthHistoryChart from './components/NetWorthHistoryChart'
+import NetWorthPies from './components/NetWorthPies'
+import MilestonesStrip from './components/MilestonesStrip'
+import SnapshotModal from './components/SnapshotModal'
+import type { NetWorthSnapshot, Milestone, FinancePreferences } from '@/lib/finance-keys'
 
 interface IncomeStream { id: string; name: string; color: string; emoji: string }
 interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string }
 interface ExpenseEntry { id: string; date: string; amount: number; category: string; notes?: string }
-interface NetWorthEntry { date: string; assets: number }
 interface Asset { id: string; name: string; value: number; category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other'; liquidity?: 'liquid' | 'illiquid' }
 interface Liability { id: string; name: string; amount: number; category: 'Credit Card' | 'Loan' | 'Other' }
 interface Debt { id: string; userId: string; name: string; type: 'credit_card' | 'student_loan' | 'personal_loan' | 'mortgage' | 'auto_loan' | 'other'; balance: number; originalBalance: number; interestRate: number; minimumPayment: number; dueDayOfMonth?: number; payoffDate?: string; createdAt: string; updatedAt: string }
@@ -79,7 +84,6 @@ const LIABILITY_CATEGORY_COLORS: Record<string, string> = {
   Other: 'rgba(255,255,255,0.35)',
 }
 
-const NW_STORAGE_KEY = 'trabits_net_worth_history'
 const GOAL_STORAGE_KEY = 'trabits_trading_monthly_goal'
 const PRESET_COLORS = ['#00c48c', '#2563eb', '#f59e0b', '#ff4d6a', '#a78bfa', '#f97316']
 const DEFAULT_STREAMS: IncomeStream[] = [
@@ -138,19 +142,6 @@ function formatMonthYear(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   return d.toLocaleString('en-US', { month: 'short', year: 'numeric' })
-}
-
-function getNetWorthVerdict(history: NetWorthEntry[]): string {
-  if (history.length === 0) return ''
-  const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date))
-  const latest = sorted[sorted.length - 1]
-  const prev = sorted[sorted.length - 2]
-  if (!prev) return 'Current net worth: ' + fmt(latest.assets) + '. Keep tracking monthly.'
-  const diff = latest.assets - prev.assets
-  const pct = prev.assets > 0 ? Math.round((diff / prev.assets) * 100) : 0
-  if (diff > 0) return 'Up ' + fmt(diff) + ' (' + pct + '%) from last month — momentum is real.'
-  if (diff < 0) return 'Down ' + fmt(Math.abs(diff)) + ' (' + Math.abs(pct) + '%) from last month — stay the course.'
-  return 'Net worth held flat this month — stability is underrated.'
 }
 
 const Skeleton = ({ width = '100%', height = '20px', borderRadius = '6px' }: { width?: string; height?: string; borderRadius?: string }) => (
@@ -235,10 +226,6 @@ function FinancePage() {
   const [taxReservePercent, setTaxReservePercent] = useState(30)
   const [taxReserveInput, setTaxReserveInput] = useState('30')
   const [editingTaxRate, setEditingTaxRate] = useState(false)
-  const [nwHistory, setNwHistory] = useState<NetWorthEntry[]>([])
-  const [nwInput, setNwInput] = useState('')
-  const [nwDate, setNwDate] = useState(new Date().toISOString().slice(0, 7))
-  const [nwSaved, setNwSaved] = useState(false)
   const [incomeForm, setIncomeForm] = useState({ date: today(), amount: '', notes: '', account: '', source: '' })
   const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', notes: '' })
 
@@ -247,7 +234,14 @@ function FinancePage() {
   const [liabilities, setLiabilities] = useState<Liability[]>([])
   const [showAssetForm, setShowAssetForm] = useState(false)
   const [showLiabilityForm, setShowLiabilityForm] = useState(false)
-  const [nwDupDismissed, setNwDupDismissed] = useState<boolean>(() => { if (typeof window === 'undefined') return false; return localStorage.getItem('nwDuplicateWarningDismissed') === '1' })
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null)
+  const [editingLiabilityId, setEditingLiabilityId] = useState<string | null>(null)
+  const [nwDupDismissed, setNwDupDismissed] = useState<boolean>(false)
+  const [nwPrefsLoaded, setNwPrefsLoaded] = useState<boolean>(false)
+  const [nwSnapshots, setNwSnapshots] = useState<NetWorthSnapshot[]>([])
+  const [nwMilestones, setNwMilestones] = useState<Milestone[]>([])
+  const [showSnapshotModal, setShowSnapshotModal] = useState(false)
+  const nwTabHydratedRef = useRef(false)
   const [assetForm, setAssetForm] = useState({ name: '', value: '', category: 'Cash' as Asset['category'], liquidity: 'liquid' as 'liquid' | 'illiquid' })
   const [liabilityForm, setLiabilityForm] = useState({ name: '', amount: '', category: 'Credit Card' as Liability['category'] })
   const [debts, setDebts] = useState<Debt[]>([])
@@ -320,8 +314,38 @@ function FinancePage() {
 
   useEffect(() => {
     const g = localStorage.getItem(GOAL_STORAGE_KEY); if (g) { setMonthlyGoal(Number(g)); setGoalInput(g) }
-    const nw = localStorage.getItem(NW_STORAGE_KEY); if (nw) { try { setNwHistory(JSON.parse(nw)) } catch {} }
   }, [])
+
+  // First-mount of Net Worth tab: hydrate snapshots, milestones, preferences,
+  // and capture browser timezone (server enforces first-write-wins).
+  useEffect(() => {
+    if (activeSection !== 'networth' || nwTabHydratedRef.current) return
+    nwTabHydratedRef.current = true
+    fetch('/api/finance/snapshots?range=all').then(r => r.json()).then(d => {
+      if (Array.isArray(d.snapshots)) setNwSnapshots(d.snapshots)
+    }).catch(() => {})
+    fetch('/api/finance/milestones').then(r => r.json()).then(d => {
+      if (Array.isArray(d.milestones)) setNwMilestones(d.milestones)
+    }).catch(() => {})
+    fetch('/api/finance/preferences').then(r => r.json()).then((d: { preferences?: FinancePreferences }) => {
+      const prefs = d.preferences || {}
+      setNwDupDismissed(!!prefs.dismissedWarnings?.nwDuplicateDebts)
+      setNwPrefsLoaded(true)
+      // Capture browser tz only if not already stored (server enforces first-write-wins).
+      if (!prefs.timezone) {
+        try {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+          if (tz) {
+            fetch('/api/finance/preferences', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ preferences: { timezone: tz } }),
+            }).catch(() => {})
+          }
+        } catch {}
+      }
+    }).catch(() => setNwPrefsLoaded(true))
+  }, [activeSection])
 
   useEffect(() => {
     if (activeSection === 'expenses') {
@@ -364,19 +388,25 @@ function FinancePage() {
     const val = Math.min(99, Math.max(1, parseFloat(taxReserveInput) || 30)); setTaxReservePercent(val); setTaxReserveInput(String(val)); setEditingTaxRate(false)
     try { await fetch('/api/finance/tax-rate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ taxReservePercent: val }) }) } catch {}
   }
-  function saveNetWorth() {
-    if (!nwInput) return
-    const newEntry: NetWorthEntry = { date: nwDate, assets: parseFloat(nwInput) }
-    const updated = [...nwHistory.filter(e => e.date !== nwDate), newEntry].sort((a, b) => a.date.localeCompare(b.date))
-    setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)); setNwInput(''); setNwSaved(true); setTimeout(() => setNwSaved(false), 3000)
-  }
-
   async function addAsset(e: React.FormEvent) {
     e.preventDefault()
-    const newAsset: Asset = { id: Date.now().toString(), name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category, liquidity: assetForm.liquidity }
-    const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'asset', item: newAsset }) })
-    const data = await res.json(); if (data.assets) setAssets(data.assets)
+    if (editingAssetId) {
+      const updates = { id: editingAssetId, name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category, liquidity: assetForm.liquidity }
+      const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'edit', type: 'asset', item: updates }) })
+      const data = await res.json(); if (data.assets) setAssets(data.assets)
+      setEditingAssetId(null)
+    } else {
+      const newAsset: Asset = { id: Date.now().toString(), name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category, liquidity: assetForm.liquidity }
+      const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'asset', item: newAsset }) })
+      const data = await res.json(); if (data.assets) setAssets(data.assets)
+    }
     setAssetForm({ name: '', value: '', category: 'Cash', liquidity: 'liquid' }); setShowAssetForm(false)
+  }
+  function editAsset(a: Asset) {
+    setEditingAssetId(a.id)
+    setAssetForm({ name: a.name, value: String(a.value), category: a.category, liquidity: getAssetLiquidity(a) })
+    setShowAssetForm(true)
+    setShowLiabilityForm(false)
   }
   async function deleteAsset(id: string) {
     const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: 'asset', item: { id } }) })
@@ -384,10 +414,51 @@ function FinancePage() {
   }
   async function addLiability(e: React.FormEvent) {
     e.preventDefault()
-    const newLiability: Liability = { id: Date.now().toString(), name: liabilityForm.name.trim(), amount: parseFloat(liabilityForm.amount), category: liabilityForm.category }
-    const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'liability', item: newLiability }) })
-    const data = await res.json(); if (data.liabilities) setLiabilities(data.liabilities)
+    if (editingLiabilityId) {
+      const updates = { id: editingLiabilityId, name: liabilityForm.name.trim(), amount: parseFloat(liabilityForm.amount), category: liabilityForm.category }
+      const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'edit', type: 'liability', item: updates }) })
+      const data = await res.json(); if (data.liabilities) setLiabilities(data.liabilities)
+      setEditingLiabilityId(null)
+    } else {
+      const newLiability: Liability = { id: Date.now().toString(), name: liabilityForm.name.trim(), amount: parseFloat(liabilityForm.amount), category: liabilityForm.category }
+      const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'liability', item: newLiability }) })
+      const data = await res.json(); if (data.liabilities) setLiabilities(data.liabilities)
+    }
     setLiabilityForm({ name: '', amount: '', category: 'Credit Card' }); setShowLiabilityForm(false)
+  }
+  function editLiability(l: Liability) {
+    setEditingLiabilityId(l.id)
+    setLiabilityForm({ name: l.name, amount: String(l.amount), category: l.category })
+    setShowLiabilityForm(true)
+    setShowAssetForm(false)
+  }
+  async function dismissNwDuplicateWarning() {
+    setNwDupDismissed(true)
+    try {
+      await fetch('/api/finance/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: { dismissedWarnings: { nwDuplicateDebts: true } } }),
+      })
+    } catch {}
+  }
+  async function takeManualSnapshot(date: string) {
+    const res = await fetch('/api/finance/snapshots', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) })
+    if (!res.ok) throw new Error('Failed to save snapshot')
+    const refreshed = await fetch('/api/finance/snapshots?range=all').then(r => r.json()).catch(() => null)
+    if (refreshed && Array.isArray(refreshed.snapshots)) setNwSnapshots(refreshed.snapshots)
+  }
+  async function addMilestone(item: Omit<Milestone, 'id' | 'createdAt'>) {
+    const res = await fetch('/api/finance/milestones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ item }) })
+    const data = await res.json(); if (Array.isArray(data.milestones)) setNwMilestones(data.milestones)
+  }
+  async function editMilestone(item: Milestone) {
+    const res = await fetch('/api/finance/milestones', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ item }) })
+    const data = await res.json(); if (Array.isArray(data.milestones)) setNwMilestones(data.milestones)
+  }
+  async function deleteMilestone(id: string) {
+    const res = await fetch('/api/finance/milestones', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    const data = await res.json(); if (Array.isArray(data.milestones)) setNwMilestones(data.milestones)
   }
   async function deleteLiability(id: string) {
     const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: 'liability', item: { id } }) })
@@ -432,8 +503,6 @@ function FinancePage() {
   const tradingStream = streams.find(s => s.id === 'trading')
   const thisMonthTrading = income.filter(e => e.streamId === 'trading' && e.date.slice(0, 7) === currentMonth).reduce((s, e) => s + e.amount, 0)
   const goalPct = monthlyGoal > 0 ? Math.min(100, Math.round((thisMonthTrading / monthlyGoal) * 100)) : 0
-  const nwChartData = nwHistory.map(e => ({ month: e.date.slice(5), assets: e.assets }))
-  const nwVerdict = getNetWorthVerdict(nwHistory)
   const activeStream = streams.find(s => s.id === activeTab)
   const activeIncome = income.filter(e => e.streamId === activeTab)
   const tooltipStyle = { background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? '#ffffff' : '#0a0a0f') }
@@ -448,6 +517,9 @@ function FinancePage() {
   const totalLiabilitiesCombined = totalLiabilities + totalDebts
   const netWorth = totalAssets - totalLiabilitiesCombined
   const netWorthPositive = netWorth >= 0
+  // Monthly expenses (90-day average) — used for runway milestone progress.
+  const ninetyDaysAgoISO = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
+  const monthlyExpenses = expenses.filter(e => e.date >= ninetyDaysAgoISO).reduce((s, e) => s + e.amount, 0) / 3
   // Duplicate detection: a user-entered liability whose name roughly matches a debt (case-insensitive trim)
   const duplicateMatches = liabilities.filter(l => {
     const ln = l.name.trim().toLowerCase()
@@ -485,12 +557,13 @@ function FinancePage() {
         <div style={{ ...cardStyle, marginBottom: 24 }}>
 
           {/* 3 brand-kit stat cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
             <div style={tbStatCard(_tb.BRAND)}>
               <p style={tbLabel}>NET WORTH</p>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: netWorthPositive ? _tb.GREEN : _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>
                 {netWorthPositive ? '' : '−'}{fmt(Math.abs(netWorth))}
               </p>
+              <TrendIndicators snapshots={nwSnapshots} currentNetWorth={netWorth} isDark={isDark} />
             </div>
             <div style={tbStatCard(_tb.GREEN)}>
               <p style={tbLabel}>TOTAL ASSETS</p>
@@ -505,27 +578,41 @@ function FinancePage() {
           </div>
 
           {/* Amber dismissible duplicate-debts warning banner */}
-          {duplicateMatches.length > 0 && !nwDupDismissed && (
+          {duplicateMatches.length > 0 && !nwDupDismissed && nwPrefsLoaded && (
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(245,158,11,0.08)', border: `1px solid ${_tb.AMBER}`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
               <AlertCircle size={14} style={{ color: _tb.AMBER, flexShrink: 0, marginTop: 2 }} />
               <div style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 12, color: _tb.textPrimary, lineHeight: 1.5 }}>
                 <strong style={{ color: _tb.AMBER }}>Possible duplicate:</strong>{' '}
                 You have a Liability with the same name as a Debt ({duplicateMatches.map(m => m.name).join(', ')}). Debts are already included in Total Liabilities.
               </div>
-              <button onClick={() => { setNwDupDismissed(true); if (typeof window !== 'undefined') localStorage.setItem('nwDuplicateWarningDismissed', '1') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: _tb.textMuted, padding: 2 }} aria-label="Dismiss warning">
+              <button onClick={dismissNwDuplicateWarning} style={{ background: 'none', border: 'none', cursor: 'pointer', color: _tb.textMuted, padding: 2, borderRadius: 4, transition: 'color 0.12s ease, background 0.12s ease' }} aria-label="Dismiss warning" onMouseEnter={e => { e.currentTarget.style.color = _tb.textPrimary; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }} onMouseLeave={e => { e.currentTarget.style.color = _tb.textMuted; e.currentTarget.style.background = 'transparent' }} onFocus={e => { e.currentTarget.style.color = _tb.textPrimary; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }} onBlur={e => { e.currentTarget.style.color = _tb.textMuted; e.currentTarget.style.background = 'transparent' }}>
                 <X size={14} />
               </button>
             </div>
           )}
 
+          {/* Allocation pies + milestones strip */}
+          <NetWorthPies assets={assets} isDark={isDark} onAddAsset={() => { setShowAssetForm(true); setShowLiabilityForm(false) }} />
+          <MilestonesStrip
+            milestones={nwMilestones}
+            netWorth={netWorth}
+            totalDebts={totalDebts}
+            monthlyExpenses={monthlyExpenses}
+            liquidAssets={liquidTotal}
+            isDark={isDark}
+            onAdd={addMilestone}
+            onEdit={editMilestone}
+            onDelete={deleteMilestone}
+          />
+
           {/* Assets + Liabilities side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
             {/* ASSETS PANEL */}
             <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.GREEN, margin: 0 }}>ASSETS</h3>
-                <button onClick={() => { setShowAssetForm(!showAssetForm); setShowLiabilityForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,0.1)', border: `1px solid ${_tb.GREEN}40`, borderRadius: 6, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
-                  <Plus size={10} /> Add Asset
+                <button onClick={() => { if (showAssetForm) { setShowAssetForm(false); setEditingAssetId(null); setAssetForm({ name: '', value: '', category: 'Cash', liquidity: 'liquid' }) } else { setShowAssetForm(true); setShowLiabilityForm(false); setEditingAssetId(null) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,0.06)', border: `1px solid #a7f3d0`, borderRadius: 6, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', transition: 'background 0.12s ease' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')} onFocus={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')} onBlur={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}>
+                  <Plus size={11} /> {editingAssetId ? 'Cancel' : 'Add Asset'}
                 </button>
               </div>
 
@@ -563,14 +650,29 @@ function FinancePage() {
                       ))}
                     </div>
                   </div>
-                  <button type="submit" style={{ width: '100%', background: _tb.GREEN, border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px', cursor: 'pointer' }}>Save Asset</button>
+                  <button type="submit" style={{ width: '100%', background: _tb.GREEN, border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px', cursor: 'pointer' }}>{editingAssetId ? 'Update Asset' : 'Save Asset'}</button>
                 </form>
               )}
 
               {/* Assets list (grouped by liquidity) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {assets.length === 0 ? (
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), textAlign: 'center', padding: '20px 0' }}>No assets yet</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', border: `1px dashed ${_tb.cardBorder}`, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary, margin: 0, textAlign: 'center', lineHeight: 1.5, maxWidth: 280 }}>
+                      Start with your cash balance — most people begin with checking + savings.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAssetForm(true); setShowLiabilityForm(false); setEditingAssetId(null) }}
+                      style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(16,185,129,0.06)', border: '1px solid #a7f3d0', borderRadius: 8, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 14px', cursor: 'pointer', transition: 'background 0.12s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}
+                      onFocus={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.14)')}
+                      onBlur={e => (e.currentTarget.style.background = 'rgba(16,185,129,0.06)')}
+                    >
+                      <Plus size={12} /> Add your first asset
+                    </button>
+                  </div>
                 ) : (
                   (['liquid','illiquid'] as const).map(group => {
                     const rows = assets.filter(a => getAssetLiquidity(a) === group)
@@ -587,7 +689,8 @@ function FinancePage() {
                             <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: (ASSET_CATEGORY_COLORS[a.category] || _tb.GREEN) + '20', border: `1px solid ${ASSET_CATEGORY_COLORS[a.category] || _tb.GREEN}40`, color: ASSET_CATEGORY_COLORS[a.category] || _tb.GREEN, whiteSpace: 'nowrap' }}>{a.category}</span>
                             <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{a.name}</span>
                             <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: _tb.GREEN }}>{fmt(a.value)}</span>
-                            <button onClick={() => deleteAsset(a.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}><Trash2 size={12} style={{ color: _tb.RED }} /></button>
+                            <button onClick={() => editAsset(a)} aria-label="Edit asset" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, padding: 2, transition: 'opacity 0.12s' }} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.4')} onFocus={e => (e.currentTarget.style.opacity = '1')} onBlur={e => (e.currentTarget.style.opacity = '0.4')}><Pencil size={12} style={{ color: _tb.BRAND }} /></button>
+                            <button onClick={() => deleteAsset(a.id)} aria-label="Delete asset" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, padding: 2, transition: 'opacity 0.12s' }} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.4')} onFocus={e => (e.currentTarget.style.opacity = '1')} onBlur={e => (e.currentTarget.style.opacity = '0.4')}><Trash2 size={12} style={{ color: _tb.RED }} /></button>
                           </div>
                         ))}
                       </div>
@@ -601,8 +704,8 @@ function FinancePage() {
             <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.RED, margin: 0 }}>LIABILITIES</h3>
-                <button onClick={() => { setShowLiabilityForm(!showLiabilityForm); setShowAssetForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.1)', border: `1px solid ${_tb.RED}40`, borderRadius: 6, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
-                  <Plus size={10} /> Add Liability
+                <button onClick={() => { if (showLiabilityForm) { setShowLiabilityForm(false); setEditingLiabilityId(null); setLiabilityForm({ name: '', amount: '', category: 'Credit Card' }) } else { setShowLiabilityForm(true); setShowAssetForm(false); setEditingLiabilityId(null) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.06)', border: `1px solid #fecaca`, borderRadius: 6, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 12px', cursor: 'pointer', transition: 'background 0.12s ease' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')} onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')} onFocus={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')} onBlur={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}>
+                  <Plus size={11} /> {editingLiabilityId ? 'Cancel' : 'Add Liability'}
                 </button>
               </div>
 
@@ -627,21 +730,37 @@ function FinancePage() {
                       <option value="Other">Other</option>
                     </select>
                   </div>
-                  <button type="submit" style={{ width: '100%', background: _tb.RED, border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px', cursor: 'pointer' }}>Save Liability</button>
+                  <button type="submit" style={{ width: '100%', background: _tb.RED, border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px', cursor: 'pointer' }}>{editingLiabilityId ? 'Update Liability' : 'Save Liability'}</button>
                 </form>
               )}
 
               {/* Editable user Liabilities list */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {liabilities.length === 0 ? (
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), textAlign: 'center', padding: '20px 0' }}>No liabilities yet</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', border: `1px dashed ${_tb.cardBorder}`, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                    <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary, margin: 0, textAlign: 'center', lineHeight: 1.5, maxWidth: 300 }}>
+                      No liabilities yet. Loans, credit cards, and other debts show up here.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowLiabilityForm(true); setShowAssetForm(false); setEditingLiabilityId(null) }}
+                      style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(239,68,68,0.06)', border: '1px solid #fecaca', borderRadius: 8, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '8px 14px', cursor: 'pointer', transition: 'background 0.12s ease' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}
+                      onFocus={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.14)')}
+                      onBlur={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.06)')}
+                    >
+                      <Plus size={12} /> Add your first liability
+                    </button>
+                  </div>
                 ) : (
                   liabilities.map(l => (
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? '#111118' : '#f8f9fc', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}` }}>
                       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: (LIABILITY_CATEGORY_COLORS[l.category] || _tb.RED) + '20', border: `1px solid ${LIABILITY_CATEGORY_COLORS[l.category] || _tb.RED}40`, color: LIABILITY_CATEGORY_COLORS[l.category] || _tb.RED, whiteSpace: 'nowrap' }}>{l.category}</span>
                       <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{l.name}</span>
                       <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: _tb.RED }}>{fmt(l.amount)}</span>
-                      <button onClick={() => deleteLiability(l.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}><Trash2 size={12} style={{ color: _tb.RED }} /></button>
+                      <button onClick={() => editLiability(l)} aria-label="Edit liability" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, padding: 2, transition: 'opacity 0.12s' }} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.4')} onFocus={e => (e.currentTarget.style.opacity = '1')} onBlur={e => (e.currentTarget.style.opacity = '0.4')}><Pencil size={12} style={{ color: _tb.BRAND }} /></button>
+                      <button onClick={() => deleteLiability(l.id)} aria-label="Delete liability" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, padding: 2, transition: 'opacity 0.12s' }} onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.4')} onFocus={e => (e.currentTarget.style.opacity = '1')} onBlur={e => (e.currentTarget.style.opacity = '0.4')}><Trash2 size={12} style={{ color: _tb.RED }} /></button>
                     </div>
                   ))
                 )}
@@ -652,7 +771,7 @@ function FinancePage() {
                 <div style={{ marginTop: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.textMuted }}>Merged from Debts</span>
-                    <button onClick={() => setActiveSection('debts')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.BRAND, padding: 0 }}>From Debts tab →</button>
+                    <button onClick={() => setActiveSection('debts')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, color: _tb.BRAND, padding: 0, transition: 'color 0.12s ease, text-decoration-color 0.12s ease', textDecoration: 'underline', textDecorationColor: 'transparent', textUnderlineOffset: 3 }} onMouseEnter={e => { e.currentTarget.style.color = _tb.BRAND_DARK; e.currentTarget.style.textDecorationColor = _tb.BRAND_DARK }} onMouseLeave={e => { e.currentTarget.style.color = _tb.BRAND; e.currentTarget.style.textDecorationColor = 'transparent' }} onFocus={e => { e.currentTarget.style.color = _tb.BRAND_DARK; e.currentTarget.style.textDecorationColor = _tb.BRAND_DARK }} onBlur={e => { e.currentTarget.style.color = _tb.BRAND; e.currentTarget.style.textDecorationColor = 'transparent' }}>From Debts tab →</button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {debts.map(d => (
@@ -677,6 +796,23 @@ function FinancePage() {
               )}
             </div>
           </div>
+
+          {/* History chart (3 lines: assets / liabilities / net worth) + snapshot modal */}
+          <div style={{ marginTop: 24 }}>
+            <NetWorthHistoryChart
+              snapshots={nwSnapshots}
+              isDark={isDark}
+              onTakeSnapshot={() => setShowSnapshotModal(true)}
+            />
+          </div>
+          <SnapshotModal
+            isOpen={showSnapshotModal}
+            onClose={() => setShowSnapshotModal(false)}
+            isDark={isDark}
+            defaultDate={new Date().toLocaleDateString('en-CA')}
+            preview={{ assets: totalAssets, liabilities: totalLiabilities, debts: totalDebts, netWorth }}
+            onSubmit={takeManualSnapshot}
+          />
         </div>
         )}
         {/* ═══════════════════ END NET WORTH ═══════════════════ */}
@@ -957,53 +1093,6 @@ function FinancePage() {
         )}
         </>)}
 
-        {/* Net Worth Chart Tracker (legacy monthly snapshot) — Phase B will replace this with a charted history card; leaving untouched for now */}
-        {activeSection === 'networth' && (
-        <div style={{ ...cardStyle, marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-            <div>
-              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), margin: 0 }}>NET WORTH HISTORY</h3>
-              {nwVerdict && (
-                <div style={{ marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: '#00c48c', flexShrink: 0, marginTop: 2 }}>COACH SHAI</span>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{nwVerdict}</p>
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <input type="month" value={nwDate} onChange={e => setNwDate(e.target.value)} style={{ ...inputStyle, width: 140, colorScheme: 'dark' }} />
-              <input type="text" inputMode="decimal" value={formatNumberInput(nwInput)} onChange={e => setNwInput(stripCommas(e.target.value))} style={{ ...inputStyle, width: isMobile ? '100%' : 180 }} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Snapshot total assets ($)" onKeyDown={ev => { if (ev.key === 'Enter') saveNetWorth() }} />
-              <button onClick={saveNetWorth} disabled={!nwInput} style={{ background: nwInput ? '#2563eb' : (isDark ? '#111118' : '#ffffff'), border: nwInput ? 'none' : '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: nwInput ? (isDark ? '#ffffff' : '#0a0a0f') : (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 16px', cursor: nwInput ? 'pointer' : 'not-allowed' }}>
-                {nwSaved ? '✓ Saved' : 'Update'}
-              </button>
-            </div>
-          </div>
-          {nwChartData.length === 0 ? (
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textAlign: 'center', padding: '32px 0' }}>No history yet — enter a snapshot above to track progress over time</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={nwChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="month" tick={axisTickStyle} />
-                <YAxis tick={axisTickStyle} tickFormatter={(v: number) => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v)} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [fmt(value), 'Net Worth']} />
-                <Line type="monotone" dataKey="assets" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: '#2563eb', r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: '#00c48c' }} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          {nwHistory.length > 0 && (
-            <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {[...nwHistory].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                <div key={e.date} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 8, background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.15)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
-                  <span style={{ color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{e.date}</span>
-                  <span style={{ color: '#2563eb', fontWeight: 600 }}>{fmt(e.assets)}</span>
-                  <button onClick={() => { const updated = nwHistory.filter(x => x.date !== e.date); setNwHistory(updated); localStorage.setItem(NW_STORAGE_KEY, JSON.stringify(updated)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d6a', opacity: 0.5, fontSize: 12 }}>×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        )}
         {activeSection === 'debts' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
