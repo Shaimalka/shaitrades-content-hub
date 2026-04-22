@@ -1,3 +1,6 @@
+// ORPHANED — do not call from UI, see FinanceClient.
+// Orphaned pending cleanup PR; see Net Worth overhaul Phase A.
+// UI reads/writes liabilities via /api/finance/net-worth (single key: user:${userId}:liabilities).
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
