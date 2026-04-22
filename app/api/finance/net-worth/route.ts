@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { financeKeys } from '@/lib/finance-keys'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
       const [rawAssets, rawLiabilities, rawDebts] = await Promise.all([
               redis.get(`user:${userId}:assets`),
               redis.get(`user:${userId}:liabilities`),
-              redis.get(`user:${userId}:debts`),
+              redis.get(financeKeys.debts(userId)),
             ])
         const assets = parseOrEmpty(rawAssets)
         const liabilities = parseOrEmpty(rawLiabilities)
