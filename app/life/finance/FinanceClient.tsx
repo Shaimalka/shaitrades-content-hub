@@ -11,9 +11,20 @@ interface IncomeStream { id: string; name: string; color: string; emoji: string 
 interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string }
 interface ExpenseEntry { id: string; date: string; amount: number; category: string; notes?: string }
 interface NetWorthEntry { date: string; assets: number }
-interface Asset { id: string; name: string; value: number; category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other' }
+interface Asset { id: string; name: string; value: number; category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other'; liquidity?: 'liquid' | 'illiquid' }
 interface Liability { id: string; name: string; amount: number; category: 'Credit Card' | 'Loan' | 'Other' }
 interface Debt { id: string; userId: string; name: string; type: 'credit_card' | 'student_loan' | 'personal_loan' | 'mortgage' | 'auto_loan' | 'other'; balance: number; originalBalance: number; interestRate: number; minimumPayment: number; dueDayOfMonth?: number; payoffDate?: string; createdAt: string; updatedAt: string }
+
+const LIQUID_DEFAULT_BY_CATEGORY: Record<Asset['category'], 'liquid' | 'illiquid'> = {
+  Cash: 'liquid',
+  Crypto: 'liquid',
+  Stocks: 'liquid',
+  'Real Estate': 'illiquid',
+  Other: 'illiquid',
+}
+function getAssetLiquidity(a: Asset): 'liquid' | 'illiquid' {
+  return a.liquidity ?? LIQUID_DEFAULT_BY_CATEGORY[a.category] ?? 'illiquid'
+}
 
 type DebtAnalysis = {
   strategy: 'avalanche' | 'snowball' | 'hybrid' | 'emergency_first' | 'consolidation'
@@ -235,7 +246,8 @@ function FinancePage() {
   const [liabilities, setLiabilities] = useState<Liability[]>([])
   const [showAssetForm, setShowAssetForm] = useState(false)
   const [showLiabilityForm, setShowLiabilityForm] = useState(false)
-  const [assetForm, setAssetForm] = useState({ name: '', value: '', category: 'Cash' as Asset['category'] })
+  const [nwDupDismissed, setNwDupDismissed] = useState<boolean>(() => { if (typeof window === 'undefined') return false; return localStorage.getItem('nwDuplicateWarningDismissed') === '1' })
+  const [assetForm, setAssetForm] = useState({ name: '', value: '', category: 'Cash' as Asset['category'], liquidity: 'liquid' as 'liquid' | 'illiquid' })
   const [liabilityForm, setLiabilityForm] = useState({ name: '', amount: '', category: 'Credit Card' as Liability['category'] })
   const [debts, setDebts] = useState<Debt[]>([])
   const [showDebtForm, setShowDebtForm] = useState(false)
@@ -252,6 +264,7 @@ function FinancePage() {
     RED: '#ef4444',
     GREEN: '#10b981',
     AMBER: '#f59e0b',
+    PURPLE: '#a78bfa',
     EMPTY_DASH: '#cbd5e1',
     cardBg: isDark ? '#1a1f2e' : '#ffffff',
     cardBorder: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
@@ -359,10 +372,10 @@ function FinancePage() {
 
   async function addAsset(e: React.FormEvent) {
     e.preventDefault()
-    const newAsset: Asset = { id: Date.now().toString(), name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category }
+    const newAsset: Asset = { id: Date.now().toString(), name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category, liquidity: assetForm.liquidity }
     const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'asset', item: newAsset }) })
     const data = await res.json(); if (data.assets) setAssets(data.assets)
-    setAssetForm({ name: '', value: '', category: 'Cash' }); setShowAssetForm(false)
+    setAssetForm({ name: '', value: '', category: 'Cash', liquidity: 'liquid' }); setShowAssetForm(false)
   }
   async function deleteAsset(id: string) {
     const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: 'asset', item: { id } }) })
@@ -425,11 +438,20 @@ function FinancePage() {
   const tooltipStyle = { background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? '#ffffff' : '#0a0a0f') }
   const axisTickStyle = { fill: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }
 
-  // Net worth calculations
+  // Net worth calculations (Phase A: folds debts into formula)
   const totalAssets = assets.reduce((s, a) => s + a.value, 0)
+  const liquidTotal = assets.filter(a => getAssetLiquidity(a) === 'liquid').reduce((s, a) => s + a.value, 0)
+  const illiquidTotal = totalAssets - liquidTotal
   const totalLiabilities = liabilities.reduce((s, l) => s + l.amount, 0)
-  const netWorth = totalAssets - totalLiabilities
+  const totalDebts = debts.reduce((s, d) => s + (d.balance || 0), 0)
+  const totalLiabilitiesCombined = totalLiabilities + totalDebts
+  const netWorth = totalAssets - totalLiabilitiesCombined
   const netWorthPositive = netWorth >= 0
+  // Duplicate detection: a user-entered liability whose name roughly matches a debt (case-insensitive trim)
+  const duplicateMatches = liabilities.filter(l => {
+    const ln = l.name.trim().toLowerCase()
+    return ln.length > 0 && debts.some(d => d.name.trim().toLowerCase() === ln)
+  })
   return (
     <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
@@ -562,133 +584,197 @@ function FinancePage() {
 
         {/* ═══════════════════ NET WORTH HERO ═══════════════════ */}
         {activeSection === 'networth' && (
-        <div style={{ ...cardStyle, marginBottom: 24, background: isDark ? '#0d0d14' : '#f8f9ff', border: `1px solid ${netWorthPositive ? 'rgba(0,196,140,0.2)' : 'rgba(255,77,106,0.2)'}`, borderRadius: 16 }}>
-          {/* Hero stat */}
-          <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 24, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, marginBottom: 24 }}>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), marginBottom: 12 }}>NET WORTH</p>
-            <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: isMobile ? 40 : 56, fontWeight: 800, color: netWorthPositive ? '#16a34a' : '#dc2626', margin: 0, letterSpacing: '-0.02em', lineHeight: 1 }}>
-              {netWorthPositive ? '' : '−'}{fmt(Math.abs(netWorth))}
-            </p>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)'), marginTop: 8 }}>
-              Assets {fmt(totalAssets)} − Liabilities {fmt(totalLiabilities)}
-            </p>
+        <div style={{ ...cardStyle, marginBottom: 24 }}>
+
+          {/* 3 brand-kit stat cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 20 }}>
+            <div style={tbStatCard(_tb.BRAND)}>
+              <p style={tbLabel}>NET WORTH</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: netWorthPositive ? _tb.GREEN : _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>
+                {netWorthPositive ? '' : '−'}{fmt(Math.abs(netWorth))}
+              </p>
+            </div>
+            <div style={tbStatCard(_tb.GREEN)}>
+              <p style={tbLabel}>TOTAL ASSETS</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: _tb.GREEN, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalAssets)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: _tb.textMuted, margin: '6px 0 0 0' }}>Liquid {fmt(liquidTotal)} · Illiquid {fmt(illiquidTotal)}</p>
+            </div>
+            <div style={tbStatCard(_tb.RED)}>
+              <p style={tbLabel}>TOTAL LIABILITIES</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalLiabilitiesCombined)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: _tb.textMuted, margin: '6px 0 0 0' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</p>
+            </div>
           </div>
 
-          {/* Assets + Liabilities side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
+          {/* Amber dismissible duplicate-debts warning banner */}
+          {duplicateMatches.length > 0 && !nwDupDismissed && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(245,158,11,0.08)', border: `1px solid ${_tb.AMBER}`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+              <AlertCircle size={14} style={{ color: _tb.AMBER, flexShrink: 0, marginTop: 2 }} />
+              <div style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 12, color: _tb.textPrimary, lineHeight: 1.5 }}>
+                <strong style={{ color: _tb.AMBER }}>Possible duplicate:</strong>{' '}
+                You have a Liability with the same name as a Debt ({duplicateMatches.map(m => m.name).join(', ')}). Debts are already included in Total Liabilities.
+              </div>
+              <button onClick={() => { setNwDupDismissed(true); if (typeof window !== 'undefined') localStorage.setItem('nwDuplicateWarningDismissed', '1') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: _tb.textMuted, padding: 2 }} aria-label="Dismiss warning">
+                <X size={14} />
+              </button>
+            </div>
+          )}
 
+          {/* Assets + Liabilities side by side */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             {/* ASSETS PANEL */}
-            <div>
+            <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#00c48c', margin: 0 }}>ASSETS</h3>
-                <button onClick={() => { setShowAssetForm(!showAssetForm); setShowLiabilityForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(0,196,140,0.1)', border: '1px solid rgba(0,196,140,0.25)', borderRadius: 6, color: '#00c48c', fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.GREEN, margin: 0 }}>ASSETS</h3>
+                <button onClick={() => { setShowAssetForm(!showAssetForm); setShowLiabilityForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(16,185,129,0.1)', border: `1px solid ${_tb.GREEN}40`, borderRadius: 6, color: _tb.GREEN, fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
                   <Plus size={10} /> Add Asset
                 </button>
               </div>
 
               {/* Add Asset Form */}
               {showAssetForm && (
-                <form onSubmit={addAsset} style={{ background: isDark ? '#111118' : '#f1f4f9', border: '1px solid rgba(0,196,140,0.15)', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+                <form onSubmit={addAsset} style={{ background: isDark ? '#111118' : '#f1f4f9', border: `1px solid ${_tb.GREEN}26`, borderRadius: 10, padding: 14, marginBottom: 12 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                     <div>
                       <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>NAME</label>
-                      <input value={assetForm.name} onChange={e => setAssetForm(f => ({ ...f, name: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="e.g. Bitcoin" required />
+                      <input value={assetForm.name} onChange={e => setAssetForm(f => ({ ...f, name: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="e.g. Savings" required />
                     </div>
                     <div>
-                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>VALUE ($)</label>
-                      <input type="text" inputMode="decimal" value={formatNumberInput(assetForm.value)} onChange={e => setAssetForm(f => ({ ...f, value: stripCommas(e.target.value) }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="5,000" required />
+                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>VALUE</label>
+                      <input type="number" step="0.01" value={assetForm.value} onChange={e => setAssetForm(f => ({ ...f, value: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="0.00" required />
                     </div>
                   </div>
-                  <div style={{ marginBottom: 10 }}>
+                  <div style={{ marginBottom: 8 }}>
                     <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>CATEGORY</label>
-                    <select value={assetForm.category} onChange={e => setAssetForm(f => ({ ...f, category: e.target.value as Asset['category'] }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', cursor: 'pointer' }}>
-                      {ASSET_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                    <select value={assetForm.category} onChange={e => setAssetForm(f => ({ ...f, category: e.target.value as Asset['category'] }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}>
+                      <option value="Cash">Cash</option>
+                      <option value="Crypto">Crypto</option>
+                      <option value="Stocks">Stocks</option>
+                      <option value="Real Estate">Real Estate</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button type="submit" style={{ flex: 1, background: '#00c48c', border: 'none', borderRadius: 6, color: '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '7px 12px', cursor: 'pointer' }}>Add</button>
-                    <button type="button" onClick={() => setShowAssetForm(false)} style={{ background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 6, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '7px 12px', cursor: 'pointer' }}>Cancel</button>
+                  {/* Liquidity toggle (Phase A) */}
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 4 }}>LIQUIDITY</label>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {(['liquid','illiquid'] as const).map(opt => (
+                        <button key={opt} type="button" onClick={() => setAssetForm(f => ({ ...f, liquidity: opt }))} style={{ flex: 1, padding: '6px 10px', borderRadius: 6, fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', border: assetForm.liquidity === opt ? `1px solid ${_tb.BRAND}` : `1px solid ${_tb.cardBorder}`, background: assetForm.liquidity === opt ? `${_tb.BRAND}22` : 'transparent', color: assetForm.liquidity === opt ? _tb.BRAND : _tb.textSecondary }}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  <button type="submit" style={{ width: '100%', background: _tb.GREEN, border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px', cursor: 'pointer' }}>Save Asset</button>
                 </form>
               )}
 
-              {/* Assets list */}
+              {/* Assets list (grouped by liquidity) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {assets.length === 0 ? (
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), textAlign: 'center', padding: '20px 0' }}>No assets yet</p>
                 ) : (
-                  assets.map(a => (
-                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? '#111118' : '#f8f9fc', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}` }}>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: (ASSET_CATEGORY_COLORS[a.category] || '#00c48c') + '20', border: `1px solid ${ASSET_CATEGORY_COLORS[a.category] || '#00c48c'}40`, color: ASSET_CATEGORY_COLORS[a.category] || '#00c48c', whiteSpace: 'nowrap' }}>{a.category}</span>
-                      <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{a.name}</span>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: '#00c48c' }}>{fmt(a.value)}</span>
-                      <button onClick={() => deleteAsset(a.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, padding: 2 }}><Trash2 size={12} style={{ color: '#ff4d6a' }} /></button>
-                    </div>
-                  ))
+                  (['liquid','illiquid'] as const).map(group => {
+                    const rows = assets.filter(a => getAssetLiquidity(a) === group)
+                    if (rows.length === 0) return null
+                    const groupTotal = rows.reduce((s, a) => s + a.value, 0)
+                    return (
+                      <div key={group} style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 6 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 2px' }}>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.textMuted }}>{group}</span>
+                          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: _tb.textMuted }}>{fmt(groupTotal)}</span>
+                        </div>
+                        {rows.map(a => (
+                          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? '#111118' : '#f8f9fc', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}` }}>
+                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: (ASSET_CATEGORY_COLORS[a.category] || _tb.GREEN) + '20', border: `1px solid ${ASSET_CATEGORY_COLORS[a.category] || _tb.GREEN}40`, color: ASSET_CATEGORY_COLORS[a.category] || _tb.GREEN, whiteSpace: 'nowrap' }}>{a.category}</span>
+                            <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{a.name}</span>
+                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: _tb.GREEN }}>{fmt(a.value)}</span>
+                            <button onClick={() => deleteAsset(a.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}><Trash2 size={12} style={{ color: _tb.RED }} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })
                 )}
               </div>
-              {assets.length > 0 && (
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), textTransform: 'uppercase' }}>TOTAL ASSETS</span>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#16a34a' }}>{fmt(totalAssets)}</span>
-                </div>
-              )}
             </div>
 
             {/* LIABILITIES PANEL */}
-            <div>
+            <div style={tbCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#ff4d6a', margin: 0 }}>LIABILITIES</h3>
-                <button onClick={() => { setShowLiabilityForm(!showLiabilityForm); setShowAssetForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.25)', borderRadius: 6, color: '#ff4d6a', fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.RED, margin: 0 }}>LIABILITIES</h3>
+                <button onClick={() => { setShowLiabilityForm(!showLiabilityForm); setShowAssetForm(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(239,68,68,0.1)', border: `1px solid ${_tb.RED}40`, borderRadius: 6, color: _tb.RED, fontFamily: 'Inter, sans-serif', fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}>
                   <Plus size={10} /> Add Liability
                 </button>
               </div>
 
               {/* Add Liability Form */}
               {showLiabilityForm && (
-                <form onSubmit={addLiability} style={{ background: isDark ? '#111118' : '#f1f4f9', border: '1px solid rgba(255,77,106,0.15)', borderRadius: 10, padding: 14, marginBottom: 12 }}>
+                <form onSubmit={addLiability} style={{ background: isDark ? '#111118' : '#f1f4f9', border: `1px solid ${_tb.RED}26`, borderRadius: 10, padding: 14, marginBottom: 12 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                     <div>
                       <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>NAME</label>
                       <input value={liabilityForm.name} onChange={e => setLiabilityForm(f => ({ ...f, name: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="e.g. Car Loan" required />
                     </div>
                     <div>
-                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>AMOUNT ($)</label>
-                      <input type="text" inputMode="decimal" value={formatNumberInput(liabilityForm.amount)} onChange={e => setLiabilityForm(f => ({ ...f, amount: stripCommas(e.target.value) }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="8,000" required />
+                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>AMOUNT</label>
+                      <input type="number" step="0.01" value={liabilityForm.amount} onChange={e => setLiabilityForm(f => ({ ...f, amount: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="0.00" required />
                     </div>
                   </div>
-                  <div style={{ marginBottom: 10 }}>
+                  <div style={{ marginBottom: 8 }}>
                     <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>CATEGORY</label>
-                    <select value={liabilityForm.category} onChange={e => setLiabilityForm(f => ({ ...f, category: e.target.value as Liability['category'] }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', cursor: 'pointer' }}>
-                      {LIABILITY_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                    <select value={liabilityForm.category} onChange={e => setLiabilityForm(f => ({ ...f, category: e.target.value as Liability['category'] }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}>
+                      <option value="Credit Card">Credit Card</option>
+                      <option value="Loan">Loan</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button type="submit" style={{ flex: 1, background: '#ff4d6a', border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '7px 12px', cursor: 'pointer' }}>Add</button>
-                    <button type="button" onClick={() => setShowLiabilityForm(false)} style={{ background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 6, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '7px 12px', cursor: 'pointer' }}>Cancel</button>
-                  </div>
+                  <button type="submit" style={{ width: '100%', background: _tb.RED, border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '8px', cursor: 'pointer' }}>Save Liability</button>
                 </form>
               )}
 
-              {/* Liabilities list */}
+              {/* Editable user Liabilities list */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {liabilities.length === 0 ? (
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), textAlign: 'center', padding: '20px 0' }}>No liabilities yet</p>
                 ) : (
                   liabilities.map(l => (
                     <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? '#111118' : '#f8f9fc', borderRadius: 8, border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)'}` }}>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: (LIABILITY_CATEGORY_COLORS[l.category] || '#ff4d6a') + '20', border: `1px solid ${LIABILITY_CATEGORY_COLORS[l.category] || '#ff4d6a'}40`, color: LIABILITY_CATEGORY_COLORS[l.category] || '#ff4d6a', whiteSpace: 'nowrap' }}>{l.category}</span>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: (LIABILITY_CATEGORY_COLORS[l.category] || _tb.RED) + '20', border: `1px solid ${LIABILITY_CATEGORY_COLORS[l.category] || _tb.RED}40`, color: LIABILITY_CATEGORY_COLORS[l.category] || _tb.RED, whiteSpace: 'nowrap' }}>{l.category}</span>
                       <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{l.name}</span>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: '#ff4d6a' }}>{fmt(l.amount)}</span>
-                      <button onClick={() => deleteLiability(l.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, padding: 2 }}><Trash2 size={12} style={{ color: '#ff4d6a' }} /></button>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: _tb.RED }}>{fmt(l.amount)}</span>
+                      <button onClick={() => deleteLiability(l.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4 }}><Trash2 size={12} style={{ color: _tb.RED }} /></button>
                     </div>
                   ))
                 )}
               </div>
-              {liabilities.length > 0 && (
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), textTransform: 'uppercase' }}>TOTAL LIABILITIES</span>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#dc2626' }}>{fmt(totalLiabilities)}</span>
+
+              {/* Read-only Debts merged section */}
+              {debts.length > 0 && (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: _tb.textMuted }}>Merged from Debts</span>
+                    <button onClick={() => setActiveSection('debts')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.BRAND, padding: 0 }}>From Debts tab →</button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {debts.map(d => (
+                      <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderRadius: 8, border: `1px dashed ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, opacity: 0.85 }}>
+                        <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary }}>{d.name}</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: _tb.RED }}>{fmt(d.balance || 0)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Combined liabilities footer */}
+              {(liabilities.length > 0 || debts.length > 0) && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: _tb.textMuted, textTransform: 'uppercase' }}>TOTAL LIABILITIES</span>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 700, color: _tb.RED }}>{fmt(totalLiabilitiesCombined)}</span>
+                  </div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.textMuted, marginTop: 4, textAlign: 'right' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</div>
                 </div>
               )}
             </div>
@@ -973,7 +1059,7 @@ function FinancePage() {
         )}
         </>)}
 
-        {/* Net Worth Chart Tracker (legacy monthly snapshot) */}
+        {/* Net Worth Chart Tracker (legacy monthly snapshot) — Phase B will replace this with a charted history card; leaving untouched for now */}
         {activeSection === 'networth' && (
         <div style={{ ...cardStyle, marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
