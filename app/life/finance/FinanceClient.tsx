@@ -931,7 +931,258 @@ function FinancePage() {
           )}
         </div>
         )}
-{activeSection === 'debts' && (<div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#2563eb', margin: 0 }}>DEBTS</h3>{debts.length > 0 && (<button onClick={() => { if (showDebtForm) { resetDebtForm() } else { resetDebtForm(); setShowDebtForm(true) } }} style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#2563eb', border: '1px solid #2563eb', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, padding: '5px 12px', cursor: 'pointer' }}><Plus size={10} /> Add Debt</button>)}</div>{debts.length > 0 && (<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}><div style={{ ...cardStyle, padding: '18px 20px' }}><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), margin: 0 }}>TOTAL DEBT</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: debts.reduce((s, d) => s + (d.balance || 0), 0) > 0 ? '#ef4444' : (isDark ? '#ffffff' : '#0a0a0f'), margin: '6px 0 0 0' }}>{fmt(debts.reduce((s, d) => s + (d.balance || 0), 0))}</p></div><div style={{ ...cardStyle, padding: '18px 20px' }}><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), margin: 0 }}>MONTHLY MINIMUM</p><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: '6px 0 0 0' }}>{fmt(debts.reduce((s, d) => s + (d.minimumPayment || 0), 0))}<span style={{ fontSize: 12, opacity: 0.5, fontWeight: 400 }}>/mo</span></p></div><div style={{ ...cardStyle, padding: '18px 20px' }}><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), margin: 0 }}>HIGHEST APR</p>{(() => { const h = debts.reduce<Debt | null>((max, d) => (max === null || (d.interestRate || 0) > (max.interestRate || 0)) ? d : max, null); return h ? (<div style={{ marginTop: 6 }}><p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: '#ef4444', margin: 0 }}>{h.interestRate.toFixed(2)}%</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: '2px 0 0 0' }}>{h.name}</p></div>) : (<p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), margin: '6px 0 0 0' }}>—</p>) })()}</div></div>)}{showDebtForm && (<form onSubmit={submitDebt} style={{ ...cardStyle, padding: '18px 20px', background: isDark ? '#111118' : '#f1f4f9', border: '1px solid rgba(37,99,235,0.25)' }}><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>NAME</label><input value={debtForm.name} onChange={e => setDebtForm(f => ({ ...f, name: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="e.g. Chase Visa" required /></div><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>TYPE</label><select value={debtForm.type} onChange={e => setDebtForm(f => ({ ...f, type: e.target.value as Debt['type'] }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', cursor: 'pointer' }}>{DEBT_TYPES.map(t => <option key={t} value={t}>{DEBT_TYPE_LABELS[t]}</option>)}</select></div></div><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>CURRENT BALANCE ($)</label><input type="text" inputMode="decimal" value={formatNumberInput(debtForm.balance)} onChange={e => setDebtForm(f => ({ ...f, balance: stripCommas(e.target.value) }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="2,500" required /></div><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>ORIGINAL BALANCE ($)</label><input type="text" inputMode="decimal" value={formatNumberInput(debtForm.originalBalance)} onChange={e => setDebtForm(f => ({ ...f, originalBalance: stripCommas(e.target.value) }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="5,000" required /></div></div><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>APR (%)</label><input type="number" step="0.01" min="0" value={debtForm.interestRate} onChange={e => setDebtForm(f => ({ ...f, interestRate: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="19.99" /></div><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>MIN PAYMENT ($)</label><input type="text" inputMode="decimal" value={formatNumberInput(debtForm.minimumPayment)} onChange={e => setDebtForm(f => ({ ...f, minimumPayment: stripCommas(e.target.value) }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="75" required /></div><div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>DUE DAY (1-31)</label><input type="number" min="1" max="31" step="1" value={debtForm.dueDayOfMonth} onChange={e => setDebtForm(f => ({ ...f, dueDayOfMonth: e.target.value }))} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} placeholder="15" /></div></div><div style={{ display: 'flex', gap: 6 }}><button type="submit" style={{ flex: 1, background: '#2563eb', border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '7px 12px', cursor: 'pointer' }}>{editingDebtId ? 'Save changes' : 'Add debt'}</button><button type="button" onClick={resetDebtForm} style={{ background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 6, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '7px 12px', cursor: 'pointer' }}>Cancel</button></div></form>)}{debts.length === 0 && !showDebtForm ? (<div style={{ ...cardStyle, padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: '0 0 6px 0' }}>No debts tracked yet</p><p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: '0 0 16px 0', maxWidth: 380 }}>Add your debts to track payoff progress and see your monthly obligations.</p><button onClick={() => { resetDebtForm(); setShowDebtForm(true) }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#2563eb', border: '1px solid #2563eb', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '7px 14px', cursor: 'pointer' }}><Plus size={12} /> Add your first debt</button></div>) : (<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{debts.map(d => { const original = d.originalBalance > 0 ? d.originalBalance : d.balance; const paid = Math.max(0, original - d.balance); const paidPct = original > 0 ? Math.min(100, Math.max(0, (paid / original) * 100)) : 0; const dd = d.dueDayOfMonth != null ? d.dueDayOfMonth : (d as any).dueDate; const suffix = dd == null ? '' : ([1,21,31].includes(dd) ? 'st' : [2,22].includes(dd) ? 'nd' : [3,23].includes(dd) ? 'rd' : 'th'); return (<div key={d.id} style={{ ...cardStyle, padding: '18px 20px' }}><div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}><div style={{ minWidth: 0, flex: 1 }}><div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}><span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{d.name}</span><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)', color: '#2563eb', whiteSpace: 'nowrap' }}>{DEBT_TYPE_LABELS[d.type]}</span></div><div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)') }}><span>APR <span style={{ color: '#ef4444', fontWeight: 600 }}>{(d.interestRate || 0).toFixed(2)}%</span></span><span>Min <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{fmt(d.minimumPayment || 0)}</span>/mo</span>{dd != null && <span>Due <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{dd}{suffix}</span></span>}</div></div><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 600, color: '#ef4444' }}>{fmt(d.balance || 0)}</span><button onClick={() => openEditDebt(d)} aria-label="Edit debt" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 2, color: (isDark ? '#ffffff' : '#0a0a0f') }}><Settings size={14} /></button><button onClick={() => deleteDebt(d.id)} aria-label="Delete debt" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 2 }}><Trash2 size={14} style={{ color: '#ef4444' }} /></button></div></div><div><div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginBottom: 4 }}><span>Paid {paidPct.toFixed(0)}%</span><span>{fmt(paid)} of {fmt(original)}</span></div><div style={{ height: 6, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 3, overflow: 'hidden' }}><div style={{ height: '100%', width: `${paidPct}%`, background: '#10b981', transition: 'width 0.3s ease' }} /></div></div></div>) })}</div>)}</div>)}}
+        {activeSection === 'debts' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#2563eb', margin: 0 }}>DEBTS</h3>
+              {debts.length > 0 && (
+                <button
+                  onClick={() => { if (showDebtForm) { resetDebtForm() } else { resetDebtForm(); setShowDebtForm(true) } }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#2563eb', border: '1px solid #2563eb', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, padding: '5px 12px', cursor: 'pointer' }}
+                >
+                  <Plus size={10} /> Add Debt
+                </button>
+              )}
+            </div>
+
+            {debts.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                <div style={{ ...cardStyle, padding: '18px 20px' }}>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), margin: 0 }}>TOTAL DEBT</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: debts.reduce((s, d) => s + (d.balance || 0), 0) > 0 ? '#ef4444' : (isDark ? '#ffffff' : '#0a0a0f'), margin: '6px 0 0 0' }}>
+                    {fmt(debts.reduce((s, d) => s + (d.balance || 0), 0))}
+                  </p>
+                </div>
+                <div style={{ ...cardStyle, padding: '18px 20px' }}>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), margin: 0 }}>MONTHLY MINIMUM</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: '6px 0 0 0' }}>
+                    {fmt(debts.reduce((s, d) => s + (d.minimumPayment || 0), 0))}
+                    <span style={{ fontSize: 12, opacity: 0.5, fontWeight: 400 }}>/mo</span>
+                  </p>
+                </div>
+                <div style={{ ...cardStyle, padding: '18px 20px' }}>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), margin: 0 }}>HIGHEST APR</p>
+                  {(() => {
+                    const h = debts.reduce<Debt | null>((max, d) => (max === null || (d.interestRate || 0) > (max.interestRate || 0)) ? d : max, null)
+                    return h ? (
+                      <div style={{ marginTop: 6 }}>
+                        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: '#ef4444', margin: 0 }}>{h.interestRate.toFixed(2)}%</p>
+                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: '2px 0 0 0' }}>{h.name}</p>
+                      </div>
+                    ) : (
+                      <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), margin: '6px 0 0 0' }}>—</p>
+                    )
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {showDebtForm && (
+              <form onSubmit={submitDebt} style={{ ...cardStyle, padding: '18px 20px', background: isDark ? '#111118' : '#f1f4f9', border: '1px solid rgba(37,99,235,0.25)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>NAME</label>
+                    <input
+                      value={debtForm.name}
+                      onChange={e => setDebtForm(f => ({ ...f, name: e.target.value }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}
+                      placeholder="e.g. Chase Visa"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>TYPE</label>
+                    <select
+                      value={debtForm.type}
+                      onChange={e => setDebtForm(f => ({ ...f, type: e.target.value as Debt['type'] }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', cursor: 'pointer' }}
+                    >
+                      {DEBT_TYPES.map(t => <option key={t} value={t}>{DEBT_TYPE_LABELS[t]}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>CURRENT BALANCE ($)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={formatNumberInput(debtForm.balance)}
+                      onChange={e => setDebtForm(f => ({ ...f, balance: stripCommas(e.target.value) }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}
+                      placeholder="2,500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>ORIGINAL BALANCE ($)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={formatNumberInput(debtForm.originalBalance)}
+                      onChange={e => setDebtForm(f => ({ ...f, originalBalance: stripCommas(e.target.value) }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}
+                      placeholder="5,000"
+                      required
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>APR (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={debtForm.interestRate}
+                      onChange={e => setDebtForm(f => ({ ...f, interestRate: e.target.value }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}
+                      placeholder="19.99"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>MIN PAYMENT ($)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={formatNumberInput(debtForm.minimumPayment)}
+                      onChange={e => setDebtForm(f => ({ ...f, minimumPayment: stripCommas(e.target.value) }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}
+                      placeholder="75"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>DUE DAY (1-31)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      step="1"
+                      value={debtForm.dueDayOfMonth}
+                      onChange={e => setDebtForm(f => ({ ...f, dueDayOfMonth: e.target.value }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}
+                      placeholder="15"
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, marginBottom: 10 }}>
+                  <div>
+                    <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), display: 'block', marginBottom: 3 }}>TARGET PAYOFF DATE (optional)</label>
+                    <input
+                      type="date"
+                      value={debtForm.payoffDate}
+                      onChange={e => setDebtForm(f => ({ ...f, payoffDate: e.target.value }))}
+                      style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', colorScheme: isDark ? 'dark' : 'light' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    type="submit"
+                    style={{ flex: 1, background: '#2563eb', border: 'none', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '7px 12px', cursor: 'pointer' }}
+                  >
+                    {editingDebtId ? 'Save changes' : 'Add debt'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetDebtForm}
+                    style={{ background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 6, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '7px 12px', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {debts.length === 0 && !showDebtForm ? (
+              <div style={{ ...cardStyle, padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: '0 0 6px 0' }}>No debts tracked yet</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: '0 0 16px 0', maxWidth: 380 }}>
+                  Add your debts to track payoff progress and see your monthly obligations.
+                </p>
+                <button
+                  onClick={() => { resetDebtForm(); setShowDebtForm(true) }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#2563eb', border: '1px solid #2563eb', borderRadius: 6, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, padding: '7px 14px', cursor: 'pointer' }}
+                >
+                  <Plus size={12} /> Add your first debt
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {debts.map(d => {
+                  const original = d.originalBalance > 0 ? d.originalBalance : d.balance
+                  const paid = Math.max(0, original - d.balance)
+                  const paidPct = original > 0 ? Math.min(100, Math.max(0, (paid / original) * 100)) : 0
+                  const dd = d.dueDayOfMonth != null ? d.dueDayOfMonth : (d as any).dueDate
+                  const suffix = dd == null ? '' : ([1, 21, 31].includes(dd) ? 'st' : [2, 22].includes(dd) ? 'nd' : [3, 23].includes(dd) ? 'rd' : 'th')
+                  const estMonths = estimateMonthsToPayoff(d.balance || 0, d.interestRate || 0, d.minimumPayment || 0)
+                  const estIso = estMonths != null ? addMonthsFromToday(estMonths) : null
+                  const targetIso = d.payoffDate || null
+                  const targetAggressive = !!(targetIso && estIso && targetIso < estIso)
+                  const neededPayment = (() => {
+                    if (!targetAggressive || !targetIso) return null
+                    const now = new Date()
+                    const target = new Date(targetIso)
+                    const monthsToTarget = Math.max(1, Math.round((target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth())))
+                    const apr = d.interestRate || 0
+                    const bal = d.balance || 0
+                    if (apr <= 0) return Math.ceil(bal / monthsToTarget)
+                    const mr = (apr / 100) / 12
+                    const pmt = (bal * mr) / (1 - Math.pow(1 + mr, -monthsToTarget))
+                    return Number.isFinite(pmt) ? Math.ceil(pmt) : null
+                  })()
+                  return (
+                    <div key={d.id} style={{ ...cardStyle, padding: '18px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{d.name}</span>
+                            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)', color: '#2563eb', whiteSpace: 'nowrap' }}>{DEBT_TYPE_LABELS[d.type]}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)') }}>
+                            <span>APR <span style={{ color: '#ef4444', fontWeight: 600 }}>{(d.interestRate || 0).toFixed(2)}%</span></span>
+                            <span>Min <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{fmt(d.minimumPayment || 0)}</span>/mo</span>
+                            {dd != null && <span>Due <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{dd}{suffix}</span></span>}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 600, color: '#ef4444' }}>{fmt(d.balance || 0)}</span>
+                          <button onClick={() => openEditDebt(d)} aria-label="Edit debt" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 2, color: (isDark ? '#ffffff' : '#0a0a0f') }}>
+                            <Settings size={14} />
+                          </button>
+                          <button onClick={() => deleteDebt(d.id)} aria-label="Delete debt" style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 2 }}>
+                            <Trash2 size={14} style={{ color: '#ef4444' }} />
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), marginBottom: 4 }}>
+                          <span>Paid {paidPct.toFixed(0)}%</span>
+                          <span>{fmt(paid)} of {fmt(original)}</span>
+                        </div>
+                        <div style={{ height: 6, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${paidPct}%`, background: '#10b981', transition: 'width 0.3s ease' }} />
+                        </div>
+                        {(targetIso || estIso) && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>
+                            {targetIso && <span>Target <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{formatMonthYear(targetIso)}</span></span>}
+                            {estIso && !targetIso && <span>Est. payoff <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{formatMonthYear(estIso)}</span></span>}
+                            {targetAggressive && neededPayment != null && (
+                              <span style={{ padding: '2px 7px', borderRadius: 4, background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b' }}>
+                                Aggressive target — consider {fmt(neededPayment)}/mo
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
         {activeSection === 'plan' && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontStyle: 'italic', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: 0 }}>Financial plan generator coming in next build step</p>
