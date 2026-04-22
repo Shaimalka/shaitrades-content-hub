@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import Link from 'next/link'
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, X, DollarSign, BarChart2, Settings } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, X, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import LifeHubChat from '@/components/LifeHubChat'
 import { useTheme } from '@/app/contexts/ThemeContext'
@@ -14,6 +14,40 @@ interface NetWorthEntry { date: string; assets: number }
 interface Asset { id: string; name: string; value: number; category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other' }
 interface Liability { id: string; name: string; amount: number; category: 'Credit Card' | 'Loan' | 'Other' }
 interface Debt { id: string; userId: string; name: string; type: 'credit_card' | 'student_loan' | 'personal_loan' | 'mortgage' | 'auto_loan' | 'other'; balance: number; originalBalance: number; interestRate: number; minimumPayment: number; dueDayOfMonth?: number; payoffDate?: string; createdAt: string; updatedAt: string }
+
+type DebtAnalysis = {
+  strategy: 'avalanche' | 'snowball' | 'hybrid' | 'emergency_first' | 'consolidation'
+  strategyLabel: string
+  why: string
+  monthlyPlan: Array<{ debtId: string; debtName: string; amount: number; note: string }>
+  timeline: Array<{ date: string; milestone: string }>
+  debtFreeDate: string
+  interestSaved: number
+  sustainabilityNote: string | null
+  analyzedAt: string
+}
+
+// Client-side mirror of server simulateMinimumsOnly — total interest if paying only minimums.
+function computeInterestAtMinimums(ds: Debt[]): number {
+  let total = 0
+  for (const d of ds) {
+    if (d.balance <= 0) continue
+    let bal = d.balance
+    const rate = (d.interestRate || 0) / 100 / 12
+    let localTotal = 0
+    let broke = false
+    for (let i = 0; i < 600 && bal > 0.01; i++) {
+      const ix = bal * rate
+      const principal = Math.max(0, d.minimumPayment - ix)
+      localTotal += ix
+      bal -= principal
+      if (principal <= 0) { broke = true; break }
+    }
+    if (broke) return Number.POSITIVE_INFINITY
+    total += localTotal
+  }
+  return total
+}
 const DEBT_TYPE_LABELS: Record<Debt['type'], string> = { credit_card: 'Credit Card', student_loan: 'Student Loan', personal_loan: 'Personal Loan', mortgage: 'Mortgage', auto_loan: 'Auto Loan', other: 'Other' }
 const DEBT_TYPES: Debt['type'][] = ['credit_card', 'student_loan', 'auto_loan', 'mortgage', 'personal_loan', 'other']
 
@@ -207,6 +241,46 @@ function FinancePage() {
   const [showDebtForm, setShowDebtForm] = useState(false)
   const [editingDebtId, setEditingDebtId] = useState<string | null>(null)
   const [debtForm, setDebtForm] = useState({ name: '', type: 'credit_card' as Debt['type'], balance: '', originalBalance: '', interestRate: '', minimumPayment: '', dueDayOfMonth: '', payoffDate: '' })
+  const [debtAnalysis, setDebtAnalysis] = useState<DebtAnalysis | null>(null)
+  const [debtAnalysisLoading, setDebtAnalysisLoading] = useState(false)
+  const [debtAnalysisError, setDebtAnalysisError] = useState<string | null>(null)
+  // Trabits design tokens (scoped to Debts tab analyzer UI; existing Finance UI keeps legacy styling until design migration commit)
+  const _tb = {
+    BRAND: '#60a5fa',
+    BRAND_DARK: '#2563eb',
+    BRAND_BORDER: '#bfdbfe',
+    RED: '#ef4444',
+    GREEN: '#10b981',
+    AMBER: '#f59e0b',
+    EMPTY_DASH: '#cbd5e1',
+    cardBg: isDark ? '#1a1f2e' : '#ffffff',
+    cardBorder: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+    textPrimary: isDark ? '#f9fafb' : '#0f172a',
+    textSecondary: isDark ? 'rgba(255,255,255,0.65)' : '#475569',
+    textMuted: isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8',
+  }
+  const tbCard: React.CSSProperties = {
+    background: _tb.cardBg,
+    border: `1px solid ${_tb.cardBorder}`,
+    borderRadius: 12,
+    padding: '18px 20px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+    fontFamily: 'Inter, sans-serif',
+  }
+  const tbStatCard = (accentColor: string): React.CSSProperties => ({
+    ...tbCard,
+    borderTop: `3px solid ${accentColor}`,
+    paddingTop: 15,
+  })
+  const tbLabel: React.CSSProperties = {
+    fontFamily: 'Inter, sans-serif',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: _tb.textMuted,
+    margin: 0,
+  }
 
   const defaultChatOpen = params.get('chat') === '1'
 
@@ -220,6 +294,7 @@ function FinancePage() {
       if (d.streams && d.streams.length > 0) setStreams(d.streams)
     }).catch(() => {}).finally(() => setLoading(false))
   fetch('/api/life/finance/debts').then(r => r.json()).then(d => { if (d.debts) setDebts(d.debts) }).catch(() => {})
+    fetch('/api/life/finance/debt-analysis').then(r => r.json()).then(d => { if (d.analysis) setDebtAnalysis(d.analysis) }).catch(() => {})
     fetch('/api/finance/tax-rate').then(r => r.json()).then(d => {
       if (d.taxReservePercent) { setTaxReservePercent(d.taxReservePercent); setTaxReserveInput(String(d.taxReservePercent)) }
     }).catch(() => {})
@@ -308,6 +383,20 @@ function FinancePage() {
   function openEditDebt(d: Debt) { const legacy = (d as any).dueDate; const dueDay = d.dueDayOfMonth != null ? d.dueDayOfMonth : (legacy != null ? legacy : null); setDebtForm({ name: d.name, type: d.type, balance: String(d.balance), originalBalance: String(d.originalBalance), interestRate: String(d.interestRate), minimumPayment: String(d.minimumPayment), dueDayOfMonth: dueDay != null ? String(dueDay) : '', payoffDate: d.payoffDate || '' }); setEditingDebtId(d.id); setShowDebtForm(true) }
   async function submitDebt(e: React.FormEvent) { e.preventDefault(); if (!debtForm.name.trim()) return; const balanceNum = parseFloat(stripCommas(debtForm.balance)) || 0; const originalNum = debtForm.originalBalance ? parseFloat(stripCommas(debtForm.originalBalance)) : balanceNum; const rateNum = parseFloat(debtForm.interestRate) || 0; const minNum = parseFloat(stripCommas(debtForm.minimumPayment)) || 0; const dueNum = debtForm.dueDayOfMonth ? Math.max(1, Math.min(31, parseInt(debtForm.dueDayOfMonth, 10))) : undefined; const payload: any = { name: debtForm.name.trim(), type: debtForm.type, balance: balanceNum, originalBalance: originalNum, interestRate: rateNum, minimumPayment: minNum }; if (dueNum !== undefined && !Number.isNaN(dueNum)) payload.dueDayOfMonth = dueNum; if (debtForm.payoffDate && debtForm.payoffDate.trim() !== '') payload.payoffDate = debtForm.payoffDate; if (editingDebtId) { const res = await fetch('/api/life/finance/debts', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editingDebtId, updates: payload }) }); const data = await res.json(); if (data.debt) setDebts(prev => prev.map(d => d.id === editingDebtId ? data.debt : d)) } else { const res = await fetch('/api/life/finance/debts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const data = await res.json(); if (data.debt) setDebts(prev => [...prev, data.debt]) } resetDebtForm() }
   async function deleteDebt(id: string) { if (!confirm('Delete this debt? This cannot be undone.')) return; const res = await fetch('/api/life/finance/debts', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); if (res.ok) setDebts(prev => prev.filter(d => d.id !== id)) }
+  async function runDebtAnalysis() {
+    setDebtAnalysisLoading(true)
+    setDebtAnalysisError(null)
+    try {
+      const res = await fetch('/api/life/finance/debt-analysis', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Analysis failed')
+      setDebtAnalysis(data.analysis)
+    } catch (e: any) {
+      setDebtAnalysisError(e?.message || 'Something went wrong')
+    } finally {
+      setDebtAnalysisLoading(false)
+    }
+  }
   const totalIn = income.reduce((s, e) => s + e.amount, 0)
   const totalOut = expenses.reduce((s, e) => s + e.amount, 0)
   const netProfit = totalIn - totalOut
@@ -944,6 +1033,185 @@ function FinancePage() {
                 </button>
               )}
             </div>
+
+            {/* ═══════════════════ TRABITS: DEBT ANALYZER ═══════════════════ */}
+            {/* Hero row: debt-free countdown + total interest at minimums */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {/* Card A — Debt-free countdown */}
+              <div style={tbStatCard(_tb.BRAND)}>
+                <p style={tbLabel}>Debt-free in</p>
+                {(() => {
+                  const activeDebts = debts.filter(d => d.balance > 0)
+                  if (activeDebts.length === 0) {
+                    return (
+                      <>
+                        <p style={{ fontFamily:'Inter,sans-serif', fontSize:28, fontWeight:300, color:_tb.EMPTY_DASH, margin:'8px 0 4px 0' }}>—</p>
+                        <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, margin:0 }}>No debts tracked</p>
+                      </>
+                    )
+                  }
+                  const hasNever = activeDebts.some(d => estimateMonthsToPayoff(d.balance, d.interestRate, d.minimumPayment) === null)
+                  if (hasNever) {
+                    return (
+                      <>
+                        <p style={{ fontFamily:'Inter,sans-serif', fontSize:28, fontWeight:700, color:_tb.AMBER, margin:'8px 0 4px 0' }}>Never at current pace</p>
+                        <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, margin:0 }}>Payment doesn't cover interest on at least one debt</p>
+                      </>
+                    )
+                  }
+                  const maxMonths = activeDebts.reduce((acc, d) => Math.max(acc, estimateMonthsToPayoff(d.balance, d.interestRate, d.minimumPayment) || 0), 0)
+                  const years = Math.floor(maxMonths / 12)
+                  const months = maxMonths % 12
+                  const datePill = formatMonthYear(addMonthsFromToday(maxMonths))
+                  return (
+                    <>
+                      <p style={{ fontFamily:'Inter,sans-serif', fontSize:28, fontWeight:700, color:_tb.textPrimary, margin:'8px 0 4px 0' }}>{years} years, {months} months</p>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                        <span style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textSecondary }}>at current minimum payments</span>
+                        <span style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted }}>· {datePill}</span>
+                      </div>
+                    </>
+                  )
+                })()}
+              </div>
+              {/* Card B — Total interest if minimums only */}
+              <div style={tbStatCard(_tb.RED)}>
+                <p style={tbLabel}>Total interest if you only pay minimums</p>
+                {(() => {
+                  const activeDebts = debts.filter(d => d.balance > 0)
+                  if (activeDebts.length === 0) {
+                    return (
+                      <>
+                        <p style={{ fontFamily:'Inter,sans-serif', fontSize:28, fontWeight:300, color:_tb.EMPTY_DASH, margin:'8px 0 4px 0' }}>$0</p>
+                        <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, margin:0 }}>No debts tracked</p>
+                      </>
+                    )
+                  }
+                  const interest = computeInterestAtMinimums(activeDebts)
+                  return (
+                    <>
+                      <p style={{ fontFamily:'Inter,sans-serif', fontSize:28, fontWeight:700, color:_tb.RED, margin:'8px 0 4px 0' }}>{Number.isFinite(interest) ? fmt(Math.round(interest)) : '∞'}</p>
+                      <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textSecondary, margin:0 }}>You can pay less — see your personalized plan below</p>
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+
+            {/* Error banner (only when error and not loading) */}
+            {debtAnalysisError && !debtAnalysisLoading && (
+              <div style={{ ...tbCard, background: isDark ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.35)', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+                <div style={{ display:'flex', gap:8, alignItems:'center', flex:1, minWidth:0 }}>
+                  <AlertCircle size={14} style={{ color: _tb.RED, flexShrink:0 }} />
+                  <p style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:500, color:_tb.RED, margin:0 }}>{debtAnalysisError}</p>
+                </div>
+                <button onClick={runDebtAnalysis} style={{ background:'transparent', color:_tb.BRAND, border: `1px solid ${_tb.BRAND_BORDER}`, borderRadius:8, padding:'9px 18px', fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, cursor:'pointer', flexShrink:0 }}>Try again</button>
+              </div>
+            )}
+
+            {/* Loading state */}
+            {debtAnalysisLoading && (
+              <div style={{ ...tbCard, display:'flex', alignItems:'center', gap:12 }}>
+                <style>{`@keyframes trabits-spin { to { transform: rotate(360deg) } }`}</style>
+                <Loader2 size={16} style={{ color: _tb.BRAND, animation: 'trabits-spin 1s linear infinite', flexShrink:0 }} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, color:_tb.textPrimary, margin:0 }}>Analyzing your debts…</p>
+                  <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, margin:'2px 0 0 0' }}>Coach Shai is crunching the numbers — this takes 5-15 seconds</p>
+                </div>
+              </div>
+            )}
+
+            {/* CTA card (when no analysis yet and not loading) */}
+            {!debtAnalysis && !debtAnalysisLoading && (
+              <div style={{ ...tbCard, background: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(96,165,250,0.04)', border: `1px solid ${isDark ? 'rgba(96,165,250,0.2)' : _tb.BRAND_BORDER}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
+                <div style={{ flex:'1 1 280px', minWidth:0 }}>
+                  <h4 style={{ fontFamily:'Inter,sans-serif', fontSize:16, fontWeight:700, color:_tb.textPrimary, margin:'0 0 4px 0' }}>Get Your Personalized Debt Strategy</h4>
+                  <p style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:500, color:_tb.textSecondary, margin:0, lineHeight:1.5 }}>Coach Shai will analyze your debts, income, and expenses to recommend the fastest sustainable path to debt-free.</p>
+                </div>
+                {(() => {
+                  const hasDebts = debts.filter(d => d.balance > 0).length > 0
+                  const hasIncome = income.length > 0
+                  const disabled = !hasDebts || !hasIncome
+                  const label = !hasDebts ? 'Add a debt first' : !hasIncome ? 'Add some income first' : 'Analyze My Debts'
+                  return (
+                    <button onClick={disabled ? undefined : runDebtAnalysis} disabled={disabled} style={{ background: _tb.BRAND, color:'#ffffff', border:'none', borderRadius:8, padding:'9px 18px', fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:700, display:'inline-flex', alignItems:'center', gap:8, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1, whiteSpace:'nowrap', flexShrink:0 }}>
+                      <Sparkles size={14} />
+                      {label}
+                    </button>
+                  )
+                })()}
+              </div>
+            )}
+
+            {/* Analysis result card */}
+            {debtAnalysis && !debtAnalysisLoading && (
+              <div style={tbCard}>
+                {/* Header */}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, flexWrap:'wrap' }}>
+                  <div style={{ flex:'1 1 260px', minWidth:0 }}>
+                    <p style={{ ...tbLabel, color: _tb.BRAND_DARK }}>Your debt strategy — Coach Shai recommends</p>
+                    <h3 style={{ fontFamily:'Inter,sans-serif', fontSize:20, fontWeight:700, color:_tb.textPrimary, margin:'6px 0 4px 0' }}>{debtAnalysis.strategyLabel}</h3>
+                    <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, margin:0 }}>Analyzed {new Date(debtAnalysis.analyzedAt).toLocaleDateString('en-US',{ month:'short', day:'numeric', year:'numeric' })}</p>
+                  </div>
+                  <button onClick={runDebtAnalysis} style={{ background:'transparent', color:_tb.BRAND, border: `1px solid ${_tb.BRAND_BORDER}`, borderRadius:8, padding:'9px 18px', fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:600, cursor:'pointer', flexShrink:0 }}>Re-analyze</button>
+                </div>
+                {/* Why */}
+                <div style={{ marginTop:16, paddingTop:16, borderTop: `1px solid ${_tb.cardBorder}` }}>
+                  <p style={tbLabel}>Why this strategy</p>
+                  <p style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:500, color:_tb.textPrimary, lineHeight:1.6, margin:'8px 0 0 0' }}>{debtAnalysis.why}</p>
+                </div>
+                {/* Monthly plan */}
+                {debtAnalysis.monthlyPlan && debtAnalysis.monthlyPlan.length > 0 && (
+                  <div style={{ marginTop:16, paddingTop:16, borderTop: `1px solid ${_tb.cardBorder}` }}>
+                    <p style={tbLabel}>Your monthly plan</p>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:10 }}>
+                      {debtAnalysis.monthlyPlan.map(item => {
+                        const isExtra = /extra/i.test(item.note || '')
+                        return (
+                          <div key={item.debtId} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
+                            <span style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:500, color:_tb.textPrimary }}>{item.debtName}</span>
+                            <span style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight:700, color: isExtra ? _tb.BRAND_DARK : _tb.textSecondary, textAlign:'right' }}>{fmt(item.amount)}/mo — {item.note}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Timeline */}
+                {debtAnalysis.timeline && debtAnalysis.timeline.length > 0 && (
+                  <div style={{ marginTop:16, paddingTop:16, borderTop: `1px solid ${_tb.cardBorder}` }}>
+                    <p style={tbLabel}>Timeline</p>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:10 }}>
+                      {debtAnalysis.timeline.map((m, i) => {
+                        const isFinal = m.milestone === 'DEBT-FREE'
+                        return (
+                          <div key={i} style={{ display:'flex', gap:12, alignItems:'center' }}>
+                            <span style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, minWidth:84 }}>{m.date}</span>
+                            <span style={{ fontFamily:'Inter,sans-serif', fontSize:13, fontWeight: isFinal ? 700 : 500, color: isFinal ? _tb.GREEN : _tb.textPrimary }}>{isFinal ? '🎯 DEBT-FREE' : m.milestone}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Interest saved */}
+                {debtAnalysis.interestSaved > 0 && (
+                  <div style={{ marginTop:16, paddingTop:16, borderTop: `1px solid ${_tb.cardBorder}` }}>
+                    <p style={tbLabel}>Interest saved</p>
+                    <p style={{ fontFamily:'Inter,sans-serif', fontSize:28, fontWeight:700, color:_tb.GREEN, margin:'8px 0 4px 0' }}>{fmt(debtAnalysis.interestSaved)}</p>
+                    <p style={{ fontFamily:'Inter,sans-serif', fontSize:11, fontWeight:500, color:_tb.textMuted, margin:0 }}>vs paying minimums only</p>
+                  </div>
+                )}
+                {/* Sustainability note */}
+                {debtAnalysis.sustainabilityNote && (
+                  <div style={{ marginTop:16, background: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.06)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:8, padding:'10px 12px', display:'flex', gap:8, alignItems:'flex-start' }}>
+                  <AlertCircle size={14} style={{ color: _tb.AMBER, flexShrink:0, marginTop:2 }} />
+                  <p style={{ fontFamily:'Inter,sans-serif', fontSize:12, fontWeight:500, color:_tb.AMBER, margin:0, lineHeight:1.5 }}>{debtAnalysis.sustainabilityNote}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* ═══════════════════ END TRABITS DEBT ANALYZER ═══════════════════ */}
 
             {debts.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
