@@ -6,6 +6,7 @@ import { LineChart, Target, Flame, Heart, BookOpen, DollarSign, RefreshCw, X, Ca
 import Onboarding from '@/app/components/Onboarding'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import Button from '@/app/components/ui/Button'
+import { getLocalDateString } from '@/lib/date'
 
 const InfoTooltip = ({ text }: { text: string }) => {
 
@@ -142,13 +143,6 @@ type SectionStats = { trading: string; goals: string; habits: string; health: st
 type LiveMetrics = { pnlWeek: string; habitStreak: string; weekScore: string; incomeMonth: string }
 type DailyBrief = { text: string; generatedAt: string; date: string }
 
-function getLocalDateString(): string {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 const DISMISS_KEY_PREFIX = 'coachBriefDismissed:'
 
@@ -252,7 +246,7 @@ export default function LifeHubPage() {
       const res = await fetch('/api/life/coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed, history }),
+        body: JSON.stringify({ message: trimmed, history, localDate: getLocalDateString() }),
       })
       const data = await res.json()
       if (data.reply) {
