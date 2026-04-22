@@ -5,12 +5,19 @@
     },
     "app/api/cron/daily-scrape/route.ts": {
       "maxDuration": 300
+    },
+    "app/api/cron/finance-snapshot/route.ts": {
+      "maxDuration": 300
     }
   },
   "crons": [
     {
       "path": "/api/cron/daily-scrape",
       "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/finance-snapshot",
+      "schedule": "0 14 * * *"
     }
   ]
 }

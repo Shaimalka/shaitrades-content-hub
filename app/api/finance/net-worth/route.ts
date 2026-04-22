@@ -31,6 +31,10 @@ export async function GET(req: NextRequest) {
     const userId = requireUserId(session)
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Fire-and-forget: register this user in the index used by the daily
+  // snapshot cron. Failure here must never break the response.
+  redis.sadd('user:index', userId).catch(() => {})
+
   try {
         // Phase A: also return debts so net worth can be computed as
       //   assets − (liabilities + debts.balance).
@@ -59,6 +63,8 @@ export async function POST(req: NextRequest) {
     const userId = requireUserId(session)
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  redis.sadd('user:index', userId).catch(() => {})
+
   try {
         const body = await req.json()
         const { action, type, item } = body
@@ -68,6 +74,7 @@ export async function POST(req: NextRequest) {
               const raw = await redis.get(key)
               let assets: any[] = parseOrEmpty(raw)
               if (action === 'add') assets = [...assets, item]
+              else if (action === 'edit') assets = assets.map((a) => (a.id === item.id ? { ...a, ...item } : a))
               else if (action === 'delete') assets = assets.filter((a) => a.id !== item.id)
               await redis.set(key, JSON.stringify(assets))
               return NextResponse.json({ assets })
@@ -78,6 +85,7 @@ export async function POST(req: NextRequest) {
               const raw = await redis.get(key)
               let liabilities: any[] = parseOrEmpty(raw)
               if (action === 'add') liabilities = [...liabilities, item]
+              else if (action === 'edit') liabilities = liabilities.map((l) => (l.id === item.id ? { ...l, ...item } : l))
               else if (action === 'delete') liabilities = liabilities.filter((l) => l.id !== item.id)
               await redis.set(key, JSON.stringify(liabilities))
               return NextResponse.json({ liabilities })
