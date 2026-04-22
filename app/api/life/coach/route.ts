@@ -15,10 +15,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { message, history } = body as {
+    const { message, history, localDate: clientLocalDate } = body as {
       message: string
       history?: Array<{ role: 'user' | 'assistant'; content: string }>
+      localDate?: string
     }
+
+    // Fallback to server UTC date for backward compat
+    const localDate = clientLocalDate || new Date().toISOString().split('T')[0]
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'Missing message' }, { status: 400 })
@@ -29,10 +33,16 @@ export async function POST(req: NextRequest) {
       { role: 'user', content: message.trim() },
     ]
 
+    // Always-on defensive instruction — avoid greetings tied to time of day
+    // since we only have the user's local calendar date, not their full timezone.
+    const systemPrompt =
+      COACH_SYSTEM_PROMPT +
+      `\n\nUser's local date: ${localDate}. Do not assume what time of day it is for them unless they explicitly tell you or it's clear from context. Avoid greetings tied to morning/evening.`
+
     const response = await client.messages.create({
       model: 'claude-haiku-4-5',
       max_tokens: 400,
-      system: COACH_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages,
     })
 
