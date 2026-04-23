@@ -223,6 +223,10 @@ function FinancePage() {
   const [monthlyGoal, setMonthlyGoal] = useState<number>(10000)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('10000')
+  const [streamGoals, setStreamGoals] = useState<Record<string, { amount: number; updatedAt: string | null }>>({})
+  const [editingStreamGoal, setEditingStreamGoal] = useState(false)
+  const [streamGoalInput, setStreamGoalInput] = useState('')
+  const cancelingStreamGoalRef = useRef(false)
   const [taxReservePercent, setTaxReservePercent] = useState(30)
   const [taxReserveInput, setTaxReserveInput] = useState('30')
   const [editingTaxRate, setEditingTaxRate] = useState(false)
@@ -356,6 +360,21 @@ function FinancePage() {
       }
     }
   }, [activeSection])
+
+  useEffect(() => {
+    if (activeSection !== 'income') return
+    if (!activeTab || activeTab === 'expenses') return
+    if (streamGoals[activeTab]) return
+    const streamId = activeTab
+    fetch('/api/life/finance/income-goal?streamId=' + encodeURIComponent(streamId))
+      .then(r => r.json())
+      .then(d => {
+        if (typeof d?.amount === 'number') {
+          setStreamGoals(prev => (prev[streamId] ? prev : { ...prev, [streamId]: { amount: d.amount, updatedAt: d.updatedAt ?? null } }))
+        }
+      })
+      .catch(() => {})
+  }, [activeSection, activeTab, streamGoals])
   async function addStream(s: Omit<IncomeStream, 'id'>) {
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add_stream', stream: s }) })
     const data = await res.json(); if (data.streams) setStreams(data.streams); setShowNewStream(false); setActiveTab(data.streams?.[data.streams.length - 1]?.id || activeTab)
@@ -383,6 +402,33 @@ function FinancePage() {
   }
   function saveGoal() {
     const val = parseFloat(goalInput) || 10000; setMonthlyGoal(val); localStorage.setItem(GOAL_STORAGE_KEY, String(val)); setEditingGoal(false)
+  }
+  async function saveStreamGoal() {
+    if (!activeTab || activeTab === 'expenses') { setEditingStreamGoal(false); return }
+    const parsed = parseFloat(streamGoalInput)
+    const val = Math.max(0, Math.min(10_000_000, Number.isFinite(parsed) ? parsed : 10000))
+    setStreamGoals(prev => ({ ...prev, [activeTab]: { amount: val, updatedAt: new Date().toISOString() } }))
+    setEditingStreamGoal(false)
+    try {
+      await fetch('/api/life/finance/income-goal', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ streamId: activeTab, amount: val }),
+      })
+    } catch {}
+  }
+  function startEditStreamGoal() {
+    const current = streamGoals[activeTab]?.amount ?? 10000
+    setStreamGoalInput(String(current))
+    setEditingStreamGoal(true)
+  }
+  function handleStreamGoalBlur() {
+    if (cancelingStreamGoalRef.current) { cancelingStreamGoalRef.current = false; return }
+    saveStreamGoal()
+  }
+  function cancelEditStreamGoal() {
+    cancelingStreamGoalRef.current = true
+    setEditingStreamGoal(false)
   }
   async function saveTaxRate() {
     const val = Math.min(99, Math.max(1, parseFloat(taxReserveInput) || 30)); setTaxReservePercent(val); setTaxReserveInput(String(val)); setEditingTaxRate(false)
@@ -948,6 +994,152 @@ function FinancePage() {
           </div>
         )}
         </>)}
+        {/* Monthly Income Goal (per stream, Income tab only) */}
+        {activeSection === 'income' && activeStream && (() => {
+          const goalAmount = streamGoals[activeTab]?.amount ?? 10000
+          const thisMonthStream = activeIncome.filter(e => e.date.slice(0, 7) === currentMonth).reduce((s, e) => s + e.amount, 0)
+          const pct = goalAmount > 0 ? Math.min(100, Math.round((thisMonthStream / goalAmount) * 100)) : 0
+          const now = new Date()
+          const dayOfMonth = now.getDate()
+          const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+          const expected = goalAmount * (dayOfMonth / daysInMonth)
+          const paceRatio = expected > 0 ? thisMonthStream / expected : 1
+          const paceColor = paceRatio >= 1 ? '#10b981' : paceRatio >= 0.7 ? '#f59e0b' : '#ef4444'
+          const paceColorLight = paceRatio >= 1 ? '#34d399' : paceRatio >= 0.7 ? '#fbbf24' : '#f87171'
+          const paceBgRgba = paceRatio >= 1 ? 'rgba(16,185,129,0.12)' : paceRatio >= 0.7 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)'
+          const paceBorderRgba = paceRatio >= 1 ? 'rgba(16,185,129,0.28)' : paceRatio >= 0.7 ? 'rgba(245,158,11,0.28)' : 'rgba(239,68,68,0.28)'
+          const cardBg = isDark ? '#1a1f2e' : '#ffffff'
+          const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
+          const textPrimary = isDark ? '#f9fafb' : '#0f172a'
+          const textMuted = '#94a3b8'
+          return (
+            <div style={{
+              background: cardBg,
+              border: '1px solid ' + cardBorder,
+              borderRadius: 12,
+              padding: '18px 20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              fontFamily: 'Inter, sans-serif',
+              marginBottom: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
+                <p style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: textMuted,
+                  margin: 0,
+                }}>
+                  Monthly Goal — {activeStream.name}
+                </p>
+                {!editingStreamGoal && (
+                  <button
+                    onClick={startEditStreamGoal}
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      textTransform: 'uppercase',
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      background: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                      border: '1px solid ' + cardBorder,
+                      color: textMuted,
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease, color 0.15s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = textPrimary; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}
+                    aria-label="Edit monthly goal"
+                  >
+                    edit
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                {editingStreamGoal ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em' }}>{fmt(thisMonthStream)} <span style={{ fontSize: 13, fontWeight: 500, color: textMuted }}>/</span></span>
+                    <input
+                      autoFocus
+                      type="text"
+                      inputMode="decimal"
+                      value={formatNumberInput(streamGoalInput)}
+                      onChange={e => setStreamGoalInput(stripCommas(e.target.value))}
+                      onBlur={handleStreamGoalBlur}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() }
+                        else if (e.key === 'Escape') { e.preventDefault(); cancelEditStreamGoal() }
+                      }}
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: textPrimary,
+                        background: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
+                        border: '1px solid ' + (isDark ? 'rgba(255,255,255,0.14)' : '#cbd5e1'),
+                        borderRadius: 8,
+                        padding: '4px 10px',
+                        outline: 'none',
+                        width: 140,
+                        letterSpacing: '-0.02em',
+                      }}
+                      placeholder="10,000"
+                    />
+                  </div>
+                ) : (
+                  <p style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: textPrimary,
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                  }}>
+                    {fmt(thisMonthStream)}{' '}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: textMuted }}>/ {fmt(goalAmount)}</span>
+                  </p>
+                )}
+                {!editingStreamGoal && (
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    padding: '3px 10px',
+                    borderRadius: 999,
+                    background: paceBgRgba,
+                    color: paceColor,
+                    border: '1px solid ' + paceBorderRgba,
+                  }}>
+                    {pct}%
+                  </span>
+                )}
+              </div>
+              <div style={{
+                height: 6,
+                background: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                borderRadius: 4,
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%',
+                  width: pct + '%',
+                  borderRadius: 4,
+                  backgroundImage: 'linear-gradient(90deg, ' + paceColor + ' 0%, ' + paceColorLight + ' 50%, ' + paceColor + ' 100%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 3s linear infinite',
+                  transition: 'width 0.7s ease',
+                }} />
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Stream Tabs */}
         {activeSection === 'income' && (<>
         <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
