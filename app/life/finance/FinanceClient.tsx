@@ -1,8 +1,8 @@
 'use client'
-import { useState, useEffect, Suspense, useRef } from 'react'
+import { useState, useEffect, Suspense, useRef, Fragment } from 'react'
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import Link from 'next/link'
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Pencil, X, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Pencil, X, Check, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import LifeHubChat from '@/components/LifeHubChat'
 import { useTheme } from '@/app/contexts/ThemeContext'
@@ -168,7 +168,7 @@ function useWindowWidth() {
 function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id'>) => void; onCancel: () => void }) {
   const { isDark } = useTheme()
   const inputStyle = { background: isDark ? '#1a1a24' : '#f1f4f9', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#e8e8e2'}`, borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%' } as React.CSSProperties
-  const cardStyle = { background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '12px', padding: '20px' } as React.CSSProperties
+  const cardStyle = { background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`, borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as React.CSSProperties
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
   const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
   const [name, setName] = useState('')
@@ -207,8 +207,8 @@ function FinancePage() {
   const isMobile = useWindowWidth() < 768
   const params = useSearchParams()
   const inputStyle = { background: isDark ? '#1a1a24' : '#f1f4f9', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '8px', color: isDark ? '#ffffff' : '#0a0a0f', fontFamily: 'Inter, sans-serif', fontSize: '13px', padding: '8px 12px', outline: 'none', width: '100%' } as React.CSSProperties
-  const cardStyle = { background: isDark ? '#111118' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '12px', padding: '20px' } as React.CSSProperties
-  const statCardStyle = { background: isDark ? '#111118' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '12px', padding: '16px' } as React.CSSProperties
+  const cardStyle = { background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`, borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as React.CSSProperties
+  const statCardStyle = { background: isDark ? '#1a1f2e' : '#ffffff', border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`, borderRadius: '12px', padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' } as React.CSSProperties
   const focusStyle = { borderColor: 'rgba(37,99,235,0.5)', boxShadow: '0 0 0 2px rgba(37,99,235,0.3)' }
   const blurStyle = { borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)', boxShadow: 'none' }
 
@@ -231,6 +231,10 @@ function FinancePage() {
   const [taxReserveInput, setTaxReserveInput] = useState('30')
   const [editingTaxRate, setEditingTaxRate] = useState(false)
   const [incomeForm, setIncomeForm] = useState({ date: today(), amount: '', notes: '', account: '', source: '' })
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<{ date: string; amount: string; account: string; notes: string }>({ date: '', amount: '', account: '', notes: '' })
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
   const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', notes: '' })
 
   // Net Worth tracker state
@@ -399,6 +403,49 @@ function FinancePage() {
   async function deleteEntry(id: string, type: 'income' | 'expense') {
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type, entry: { id } }) })
     const data = await res.json(); if (type === 'income') setIncome(data.income || []); else setExpenses(data.expenses || [])
+  }
+  function startEditIncome(entry: IncomeEntry) {
+    setEditingEntryId(entry.id)
+    setEditForm({
+      date: entry.date,
+      amount: String(entry.amount),
+      account: entry.account || entry.source || '',
+      notes: entry.notes || '',
+    })
+    setEditError(null)
+  }
+  function cancelEditIncome() {
+    setEditingEntryId(null)
+    setEditError(null)
+  }
+  async function saveEditIncome(id: string) {
+    if (editSaving) return
+    setEditSaving(true)
+    setEditError(null)
+    const prev = income
+    const patch = {
+      date: editForm.date,
+      amount: parseFloat(editForm.amount) || 0,
+      account: editForm.account,
+      notes: editForm.notes,
+    }
+    setIncome(prev.map(e => e.id === id ? { ...e, ...patch } : e))
+    try {
+      const res = await fetch('/api/life/finance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'edit_income', entryId: id, patch }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Save failed')
+      if (data.income) setIncome(data.income)
+      setEditingEntryId(null)
+    } catch (err: any) {
+      setIncome(prev)
+      setEditError(err?.message || 'Failed to save')
+    } finally {
+      setEditSaving(false)
+    }
   }
   function saveGoal() {
     const val = parseFloat(goalInput) || 10000; setMonthlyGoal(val); localStorage.setItem(GOAL_STORAGE_KEY, String(val)); setEditingGoal(false)
@@ -572,9 +619,9 @@ function FinancePage() {
     return ln.length > 0 && debts.some(d => d.name.trim().toLowerCase() === ln)
   })
   return (
-    <div style={{ background: (isDark ? '#0f1117' : '#f8f8f6'), minHeight: '100vh' }}>
+    <div style={{ background: (isDark ? '#0f1117' : '#f8fafc'), minHeight: '100vh' }}>
       <style dangerouslySetInnerHTML={{ __html: `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }` }} />
-      <div className="max-w-[1100px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
+      <div className="max-w-[1280px] mx-auto" style={{ padding: isMobile ? '16px' : '24px' }}>
         <PageHeader
           title="Finance"
           tabs={[
@@ -1145,7 +1192,7 @@ function FinancePage() {
         <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           {streams.map(s => (
             <div key={s.id} style={{ position: 'relative' }}>
-              <button onClick={() => { setActiveTab(s.id); setShowForm(false) }} style={{ padding: '8px 16px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, fontWeight: 600, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s', background: activeTab === s.id ? s.color + '1a' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), borderBottom: activeTab === s.id ? `2px solid ${s.color}` : '2px solid transparent', border: activeTab === s.id ? `1px solid ${s.color}30` : '1px solid rgba(255,255,255,0.06)', color: activeTab === s.id ? s.color : (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>
+              <button onClick={() => { setActiveTab(s.id); setShowForm(false) }} style={{ padding: '8px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s', background: activeTab === s.id ? s.color + '1a' : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'), borderBottom: activeTab === s.id ? `2px solid ${s.color}` : '2px solid transparent', border: activeTab === s.id ? `1px solid ${s.color}30` : `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`, color: activeTab === s.id ? s.color : (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>
                 {s.emoji} {s.name.toUpperCase()}
               </button>
               {!['trading','content'].includes(s.id) && (
@@ -1211,34 +1258,83 @@ function FinancePage() {
           <div style={{ ...cardStyle, marginBottom: 24, padding: 0, overflow: 'hidden' }}>
             {activeTab !== 'expenses' && activeStream && (
               <>
-                <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
-                  <h3 style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: activeStream.color, margin: 0 }}>
+                <div style={{ padding: '14px 20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}` }}>
+                  <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: activeStream.color, margin: 0 }}>
                     {activeStream.emoji} {activeStream.name.toUpperCase()} INCOME · {activeIncome.length} ENTRIES · {fmt(activeIncome.reduce((s,e)=>s+e.amount,0))}
                   </h3>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
+                      <tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}` }}>
                         {['DATE','ACCOUNT / SOURCE','AMOUNT','NOTES',''].map(h => (
-                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>
+                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: '#94a3b8', textTransform: 'uppercase' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {[...activeIncome].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                        <tr key={e.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{e.date}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? '#ffffff' : '#0a0a0f') }}>{e.account || e.source || '—'}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#00c48c' }}>{fmt(e.amount)}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <button onClick={() => deleteEntry(e.id, 'income')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
-                              <Trash2 size={12} style={{ color: '#ff4d6a' }} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {[...activeIncome].sort((a,b) => b.date.localeCompare(a.date)).map(e => {
+                        const isEditing = editingEntryId === e.id
+                        const rowBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
+                        const onEditKey = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+                          if (ev.key === 'Enter') { ev.preventDefault(); saveEditIncome(e.id) }
+                          else if (ev.key === 'Escape') { ev.preventDefault(); cancelEditIncome() }
+                        }
+                        return (
+                          <Fragment key={e.id}>
+                            <tr style={{ borderBottom: `1px solid ${rowBorder}` }}>
+                              {isEditing ? (
+                                <>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="date" autoFocus value={editForm.date} onChange={ev => setEditForm(f => ({ ...f, date: ev.target.value }))} onKeyDown={onEditKey} style={{ ...inputStyle, colorScheme: isDark ? 'dark' : 'light', padding: '6px 10px' }} />
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="text" value={editForm.account} onChange={ev => setEditForm(f => ({ ...f, account: ev.target.value }))} onKeyDown={onEditKey} placeholder="Source" style={{ ...inputStyle, padding: '6px 10px' }} />
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="text" inputMode="decimal" value={formatNumberInput(editForm.amount)} onChange={ev => setEditForm(f => ({ ...f, amount: stripCommas(ev.target.value) }))} onKeyDown={onEditKey} placeholder="0" style={{ ...inputStyle, padding: '6px 10px', color: '#10b981', fontWeight: 700 }} />
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="text" value={editForm.notes} onChange={ev => setEditForm(f => ({ ...f, notes: ev.target.value }))} onKeyDown={onEditKey} placeholder="Notes" style={{ ...inputStyle, padding: '6px 10px' }} />
+                                  </td>
+                                  <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                                    <button onClick={() => saveEditIncome(e.id)} disabled={editSaving} aria-label="Save edit" style={{ background: 'none', border: 'none', cursor: editSaving ? 'wait' : 'pointer', padding: 4, marginRight: 4, opacity: editSaving ? 0.4 : 0.7, transition: 'opacity 0.12s' }} onMouseEnter={ev => { if (!editSaving) (ev.currentTarget as HTMLButtonElement).style.opacity = '1' }} onMouseLeave={ev => { if (!editSaving) (ev.currentTarget as HTMLButtonElement).style.opacity = '0.7' }}>
+                                      <Check size={14} style={{ color: '#10b981' }} />
+                                    </button>
+                                    <button onClick={cancelEditIncome} aria-label="Cancel edit" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, opacity: 0.5, transition: 'opacity 0.12s' }} onMouseEnter={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '1'} onMouseLeave={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '0.5'}>
+                                      <X size={14} style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#475569' }} />
+                                    </button>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.65)' : '#475569') }}>{e.date}</td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? '#f9fafb' : '#0f172a') }}>{e.account || e.source || '—'}</td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: '#10b981' }}>{fmt(e.amount)}</td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
+                                  <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                                    <button onClick={() => startEditIncome(e)} aria-label="Edit entry" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, marginRight: 4, opacity: 0.3, transition: 'opacity 0.12s' }} onMouseEnter={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '1'} onMouseLeave={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '0.3'}>
+                                      <Pencil size={12} style={{ color: '#60a5fa' }} />
+                                    </button>
+                                    <button onClick={() => deleteEntry(e.id, 'income')} aria-label="Delete entry" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, opacity: 0.3, transition: 'opacity 0.12s' }} onMouseEnter={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '1'} onMouseLeave={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '0.3'}>
+                                      <Trash2 size={12} style={{ color: '#ef4444' }} />
+                                    </button>
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                            {isEditing && editError && (
+                              <tr>
+                                <td colSpan={5} style={{ padding: '0 16px 10px 16px' }}>
+                                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: '#ef4444', background: 'rgba(239,68,68,0.08)', padding: '6px 12px', borderRadius: 6, textAlign: 'left' }}>
+                                    {editError}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        )
+                      })}
                       {activeIncome.length === 0 && <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first income to start tracking." isDark={isDark} /></td></tr>}
                     </tbody>
                   </table>
