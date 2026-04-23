@@ -153,7 +153,7 @@ function EmptyState({ icon: Icon, heading, subtext, isDark = false }: { icon: Re
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 48, paddingBottom: 48 }}>
       <Icon size={48} style={{ color: (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'), marginBottom: 16 }} />
       <p style={{ fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8 }}>{heading}</p>
-      <p style={{ color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
+      <p style={{ color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), fontSize: 13, maxWidth: 280, textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>{subtext}</p>
     </div>
   )
 }
@@ -196,7 +196,7 @@ function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => name.trim() && onSave({ name: name.trim(), color, emoji })} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Save</button>
-          <button onClick={onCancel} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={onCancel} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
         </div>
       </div>
     </div>
@@ -641,7 +641,7 @@ function FinancePage() {
               <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.2em', color: '#00c48c', display: 'block', marginBottom: 4 }}>COACH SHAI</span>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{shaiMsg}</p>
             </div>
-            <button onClick={() => setShaiMsg(null)} style={{ background: 'none', border: 'none', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), cursor: 'pointer', fontSize: 14 }}>✕</button>
+            <button onClick={() => setShaiMsg(null)} style={{ background: 'none', border: 'none', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), cursor: 'pointer', fontSize: 14 }}>✕</button>
           </div>
         )}
 
@@ -661,12 +661,12 @@ function FinancePage() {
             <div style={tbStatCard(_tb.GREEN)}>
               <p style={tbLabel}>TOTAL ASSETS</p>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: _tb.GREEN, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalAssets)}</p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: _tb.textMuted, margin: '6px 0 0 0' }}>Liquid {fmt(liquidTotal)} · Illiquid {fmt(illiquidTotal)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.35)' : '#64748b'), margin: '6px 0 0 0' }}>Liquid {fmt(liquidTotal)} · Illiquid {fmt(illiquidTotal)}</p>
             </div>
             <div style={tbStatCard(_tb.RED)}>
               <p style={tbLabel}>TOTAL LIABILITIES</p>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 28, fontWeight: 700, color: _tb.RED, margin: '6px 0 0 0', letterSpacing: '-0.02em' }}>{fmt(totalLiabilitiesCombined)}</p>
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: _tb.textMuted, margin: '6px 0 0 0' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</p>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.35)' : '#64748b'), margin: '6px 0 0 0' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</p>
             </div>
           </div>
 
@@ -884,7 +884,7 @@ function FinancePage() {
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: _tb.textMuted, textTransform: 'uppercase' }}>TOTAL LIABILITIES</span>
                     <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 700, color: _tb.RED }}>{fmt(totalLiabilitiesCombined)}</span>
                   </div>
-                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: _tb.textMuted, marginTop: 4, textAlign: 'right' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.35)' : '#64748b'), marginTop: 4, textAlign: 'right' }}>User {fmt(totalLiabilities)} · Debts {fmt(totalDebts)}</div>
                 </div>
               )}
             </div>
@@ -946,12 +946,12 @@ function FinancePage() {
         {streamTotals.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
             {streamTotals.map(s => (
-              <div key={s.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, borderLeft: '3px solid #2563eb' }}>
+              <div key={s.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, borderLeft: `3px solid ${s.color}` }}>
                 <span style={{ fontSize: 24 }}>{s.emoji}</span>
                 <div>
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', marginBottom: 2 }}>{s.name}</p>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 600, color: s.color, margin: 0 }}>{fmt(s.total)}</p>
-                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), marginTop: 2 }}>{s.count} entries</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 600, color: (isDark ? '#f9fafb' : '#0f172a'), margin: 0 }}>{fmt(s.total)}</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.25)' : '#64748b'), marginTop: 2 }}>{s.count} entries</p>
                 </div>
               </div>
             ))}
@@ -977,7 +977,7 @@ function FinancePage() {
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 18, fontWeight: 700, color: '#16a34a', margin: 0 }}>
-                      {fmt(thisMonthTrading)} <span style={{ fontSize: 12, fontWeight: 400, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>/ {fmt(monthlyGoal)}</span>
+                      {fmt(thisMonthTrading)} <span style={{ fontSize: 12, fontWeight: 400, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>/ {fmt(monthlyGoal)}</span>
                     </p>
                     <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: goalPct >= 100 ? '#00c48c' : '#f59e0b' }}>{goalPct}%</span>
                   </div>
@@ -1109,7 +1109,7 @@ function FinancePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
                 {editingStreamGoal ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em' }}>{fmt(thisMonthStream)} <span style={{ fontSize: 13, fontWeight: 500, color: textMuted }}>/</span></span>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em' }}>{fmt(thisMonthStream)} <span style={{ fontSize: 13, fontWeight: 500, color: (isDark ? '#94a3b8' : '#64748b') }}>/</span></span>
                     <input
                       autoFocus
                       type="text"
@@ -1147,7 +1147,7 @@ function FinancePage() {
                     letterSpacing: '-0.02em',
                   }}>
                     {fmt(thisMonthStream)}{' '}
-                    <span style={{ fontSize: 13, fontWeight: 500, color: textMuted }}>/ {fmt(goalAmount)}</span>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: (isDark ? '#94a3b8' : '#64748b') }}>/ {fmt(goalAmount)}</span>
                   </p>
                 )}
                 {!editingStreamGoal && (
@@ -1223,7 +1223,7 @@ function FinancePage() {
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={incomeForm.notes} onChange={e => setIncomeForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                 <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
-                <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
@@ -1242,7 +1242,7 @@ function FinancePage() {
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={expenseForm.notes} onChange={e => setExpenseForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                 <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
-                <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
@@ -1360,10 +1360,10 @@ function FinancePage() {
                     <tbody>
                       {[...expenses].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
                         <tr key={e.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>{e.date}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>{e.date}</td>
                           <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>{e.category}</span></td>
                           <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#ff4d6a' }}>{fmt(e.amount)}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
                           <td style={{ padding: '12px 16px' }}>
                             <button onClick={() => deleteEntry(e.id, 'expense')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
                               <Trash2 size={12} style={{ color: '#ff4d6a' }} />
@@ -1596,7 +1596,7 @@ function FinancePage() {
                     return h ? (
                       <div style={{ marginTop: 6 }}>
                         <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 600, color: '#ef4444', margin: 0 }}>{h.interestRate.toFixed(2)}%</p>
-                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: '2px 0 0 0' }}>{h.name}</p>
+                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), margin: '2px 0 0 0' }}>{h.name}</p>
                       </div>
                     ) : (
                       <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, color: (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'), margin: '6px 0 0 0' }}>—</p>
@@ -1716,7 +1716,7 @@ function FinancePage() {
                   <button
                     type="button"
                     onClick={resetDebtForm}
-                    style={{ background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 6, color: (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '7px 12px', cursor: 'pointer' }}
+                    style={{ background: 'none', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`, borderRadius: 6, color: (isDark ? 'rgba(255,255,255,0.4)' : '#475569'), fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '7px 12px', cursor: 'pointer' }}
                   >
                     Cancel
                   </button>
@@ -1727,7 +1727,7 @@ function FinancePage() {
             {debts.length === 0 && !showDebtForm ? (
               <div style={{ ...cardStyle, padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), margin: '0 0 6px 0' }}>No debts tracked yet</p>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: '0 0 16px 0', maxWidth: 380 }}>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), margin: '0 0 16px 0', maxWidth: 380 }}>
                   Add your debts to track payoff progress and see your monthly obligations.
                 </p>
                 <button
@@ -1769,7 +1769,7 @@ function FinancePage() {
                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f') }}>{d.name}</span>
                             <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, padding: '2px 7px', borderRadius: 4, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)', color: '#2563eb', whiteSpace: 'nowrap' }}>{DEBT_TYPE_LABELS[d.type]}</span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)') }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? 'rgba(255,255,255,0.6)' : '#475569') }}>
                             <span>APR <span style={{ color: '#ef4444', fontWeight: 600 }}>{(d.interestRate || 0).toFixed(2)}%</span></span>
                             <span>Min <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{fmt(d.minimumPayment || 0)}</span>/mo</span>
                             {dd != null && <span>Due <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{dd}{suffix}</span></span>}
@@ -1794,7 +1794,7 @@ function FinancePage() {
                           <div style={{ height: '100%', width: `${paidPct}%`, background: '#10b981', transition: 'width 0.3s ease' }} />
                         </div>
                         {(targetIso || estIso) && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)') }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>
                             {targetIso && <span>Target <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{formatMonthYear(targetIso)}</span></span>}
                             {estIso && !targetIso && <span>Est. payoff <span style={{ color: (isDark ? '#ffffff' : '#0a0a0f'), fontWeight: 600 }}>{formatMonthYear(estIso)}</span></span>}
                             {targetAggressive && neededPayment != null && (
@@ -1814,7 +1814,7 @@ function FinancePage() {
         )}
         {activeSection === 'plan' && (
           <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontStyle: 'italic', color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), margin: 0 }}>Financial plan generator coming in next build step</p>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontStyle: 'italic', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), margin: 0 }}>Financial plan generator coming in next build step</p>
           </div>
         )}
       </div>
