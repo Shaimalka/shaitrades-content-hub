@@ -15,7 +15,8 @@ import SnapshotModal from './components/SnapshotModal'
 import type { NetWorthSnapshot, Milestone, FinancePreferences } from '@/lib/finance-keys'
 
 interface IncomeStream { id: string; name: string; color: string; emoji: string }
-interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string }
+interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string; recurringRuleId?: string | null; createdAt?: string }
+interface RecurringIncomeRule { id: string; streamId: string; amount: number; account: string; notes: string; frequency: 'monthly'; dayOfMonth: number; startDate: string; endDate: string | null; status: 'active' | 'paused' | 'ended'; createdAt: string; lastGeneratedAt: string | null }
 interface ExpenseEntry { id: string; date: string; amount: number; category: string; notes?: string }
 interface Asset { id: string; name: string; value: number; category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other'; liquidity?: 'liquid' | 'illiquid' }
 interface Liability { id: string; name: string; amount: number; category: 'Credit Card' | 'Loan' | 'Other' }
@@ -93,6 +94,11 @@ const DEFAULT_STREAMS: IncomeStream[] = [
 
 function today() { return new Date().toISOString().split('T')[0] }
 const fmt = (n: number) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+function ordinalDay(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
+}
 
 // Strip commas from a user-typed money string and return digits + optional decimal point.
 function stripCommas(s: string): string { return (s || '').replace(/,/g, '') }
@@ -237,6 +243,19 @@ function FinancePage() {
   const [editError, setEditError] = useState<string | null>(null)
   const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', notes: '' })
 
+  // Recurring income rules (Sprint 1C).
+  const [recurringRules, setRecurringRules] = useState<RecurringIncomeRule[]>([])
+  const [recurringEnabled, setRecurringEnabled] = useState(false)
+  const [recurringForm, setRecurringForm] = useState<{ dayOfMonth: string; startDate: string; endDate: string; generateFirstNow: boolean }>({
+    dayOfMonth: String(new Date().getDate()),
+    startDate: today(),
+    endDate: '',
+    generateFirstNow: false,
+  })
+  const [recurringBusy, setRecurringBusy] = useState(false)
+  const [recurringError, setRecurringError] = useState<string | null>(null)
+  const [showEndedRules, setShowEndedRules] = useState(false)
+
   // Net Worth tracker state
   const [assets, setAssets] = useState<Asset[]>([])
   const [liabilities, setLiabilities] = useState<Liability[]>([])
@@ -311,6 +330,7 @@ function FinancePage() {
     }).catch(() => {}).finally(() => setLoading(false))
   fetch('/api/life/finance/debts').then(r => r.json()).then(d => { if (d.debts) setDebts(d.debts) }).catch(() => {})
     fetch('/api/life/finance/debt-analysis').then(r => r.json()).then(d => { if (d.analysis) setDebtAnalysis(d.analysis) }).catch(() => {})
+    fetch('/api/life/finance/recurring-income').then(r => r.json()).then(d => { if (Array.isArray(d.rules)) setRecurringRules(d.rules) }).catch(() => {})
     fetch('/api/finance/tax-rate').then(r => r.json()).then(d => {
       if (d.taxReservePercent) { setTaxReservePercent(d.taxReservePercent); setTaxReserveInput(String(d.taxReservePercent)) }
     }).catch(() => {})
@@ -379,6 +399,48 @@ function FinancePage() {
       })
       .catch(() => {})
   }, [activeSection, activeTab, streamGoals])
+
+  // Coach Shai — auto-gen banner for recurring income (Sprint 1C).
+  // Runs when user lands on Income tab. Finds unacknowledged auto-generated
+  // entries created in the last 24h and surfaces them one-by-one through the
+  // existing shaiMsg banner. Acks on show (sessionStorage) so the banner
+  // doesn't reappear on navigation within this session.
+  useEffect(() => {
+    if (activeSection !== 'income') return
+    if (typeof window === 'undefined') return
+    if (shaiMsg) return
+    const now = Date.now()
+    const DAY_MS = 24 * 60 * 60 * 1000
+    const next = income
+      .filter(e => !!e.recurringRuleId && !!e.createdAt)
+      .filter(e => {
+        const t = new Date(e.createdAt as string).getTime()
+        return Number.isFinite(t) && (now - t) <= DAY_MS
+      })
+      .filter(e => {
+        try { return !sessionStorage.getItem('acknowledged_recurring:' + e.id) } catch { return true }
+      })
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))[0]
+    if (!next) return
+    const runCount = income.filter(e => e.recurringRuleId === next.recurringRuleId).length
+    const stream = streams.find(s => s.id === next.streamId)
+    const source = next.account || (stream ? stream.name : 'income')
+    const amount = fmt(next.amount)
+    let msg: string
+    if (runCount <= 1) {
+      msg = `Your first ${amount} from ${source} just auto-logged 🔁 — recurring income is leverage.`
+    } else if (runCount <= 4) {
+      msg = `Another ${amount} from ${source}. Consistency compounds.`
+    } else {
+      msg = `${ordinalDay(runCount)} ${source} payment. Keep the system running.`
+    }
+    try { sessionStorage.setItem('acknowledged_recurring:' + next.id, '1') } catch {}
+    setShaiMsg(msg)
+    // Auto-clear after 10s (matches existing banner pattern); setter guard
+    // prevents stomping on a newer message.
+    setTimeout(() => setShaiMsg(prev => prev === msg ? null : prev), 10000)
+  }, [activeSection, income, streams, shaiMsg])
+
   async function addStream(s: Omit<IncomeStream, 'id'>) {
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add_stream', stream: s }) })
     const data = await res.json(); if (data.streams) setStreams(data.streams); setShowNewStream(false); setActiveTab(data.streams?.[data.streams.length - 1]?.id || activeTab)
@@ -389,10 +451,37 @@ function FinancePage() {
   }
   async function saveIncome(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'income', entry: { ...incomeForm, amount: parseFloat(incomeForm.amount), streamId: activeTab } }) })
+    const amt = parseFloat(incomeForm.amount)
+    // Recurring branch — create rule instead of (or in addition to) a one-off entry.
+    if (recurringEnabled) {
+      const dom = parseInt(recurringForm.dayOfMonth, 10)
+      if (!Number.isFinite(amt) || amt <= 0) { setRecurringError('Amount must be greater than 0'); return }
+      if (!Number.isInteger(dom) || dom < 1 || dom > 31) { setRecurringError('Day of month must be 1–31'); return }
+      try {
+        await createRecurringRule({
+          streamId: activeTab,
+          amount: amt,
+          account: incomeForm.account,
+          notes: incomeForm.notes,
+          dayOfMonth: dom,
+          startDate: recurringForm.startDate || incomeForm.date || today(),
+          endDate: recurringForm.endDate ? recurringForm.endDate : null,
+          generateFirstNow: recurringForm.generateFirstNow,
+        })
+        setShowForm(false)
+        setIncomeForm({ date: today(), amount: '', notes: '', account: '', source: '' })
+        resetRecurringForm()
+        const stream = streams.find(s => s.id === activeTab)
+        setShaiMsg(stream ? '🔁 ' + fmt(amt) + ' ' + stream.name + ' set to auto-log on day ' + dom + ' each month.' : null)
+        setTimeout(() => setShaiMsg(null), 10000)
+      } catch { /* error surfaced in recurringError */ }
+      return
+    }
+    // Manual one-off entry — unchanged existing flow.
+    const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'income', entry: { ...incomeForm, amount: amt, streamId: activeTab } }) })
     const data = await res.json(); setIncome(data.income || []); setShowForm(false); setIncomeForm({ date: today(), amount: '', notes: '', account: '', source: '' })
     const stream = streams.find(s => s.id === activeTab)
-    setShaiMsg(stream ? stream.emoji + ' ' + fmt(parseFloat(incomeForm.amount)) + ' logged to ' + stream.name + '. Keep stacking.' : null)
+    setShaiMsg(stream ? stream.emoji + ' ' + fmt(amt) + ' logged to ' + stream.name + '. Keep stacking.' : null)
     setTimeout(() => setShaiMsg(null), 10000)
   }
   async function saveExpense(e: React.FormEvent) {
@@ -447,6 +536,79 @@ function FinancePage() {
       setEditSaving(false)
     }
   }
+
+  // ── Recurring income rule handlers (Sprint 1C) ───────────────────────────
+  function resetRecurringForm() {
+    setRecurringEnabled(false)
+    setRecurringError(null)
+    setRecurringForm({
+      dayOfMonth: String(new Date().getDate()),
+      startDate: today(),
+      endDate: '',
+      generateFirstNow: false,
+    })
+  }
+  async function createRecurringRule(payload: {
+    streamId: string; amount: number; account: string; notes: string;
+    dayOfMonth: number; startDate: string; endDate: string | null; generateFirstNow: boolean
+  }) {
+    setRecurringBusy(true)
+    setRecurringError(null)
+    try {
+      const res = await fetch('/api/life/finance/recurring-income', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Failed to create rule')
+      if (data.rule) setRecurringRules(prev => [...prev, data.rule])
+      if (data.entry) setIncome(prev => [...prev, data.entry])
+      return data
+    } catch (err: any) {
+      setRecurringError(err?.message || 'Failed to create rule')
+      throw err
+    } finally {
+      setRecurringBusy(false)
+    }
+  }
+  async function mutateRecurringRule(ruleId: string, action: 'pause' | 'resume' | 'end' | 'update', updates?: Partial<RecurringIncomeRule>) {
+    setRecurringBusy(true)
+    setRecurringError(null)
+    try {
+      const res = await fetch('/api/life/finance/recurring-income', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ruleId, action, updates }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Failed to update rule')
+      if (data.rule) setRecurringRules(prev => prev.map(r => r.id === ruleId ? data.rule : r))
+    } catch (err: any) {
+      setRecurringError(err?.message || 'Failed to update rule')
+    } finally {
+      setRecurringBusy(false)
+    }
+  }
+  async function deleteRecurringRule(ruleId: string) {
+    setRecurringBusy(true)
+    setRecurringError(null)
+    try {
+      const res = await fetch('/api/life/finance/recurring-income', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ruleId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Failed to delete rule')
+      setRecurringRules(prev => prev.filter(r => r.id !== ruleId))
+    } catch (err: any) {
+      setRecurringError(err?.message || 'Failed to delete rule')
+    } finally {
+      setRecurringBusy(false)
+    }
+  }
+
   function saveGoal() {
     const val = parseFloat(goalInput) || 10000; setMonthlyGoal(val); localStorage.setItem(GOAL_STORAGE_KEY, String(val)); setEditingGoal(false)
   }
@@ -1187,6 +1349,99 @@ function FinancePage() {
           )
         })()}
 
+        {/* Recurring Rules (Sprint 1C) — renders above stream sub-tabs */}
+        {activeSection === 'income' && recurringRules.some(r => r.status !== 'ended') && (() => {
+          const activeAndPaused = recurringRules.filter(r => r.status !== 'ended')
+          const ended = recurringRules.filter(r => r.status === 'ended')
+          const actionBtn: React.CSSProperties = {
+            background: 'transparent',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0'}`,
+            borderRadius: 6,
+            color: isDark ? '#cbd5e1' : '#475569',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 11,
+            fontWeight: 600,
+            padding: '4px 10px',
+            cursor: 'pointer',
+            transition: 'background 0.12s',
+          }
+          const dangerBtn: React.CSSProperties = { ...actionBtn, color: '#ef4444', borderColor: isDark ? 'rgba(239,68,68,0.3)' : '#fecaca' }
+          return (
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', margin: '0 0 10px 0' }}>
+                RECURRING RULES
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {activeAndPaused.map(rule => {
+                  const stream = streams.find(s => s.id === rule.streamId)
+                  const statusColor = rule.status === 'active' ? '#10b981' : '#f59e0b'
+                  return (
+                    <div key={rule.id} style={{ ...cardStyle, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 15 }}>🔁</span>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, color: isDark ? '#f9fafb' : '#0f172a' }}>
+                        {fmt(rule.amount)}/mo
+                      </span>
+                      <span style={{ color: isDark ? '#64748b' : '#94a3b8' }}>·</span>
+                      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: isDark ? '#cbd5e1' : '#475569' }}>
+                        {ordinalDay(rule.dayOfMonth)} of each month
+                      </span>
+                      {stream && (<>
+                        <span style={{ color: isDark ? '#64748b' : '#94a3b8' }}>·</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: stream.color }}>
+                          {stream.emoji} {stream.name}
+                        </span>
+                      </>)}
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 10px', borderRadius: 999, background: statusColor + '1a', border: `1px solid ${statusColor}40` }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, display: 'inline-block' }} />
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, color: statusColor, textTransform: 'capitalize' }}>{rule.status}</span>
+                      </span>
+                      <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {rule.status === 'active' && (
+                          <button onClick={() => mutateRecurringRule(rule.id, 'pause')} disabled={recurringBusy} style={actionBtn}>⏸ Pause</button>
+                        )}
+                        {rule.status === 'paused' && (
+                          <button onClick={() => mutateRecurringRule(rule.id, 'resume')} disabled={recurringBusy} style={actionBtn}>▶ Resume</button>
+                        )}
+                        <button onClick={() => { if (confirm('End this rule? No more entries will be generated.')) mutateRecurringRule(rule.id, 'end') }} disabled={recurringBusy} style={actionBtn}>🛑 End</button>
+                        <button onClick={() => { if (confirm('Delete this rule? Past generated entries stay.')) deleteRecurringRule(rule.id) }} disabled={recurringBusy} style={dangerBtn}>✕ Delete</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {ended.length > 0 && (
+                <>
+                  <button
+                    onClick={() => setShowEndedRules(v => !v)}
+                    style={{ marginTop: 10, background: 'transparent', border: 'none', fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: isDark ? '#64748b' : '#94a3b8', cursor: 'pointer', padding: 0 }}
+                  >
+                    {showEndedRules ? 'Hide' : 'Show'} {ended.length} ended rule{ended.length !== 1 ? 's' : ''}
+                  </button>
+                  {showEndedRules && (
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {ended.map(rule => {
+                        const stream = streams.find(s => s.id === rule.streamId)
+                        return (
+                          <div key={rule.id} style={{ ...cardStyle, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', opacity: 0.55 }}>
+                            <span style={{ fontSize: 13 }}>🔁</span>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: isDark ? '#cbd5e1' : '#475569' }}>
+                              {fmt(rule.amount)}/mo · {ordinalDay(rule.dayOfMonth)}{stream ? ` · ${stream.emoji} ${stream.name}` : ''}
+                            </span>
+                            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' }}>
+                              ended {rule.endDate || ''}
+                            </span>
+                            <button onClick={() => { if (confirm('Delete this ended rule permanently?')) deleteRecurringRule(rule.id) }} disabled={recurringBusy} style={{ ...dangerBtn, marginLeft: 'auto' }}>✕ Delete</button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )
+        })()}
+
         {/* Stream Tabs */}
         {activeSection === 'income' && (<>
         <div style={{ display: 'flex', gap: 4, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1216,14 +1471,71 @@ function FinancePage() {
         {showForm && activeTab !== 'expenses' && activeStream && (
           <div style={{ ...cardStyle, marginBottom: 16 }}>
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: activeStream.color, marginBottom: 12 }}>New {activeStream.name} Income {activeStream.emoji}</h3>
-            <form onSubmit={saveIncome} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
-              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>DATE</label><input type="date" value={incomeForm.date} onChange={e => setIncomeForm(f => ({ ...f, date: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} required /></div>
-              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>AMOUNT ($)</label><input type="text" inputMode="decimal" value={formatNumberInput(incomeForm.amount)} onChange={e => setIncomeForm(f => ({ ...f, amount: stripCommas(e.target.value) }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="1,500" required /></div>
-              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>ACCOUNT / SOURCE</label><input value={incomeForm.account} onChange={e => setIncomeForm(f => ({ ...f, account: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. TopStep, Brand Deal" /></div>
-              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={incomeForm.notes} onChange={e => setIncomeForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                <button type="submit" style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: 'pointer', flex: 1 }}>Save</button>
-                <button type="button" onClick={() => setShowForm(false)} style={{ background: (isDark ? '#111118' : '#ffffff'), border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
+            <form onSubmit={saveIncome}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
+                <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>DATE</label><input type="date" value={incomeForm.date} onChange={e => setIncomeForm(f => ({ ...f, date: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} required /></div>
+                <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>AMOUNT ($)</label><input type="text" inputMode="decimal" value={formatNumberInput(incomeForm.amount)} onChange={e => setIncomeForm(f => ({ ...f, amount: stripCommas(e.target.value) }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="1,500" required /></div>
+                <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>ACCOUNT / SOURCE</label><input value={incomeForm.account} onChange={e => setIncomeForm(f => ({ ...f, account: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. TopStep, Brand Deal" /></div>
+                <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={incomeForm.notes} onChange={e => setIncomeForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
+              </div>
+
+              {/* Recurring toggle (Sprint 1C) */}
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 13, color: (isDark ? '#f9fafb' : '#0f172a') }}>
+                <input
+                  type="checkbox"
+                  checked={recurringEnabled}
+                  onChange={e => { setRecurringEnabled(e.target.checked); if (!e.target.checked) setRecurringError(null) }}
+                  style={{ accentColor: '#2563eb', width: 16, height: 16, cursor: 'pointer' }}
+                />
+                <span>🔁 Make this recurring</span>
+              </label>
+
+              {recurringEnabled && (
+                <div style={{ marginTop: 12, padding: '14px 16px', background: (isDark ? 'rgba(37,99,235,0.06)' : '#f8fafc'), border: `1px solid ${isDark ? 'rgba(37,99,235,0.2)' : '#e2e8f0'}`, borderRadius: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: 4 }}>FREQUENCY</label>
+                      <select disabled value="monthly" style={{ ...inputStyle, cursor: 'not-allowed', opacity: 0.7 }}>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: 4 }}>DAY OF MONTH</label>
+                      <input type="number" min={1} max={31} value={recurringForm.dayOfMonth} onChange={e => setRecurringForm(f => ({ ...f, dayOfMonth: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} required />
+                    </div>
+                    <div>
+                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: 4 }}>START DATE</label>
+                      <input type="date" value={recurringForm.startDate} onChange={e => setRecurringForm(f => ({ ...f, startDate: e.target.value }))} style={{ ...inputStyle, colorScheme: isDark ? 'dark' : 'light' }} required />
+                    </div>
+                    <div>
+                      <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: 4 }}>END DATE <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 500, color: (isDark ? '#64748b' : '#94a3b8') }}>(optional)</span></label>
+                      <input type="date" value={recurringForm.endDate} onChange={e => setRecurringForm(f => ({ ...f, endDate: e.target.value }))} style={{ ...inputStyle, colorScheme: isDark ? 'dark' : 'light' }} placeholder="Forever" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? '#f9fafb' : '#0f172a') }}>
+                      <input type="radio" name="recurring-generate" checked={recurringForm.generateFirstNow === true} onChange={() => setRecurringForm(f => ({ ...f, generateFirstNow: true }))} style={{ accentColor: '#2563eb' }} />
+                      <span>Generate first entry now</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 12, color: (isDark ? '#f9fafb' : '#0f172a') }}>
+                      <input type="radio" name="recurring-generate" checked={recurringForm.generateFirstNow === false} onChange={() => setRecurringForm(f => ({ ...f, generateFirstNow: false }))} style={{ accentColor: '#2563eb' }} />
+                      <span>Wait for scheduled day</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {recurringError && (
+                <div style={{ marginTop: 10, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: '#ef4444', background: 'rgba(239,68,68,0.08)', padding: '8px 12px', borderRadius: 6 }}>
+                  {recurringError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                <button type="submit" disabled={recurringBusy} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '8px 16px', cursor: recurringBusy ? 'wait' : 'pointer', opacity: recurringBusy ? 0.6 : 1 }}>
+                  {recurringBusy ? 'Saving…' : recurringEnabled ? 'Save Rule' : 'Save'}
+                </button>
+                <button type="button" onClick={() => { setShowForm(false); resetRecurringForm() }} style={{ background: (isDark ? '#111118' : '#ffffff'), border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`, borderRadius: 8, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), fontFamily: 'Inter, sans-serif', fontSize: 13, padding: '8px 16px', cursor: 'pointer' }}>Cancel</button>
               </div>
             </form>
           </div>
@@ -1308,7 +1620,12 @@ function FinancePage() {
                                 </>
                               ) : (
                                 <>
-                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.65)' : '#475569') }}>{e.date}</td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.65)' : '#475569') }}>
+                                    {e.recurringRuleId && (
+                                      <span title="Auto-generated from recurring rule" style={{ marginRight: 6, fontSize: 12 }} aria-label="Recurring entry">🔁</span>
+                                    )}
+                                    {e.date}
+                                  </td>
                                   <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? '#f9fafb' : '#0f172a') }}>{e.account || e.source || '—'}</td>
                                   <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: '#10b981' }}>{fmt(e.amount)}</td>
                                   <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
