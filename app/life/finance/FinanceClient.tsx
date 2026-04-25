@@ -18,7 +18,7 @@ import type { Asset, Liability } from '@/types/finance'
 interface IncomeStream { id: string; name: string; color: string; emoji: string }
 interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string; recurringRuleId?: string | null; createdAt?: string }
 interface RecurringIncomeRule { id: string; streamId: string; amount: number; account: string; notes: string; frequency: 'monthly'; dayOfMonth: number; startDate: string; endDate: string | null; status: 'active' | 'paused' | 'ended'; createdAt: string; lastGeneratedAt: string | null }
-interface ExpenseEntry { id: string; date: string; amount: number; category: string; notes?: string }
+interface ExpenseEntry { id: string; date: string; amount: number; category: string; vendor?: string; notes?: string }
 interface Debt { id: string; userId: string; name: string; type: 'credit_card' | 'student_loan' | 'personal_loan' | 'mortgage' | 'auto_loan' | 'other'; balance: number; originalBalance: number; interestRate: number; minimumPayment: number; dueDayOfMonth?: number; payoffDate?: string; createdAt: string; updatedAt: string }
 
 const LIQUID_DEFAULT_BY_CATEGORY: Record<Asset['category'], 'liquid' | 'illiquid'> = {
@@ -326,9 +326,9 @@ function FinancePage() {
   const [editForm, setEditForm] = useState<{ date: string; amount: string; account: string; notes: string }>({ date: '', amount: '', account: '', notes: '' })
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
-  const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', notes: '' })
+  const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', vendor: '', notes: '' })
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null)
-  const [expenseEditForm, setExpenseEditForm] = useState<{ date: string; amount: string; category: string; notes: string }>({ date: '', amount: '', category: '', notes: '' })
+  const [expenseEditForm, setExpenseEditForm] = useState<{ date: string; amount: string; category: string; vendor: string; notes: string }>({ date: '', amount: '', category: '', vendor: '', notes: '' })
   const [expenseEditSaving, setExpenseEditSaving] = useState(false)
   const [expenseEditError, setExpenseEditError] = useState<string | null>(null)
 
@@ -609,7 +609,7 @@ function FinancePage() {
   async function saveExpense(e: React.FormEvent) {
     e.preventDefault()
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'expense', entry: { ...expenseForm, amount: parseFloat(expenseForm.amount) } }) })
-    const data = await res.json(); setExpenses(data.expenses || []); setShowForm(false); setExpenseForm({ date: today(), category: 'Software', amount: '', notes: '' })
+    const data = await res.json(); setExpenses(data.expenses || []); setShowForm(false); setExpenseForm({ date: today(), category: 'Software', amount: '', vendor: '', notes: '' })
   }
   async function deleteEntry(id: string, type: 'income' | 'expense') {
     const ok = await requestConfirm({
@@ -671,6 +671,7 @@ function FinancePage() {
       date: entry.date,
       amount: String(entry.amount),
       category: entry.category || EXPENSE_CATEGORIES[0],
+      vendor: entry.vendor || '',
       notes: entry.notes || '',
     })
     setExpenseEditError(null)
@@ -688,6 +689,7 @@ function FinancePage() {
       date: expenseEditForm.date,
       amount: parseFloat(expenseEditForm.amount) || 0,
       category: expenseEditForm.category,
+      vendor: expenseEditForm.vendor,
       notes: expenseEditForm.notes,
     }
     setExpenses(prev.map(e => e.id === id ? { ...e, ...patch } : e))
@@ -1758,6 +1760,7 @@ function FinancePage() {
             <form onSubmit={saveExpense} style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 12 }}>
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>DATE</label><input type="date" value={expenseForm.date} onChange={e => setExpenseForm(f => ({ ...f, date: e.target.value }))} style={{ ...inputStyle, colorScheme: 'dark' }} required /></div>
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>CATEGORY</label><select value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>{EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></div>
+              <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>VENDOR</label><input value={expenseForm.vendor} onChange={e => setExpenseForm(f => ({ ...f, vendor: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="e.g. GitHub Copilot" /></div>
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>AMOUNT ($)</label><input type="text" inputMode="decimal" value={formatNumberInput(expenseForm.amount)} onChange={e => setExpenseForm(f => ({ ...f, amount: stripCommas(e.target.value) }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="99" required /></div>
               <div><label style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'), display: 'block', marginBottom: 4 }}>NOTES</label><input value={expenseForm.notes} onChange={e => setExpenseForm(f => ({ ...f, notes: e.target.value }))} style={inputStyle} onFocus={e => Object.assign(e.target.style, focusStyle)} onBlur={e => Object.assign(e.target.style, blurStyle)} placeholder="Optional" /></div>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
@@ -1880,7 +1883,7 @@ function FinancePage() {
                   <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}` }}>
-                        {['DATE','CATEGORY','AMOUNT','NOTES',''].map(h => (
+                        {['DATE','CATEGORY','VENDOR','AMOUNT','NOTES',''].map(h => (
                           <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.15em', color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase' }}>{h}</th>
                         ))}
                       </tr>
@@ -1907,6 +1910,9 @@ function FinancePage() {
                                     </select>
                                   </td>
                                   <td style={{ padding: '8px 16px' }}>
+                                    <input type="text" value={expenseEditForm.vendor} onChange={ev => setExpenseEditForm(f => ({ ...f, vendor: ev.target.value }))} onKeyDown={onEditKey} placeholder="Vendor" style={{ ...inputStyle, padding: '6px 10px' }} />
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
                                     <input type="text" inputMode="decimal" value={formatNumberInput(expenseEditForm.amount)} onChange={ev => setExpenseEditForm(f => ({ ...f, amount: stripCommas(ev.target.value) }))} onKeyDown={onEditKey} placeholder="0" style={{ ...inputStyle, padding: '6px 10px', color: '#ff4d6a', fontWeight: 700 }} />
                                   </td>
                                   <td style={{ padding: '8px 16px' }}>
@@ -1925,6 +1931,7 @@ function FinancePage() {
                                 <>
                                   <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>{e.date}</td>
                                   <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>{e.category}</span></td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: (isDark ? '#f9fafb' : '#0f172a'), maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.vendor || '—'}</td>
                                   <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#ff4d6a' }}>{fmt(e.amount)}</td>
                                   <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
                                   <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
@@ -1940,7 +1947,7 @@ function FinancePage() {
                             </tr>
                             {isEditing && expenseEditError && (
                               <tr>
-                                <td colSpan={5} style={{ padding: '0 16px 10px 16px' }}>
+                                <td colSpan={6} style={{ padding: '0 16px 10px 16px' }}>
                                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: '#ef4444', background: 'rgba(239,68,68,0.08)', padding: '6px 12px', borderRadius: 6, textAlign: 'left' }}>
                                     {expenseEditError}
                                   </div>
@@ -1950,7 +1957,7 @@ function FinancePage() {
                           </Fragment>
                         )
                       })}
-                      {expenses.length === 0 && <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first expense to start tracking." isDark={isDark} /></td></tr>}
+                      {expenses.length === 0 && <tr><td colSpan={6}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first expense to start tracking." isDark={isDark} /></td></tr>}
                     </tbody>
                   </table>
                 </div>

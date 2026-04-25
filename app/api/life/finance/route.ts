@@ -133,6 +133,7 @@ export async function POST(req: NextRequest) {
                         patch.amount = n
               }
               if (typeof body.patch.category === 'string') patch.category = body.patch.category.slice(0, 100)
+              if (typeof body.patch.vendor === 'string') patch.vendor = body.patch.vendor.slice(0, 200)
               if (typeof body.patch.notes === 'string') patch.notes = body.patch.notes.slice(0, 500)
               const updated = [...expenses]
               updated[idx] = { ...updated[idx], ...patch, updatedAt: new Date().toISOString() }
@@ -180,6 +181,7 @@ export async function POST(req: NextRequest) {
                         ...entry,
                         id: Date.now().toString(),
                         amount: amt,
+                        vendor: typeof entry?.vendor === 'string' ? entry.vendor.slice(0, 200) : undefined,
                         createdAt: new Date().toISOString(),
               }
               const updated = [...expenses, newExpense]
