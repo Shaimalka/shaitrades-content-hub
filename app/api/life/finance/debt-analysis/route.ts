@@ -226,13 +226,20 @@ function simulateStrategy(
       }
     }
 
-    // Pay minimums
-    let extra = extraBudgetStart
+    // Pay minimums and track actual paid (handles both paid-off debts skipped
+    // above and final-month overpayment where balance < minPayment).
+    let totalMinPaid = 0
     for (const d of active) {
       if (d.balance <= 0) continue
       const pay = Math.min(d.minPayment, d.balance)
       d.balance -= pay
+      totalMinPaid += pay
     }
+
+    // Extra = full budget minus what we actually spent on minimums this month.
+    // Captures snowball rollover from paid-off debts AND any unused budget
+    // from oversized minimums on shrinking balances.
+    let extra = Math.max(0, budget - totalMinPaid)
 
     // Apply extra to target in strategy order
     const ordered = active.filter((d) => d.balance > 0)
@@ -247,14 +254,7 @@ function simulateStrategy(
       extra -= pay
     }
 
-    // Also roll freed minimums into extra for next iteration (debt snowball effect)
-    // Handled implicitly: once a debt hits 0, its minimum is skipped above, and
-    // we recompute extra from (budget - sum of remaining mins) each month.
     month += 1
-    const remainingMin = sum(active.filter((d) => d.balance > 0).map((d) => d.minPayment))
-    extra = Math.max(0, budget - remainingMin)
-    // leftover extra unused this month simply doesn't carry — but for next month it's
-    // recomputed fresh via budget minus remaining mins, which is correct.
 
     // Detect debts newly paid off this month
     for (const d of active) {
