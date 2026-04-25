@@ -2141,7 +2141,7 @@ function FinancePage() {
                   A consolidated view of your goals, runway, and long-term trajectory.
                 </p>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start', maxWidth: 360, marginTop: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start', maxWidth: 360, marginTop: 8, textAlign: 'left' }}>
                 {[
                   'Goals — debt payoff, savings, and investment targets',
                   'Emergency fund — months of runway covered',
