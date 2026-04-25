@@ -207,6 +207,94 @@ function NewStreamForm({ onSave, onCancel }: { onSave: (s: Omit<IncomeStream,'id
     </div>
   )
 }
+function ConfirmModal({
+  isOpen,
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  destructive = false,
+  isDark,
+  onConfirm,
+  onCancel,
+}: {
+  isOpen: boolean
+  title: string
+  message: string
+  confirmLabel?: string
+  cancelLabel?: string
+  destructive?: boolean
+  isDark: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, onCancel])
+
+  if (!isOpen) return null
+
+  const cardBg = isDark ? '#1a1f2e' : '#ffffff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
+  const textPrimary = isDark ? '#f9fafb' : '#0f172a'
+  const textSecondary = isDark ? 'rgba(255,255,255,0.65)' : '#475569'
+  const textMuted = isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8'
+  const BLUE = '#60a5fa'
+  const RED = '#ef4444'
+  const confirmColor = destructive ? RED : BLUE
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onCancel}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 16 }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 420, background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 14, padding: '20px 22px', fontFamily: 'Inter, sans-serif', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: textPrimary, margin: 0 }}>{title}</h3>
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Close"
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: textMuted, padding: 4, display: 'inline-flex' }}
+            onMouseEnter={e => (e.currentTarget.style.color = textPrimary)}
+            onMouseLeave={e => (e.currentTarget.style.color = textMuted)}
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <p style={{ fontSize: 13, color: textSecondary, margin: '0 0 18px 0', lineHeight: 1.5 }}>{message}</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{ background: 'rgba(96,165,250,0.06)', border: `1px solid #bfdbfe`, borderRadius: 8, color: BLUE, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, padding: '9px 14px', cursor: 'pointer', transition: 'background 0.12s ease' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(96,165,250,0.14)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(96,165,250,0.06)')}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            style={{ background: confirmColor, border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, padding: '9px 18px', cursor: 'pointer', transition: 'filter 0.12s' }}
+            onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.06)')}
+            onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 function FinancePage() {
   const { isDark } = useTheme()
   const isMobile = useWindowWidth() < 768
@@ -267,6 +355,11 @@ function FinancePage() {
   const [nwSnapshots, setNwSnapshots] = useState<NetWorthSnapshot[]>([])
   const [nwMilestones, setNwMilestones] = useState<Milestone[]>([])
   const [showSnapshotModal, setShowSnapshotModal] = useState(false)
+  type ConfirmRequest = { title: string; message: string; confirmLabel?: string; destructive?: boolean; resolve: (ok: boolean) => void }
+  const [confirmRequest, setConfirmRequest] = useState<ConfirmRequest | null>(null)
+  function requestConfirm(opts: { title?: string; message: string; confirmLabel?: string; destructive?: boolean }): Promise<boolean> {
+    return new Promise(resolve => setConfirmRequest({ title: opts.title || 'Confirm', message: opts.message, confirmLabel: opts.confirmLabel, destructive: opts.destructive, resolve }))
+  }
   const nwTabHydratedRef = useRef(false)
   const [assetForm, setAssetForm] = useState({ name: '', value: '', category: 'Cash' as Asset['category'], liquidity: 'liquid' as 'liquid' | 'illiquid' })
   const [liabilityForm, setLiabilityForm] = useState({ name: '', amount: '', category: 'Credit Card' as Liability['category'] })
@@ -721,7 +814,17 @@ function FinancePage() {
   function resetDebtForm() { setDebtForm({ name: '', type: 'credit_card', balance: '', originalBalance: '', interestRate: '', minimumPayment: '', dueDayOfMonth: '', payoffDate: '' }); setEditingDebtId(null); setShowDebtForm(false) }
   function openEditDebt(d: Debt) { const legacy = (d as any).dueDate; const dueDay = d.dueDayOfMonth != null ? d.dueDayOfMonth : (legacy != null ? legacy : null); setDebtForm({ name: d.name, type: d.type, balance: String(d.balance), originalBalance: String(d.originalBalance), interestRate: String(d.interestRate), minimumPayment: String(d.minimumPayment), dueDayOfMonth: dueDay != null ? String(dueDay) : '', payoffDate: d.payoffDate || '' }); setEditingDebtId(d.id); setShowDebtForm(true) }
   async function submitDebt(e: React.FormEvent) { e.preventDefault(); if (!debtForm.name.trim()) return; const balanceNum = parseFloat(stripCommas(debtForm.balance)) || 0; const originalNum = debtForm.originalBalance ? parseFloat(stripCommas(debtForm.originalBalance)) : balanceNum; const rateNum = parseFloat(debtForm.interestRate) || 0; const minNum = parseFloat(stripCommas(debtForm.minimumPayment)) || 0; const dueNum = debtForm.dueDayOfMonth ? Math.max(1, Math.min(31, parseInt(debtForm.dueDayOfMonth, 10))) : undefined; const payload: any = { name: debtForm.name.trim(), type: debtForm.type, balance: balanceNum, originalBalance: originalNum, interestRate: rateNum, minimumPayment: minNum }; if (dueNum !== undefined && !Number.isNaN(dueNum)) payload.dueDayOfMonth = dueNum; if (debtForm.payoffDate && debtForm.payoffDate.trim() !== '') payload.payoffDate = debtForm.payoffDate; if (editingDebtId) { const res = await fetch('/api/life/finance/debts', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editingDebtId, updates: payload }) }); const data = await res.json(); if (data.debt) setDebts(prev => prev.map(d => d.id === editingDebtId ? data.debt : d)) } else { const res = await fetch('/api/life/finance/debts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); const data = await res.json(); if (data.debt) setDebts(prev => [...prev, data.debt]) } resetDebtForm() }
-  async function deleteDebt(id: string) { if (!confirm('Delete this debt? This cannot be undone.')) return; const res = await fetch('/api/life/finance/debts', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); if (res.ok) setDebts(prev => prev.filter(d => d.id !== id)) }
+  async function deleteDebt(id: string) {
+    const ok = await requestConfirm({
+      title: 'Delete debt',
+      message: 'Delete this debt? This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
+    if (!ok) return
+    const res = await fetch('/api/life/finance/debts', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    if (res.ok) setDebts(prev => prev.filter(d => d.id !== id))
+  }
   async function runDebtAnalysis() {
     setDebtAnalysisLoading(true)
     setDebtAnalysisError(null)
@@ -1397,8 +1500,8 @@ function FinancePage() {
                         {rule.status === 'paused' && (
                           <button onClick={() => mutateRecurringRule(rule.id, 'resume')} disabled={recurringBusy} style={actionBtn}>▶ Resume</button>
                         )}
-                        <button onClick={() => { if (confirm('End this rule? No more entries will be generated.')) mutateRecurringRule(rule.id, 'end') }} disabled={recurringBusy} style={actionBtn}>🛑 End</button>
-                        <button onClick={() => { if (confirm('Delete this rule? Past generated entries stay.')) deleteRecurringRule(rule.id) }} disabled={recurringBusy} style={dangerBtn}>✕ Delete</button>
+                        <button onClick={async () => { if (await requestConfirm({ title: 'End rule', message: 'End this rule? No more entries will be generated.', confirmLabel: 'End rule' })) mutateRecurringRule(rule.id, 'end') }} disabled={recurringBusy} style={actionBtn}>🛑 End</button>
+                        <button onClick={async () => { if (await requestConfirm({ title: 'Delete rule', message: 'Delete this rule? Past generated entries stay.', confirmLabel: 'Delete', destructive: true })) deleteRecurringRule(rule.id) }} disabled={recurringBusy} style={dangerBtn}>✕ Delete</button>
                       </div>
                     </div>
                   )
@@ -1425,7 +1528,7 @@ function FinancePage() {
                             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: isDark ? '#64748b' : '#94a3b8' }}>
                               ended {rule.endDate || ''}
                             </span>
-                            <button onClick={() => { if (confirm('Delete this ended rule permanently?')) deleteRecurringRule(rule.id) }} disabled={recurringBusy} style={{ ...dangerBtn, marginLeft: 'auto' }}>✕ Delete</button>
+                            <button onClick={async () => { if (await requestConfirm({ title: 'Delete rule', message: 'Delete this ended rule permanently?', confirmLabel: 'Delete', destructive: true })) deleteRecurringRule(rule.id) }} disabled={recurringBusy} style={{ ...dangerBtn, marginLeft: 'auto' }}>✕ Delete</button>
                           </div>
                         )
                       })}
@@ -2157,6 +2260,16 @@ function FinancePage() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={!!confirmRequest}
+        title={confirmRequest?.title || 'Confirm'}
+        message={confirmRequest?.message || ''}
+        confirmLabel={confirmRequest?.confirmLabel}
+        destructive={confirmRequest?.destructive}
+        isDark={isDark}
+        onConfirm={() => { confirmRequest?.resolve(true); setConfirmRequest(null) }}
+        onCancel={() => { confirmRequest?.resolve(false); setConfirmRequest(null) }}
+      />
       <LifeHubChat section="finance" apiRoute="/api/life/finance/chat" contextData={{ income, expenses, streams, assets, liabilities, netWorth, debts }} systemPrompt="You are Coach Shai, a finance AI. Analyze income across all streams, expenses, assets, liabilities, and net worth. Be direct and insightful." defaultOpen={defaultChatOpen} />
     </div>
   )
