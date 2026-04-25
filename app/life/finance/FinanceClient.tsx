@@ -84,7 +84,6 @@ const LIABILITY_CATEGORY_COLORS: Record<string, string> = {
   Other: 'rgba(255,255,255,0.35)',
 }
 
-const GOAL_STORAGE_KEY = 'trabits_trading_monthly_goal'
 const PRESET_COLORS = ['#00c48c', '#2563eb', '#f59e0b', '#ff4d6a', '#a78bfa', '#f97316']
 const DEFAULT_STREAMS: IncomeStream[] = [
   { id: 'trading', name: 'Trading', color: '#00c48c', emoji: '📈' },
@@ -313,7 +312,6 @@ function FinancePage() {
   const [expenses, setExpenses] = useState<ExpenseEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [shaiMsg, setShaiMsg] = useState<string | null>(null)
-  const [monthlyGoal, setMonthlyGoal] = useState<number>(10000)
   const [editingGoal, setEditingGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('10000')
   const [streamGoals, setStreamGoals] = useState<Record<string, { amount: number; updatedAt: string | null }>>({})
@@ -436,8 +434,29 @@ function FinancePage() {
     }).catch(() => {})
   }, [])
 
+  // Hydrate streamGoals['trading'] on mount + one-time migration of legacy
+  // localStorage trading goal to the server. Server is the single source of truth.
   useEffect(() => {
-    const g = localStorage.getItem(GOAL_STORAGE_KEY); if (g) { setMonthlyGoal(Number(g)); setGoalInput(g) }
+    if (typeof window === 'undefined') return
+    fetch('/api/life/finance/income-goal?streamId=trading')
+      .then(r => r.json())
+      .then(async d => {
+        const legacy = localStorage.getItem('trabits_trading_monthly_goal')
+        let nextGoal = { amount: d.amount as number, updatedAt: (d.updatedAt ?? null) as string | null }
+        if (legacy && d.updatedAt === null) {
+          const val = parseFloat(legacy) || 10000
+          const res = await fetch('/api/life/finance/income-goal', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ streamId: 'trading', amount: val }),
+          })
+          const saved = await res.json()
+          if (res.ok) nextGoal = { amount: saved.amount, updatedAt: saved.updatedAt }
+        }
+        setStreamGoals(prev => ({ ...prev, trading: nextGoal }))
+        localStorage.removeItem('trabits_trading_monthly_goal')
+      })
+      .catch(() => {})
   }, [])
 
   // First-mount of Net Worth tab: hydrate snapshots, milestones, preferences,
@@ -762,8 +781,17 @@ function FinancePage() {
     }
   }
 
-  function saveGoal() {
-    const val = parseFloat(goalInput) || 10000; setMonthlyGoal(val); localStorage.setItem(GOAL_STORAGE_KEY, String(val)); setEditingGoal(false)
+  async function saveGoal() {
+    const val = parseFloat(goalInput) || 10000
+    setStreamGoals(prev => ({ ...prev, trading: { amount: val, updatedAt: new Date().toISOString() } }))
+    setEditingGoal(false)
+    try {
+      await fetch('/api/life/finance/income-goal', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ streamId: 'trading', amount: val }),
+      })
+    } catch {}
   }
   async function saveStreamGoal() {
     if (!activeTab || activeTab === 'expenses') { setEditingStreamGoal(false); return }
@@ -935,6 +963,7 @@ function FinancePage() {
   })
   const tradingStream = streams.find(s => s.id === 'trading')
   const thisMonthTrading = income.filter(e => e.streamId === 'trading' && e.date.slice(0, 7) === currentMonth).reduce((s, e) => s + e.amount, 0)
+  const monthlyGoal = streamGoals['trading']?.amount ?? 10000
   const goalPct = monthlyGoal > 0 ? Math.min(100, Math.round((thisMonthTrading / monthlyGoal) * 100)) : 0
   const activeStream = streams.find(s => s.id === activeTab)
   const activeIncome = income.filter(e => e.streamId === activeTab)
@@ -1307,7 +1336,7 @@ function FinancePage() {
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>TRADING GOAL — {currentMonth}</p>
-                  <button onClick={() => setEditingGoal(!editingGoal)} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', cursor: 'pointer' }}>{editingGoal ? 'cancel' : 'edit'}</button>
+                  <button onClick={() => { if (!editingGoal) setGoalInput(String(monthlyGoal)); setEditingGoal(!editingGoal) }} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.2)', color: '#2563eb', cursor: 'pointer' }}>{editingGoal ? 'cancel' : 'edit'}</button>
                 </div>
                 {editingGoal ? (
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
