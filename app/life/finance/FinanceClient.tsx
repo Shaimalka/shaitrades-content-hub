@@ -1228,7 +1228,7 @@ function FinancePage() {
                 <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 16, fontWeight: 700, color: '#f59e0b' }}>%</span>
               </div>
             ) : (
-              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{fmt(Math.max(0, (taxReservePercent / 100) * totalIn))} <span style={{ fontSize: 11, fontWeight: 400, color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{taxReservePercent}%</span></p>
+              <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 20, fontWeight: 700, color: '#f59e0b', margin: 0 }}>{fmt(Math.max(0, (taxReservePercent / 100) * netProfit))} <span style={{ fontSize: 11, fontWeight: 400, color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{taxReservePercent}%</span></p>
             )}
           </div>
         </div>
