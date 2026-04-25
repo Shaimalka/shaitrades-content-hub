@@ -1167,19 +1167,15 @@ function FinancePage() {
                 </div>
               </div>
             )}
-            <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <TrendingDown size={20} style={{ color: '#ff4d6a', flexShrink: 0 }} />
-              <div>
-                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>BIGGEST EXPENSE CATEGORY</p>
-                <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#ff4d6a', margin: '2px 0 0 0' }}>
-                  {expenses.length > 0 ? (
-                    <span>{biggestCat?.[0] ?? 'No expenses yet'} — {fmt(biggestCat?.[1] ?? 0)}</span>
-                  ) : (
-                    <span style={{ color: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)' }}>No expenses logged yet</span>
-                  )}
-                </p>
+            {biggestCat && (
+              <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <TrendingDown size={20} style={{ color: '#ff4d6a', flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: (isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'), textTransform: 'uppercase', margin: 0 }}>BIGGEST EXPENSE CATEGORY</p>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 14, fontWeight: 600, color: '#ff4d6a', margin: '2px 0 0 0' }}>{biggestCat[0]} — {fmt(biggestCat[1])}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
         </>)}
