@@ -27,8 +27,8 @@ function streamsKey(userId: string) { return `finance:${userId}:streams` }
 
 // ─── Default streams ──────────────────────────────────────────────────────────
 const DEFAULT_STREAMS = [
-  { id: 'trading', name: 'Trading', color: '#00ff88', emoji: '📈' },
-  { id: 'content', name: 'Content', color: '#00f2ff', emoji: '🎬' },
+  { id: 'trading', name: 'Trading', color: '#00c48c', emoji: '📈' },
+  { id: 'content', name: 'Content', color: '#2563eb', emoji: '🎬' },
   ]
 
 export async function GET(req: NextRequest) {
