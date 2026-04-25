@@ -71,6 +71,17 @@ export async function POST(req: NextRequest) {
         const { action, type, item } = body
         const now = new Date().toISOString()
 
+      // Validate amount-class field on add/edit:
+      //   asset → item.value, liability → item.amount
+      if ((action === 'add' || action === 'edit') && (type === 'asset' || type === 'liability')) {
+              const fieldName = type === 'asset' ? 'value' : 'amount'
+              const v = Number(item?.[fieldName])
+              if (!Number.isFinite(v) || v < 0 || v >= 1e12) {
+                        return NextResponse.json({ error: `Invalid ${fieldName}` }, { status: 400 })
+              }
+              item[fieldName] = v
+      }
+
       if (type === 'asset') {
               const key = `user:${userId}:assets`
               const raw = await redis.get(key)

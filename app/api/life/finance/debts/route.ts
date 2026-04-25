@@ -93,17 +93,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Validate amount-class fields (dollar amounts: finite, non-negative, < $1T)
+    const balN = Number(balance)
+    if (!Number.isFinite(balN) || balN < 0 || balN >= 1e12) return NextResponse.json({ error: 'Invalid balance' }, { status: 400 })
+    const minN = Number(minimumPayment)
+    if (!Number.isFinite(minN) || minN < 0 || minN >= 1e12) return NextResponse.json({ error: 'Invalid minimumPayment' }, { status: 400 })
+    const origN = Number(originalBalance ?? balance)
+    if (!Number.isFinite(origN) || origN < 0 || origN >= 1e12) return NextResponse.json({ error: 'Invalid originalBalance' }, { status: 400 })
+    let dueN: number | undefined = undefined
+    if (dueDayRaw !== undefined) {
+      dueN = Number(dueDayRaw)
+      if (!Number.isInteger(dueN) || dueN < 1 || dueN > 31) {
+        return NextResponse.json({ error: 'Invalid dueDayOfMonth' }, { status: 400 })
+      }
+    }
+
     const now = new Date().toISOString()
     const newDebt: Debt = {
       id: crypto.randomUUID(),
       userId,
       name,
       type,
-      balance: Number(balance) || 0,
+      balance: balN,
       interestRate: Number(interestRate) || 0,
-      minimumPayment: Number(minimumPayment) || 0,
-      originalBalance: Number(originalBalance ?? balance) || 0,
-      dueDayOfMonth: dueDayRaw !== undefined ? Number(dueDayRaw) : undefined,
+      minimumPayment: minN,
+      originalBalance: origN,
+      dueDayOfMonth: dueN,
       payoffDate: typeof payoffDate === 'string' && payoffDate.trim() !== '' ? payoffDate : undefined,
       createdAt: now,
       updatedAt: now,
@@ -144,6 +159,28 @@ export async function PATCH(req: NextRequest) {
       normalizedUpdates.dueDayOfMonth = normalizedUpdates.dueDate
     }
     delete normalizedUpdates.dueDate
+
+    // Validate amount-class fields if present in updates
+    if (normalizedUpdates.balance !== undefined) {
+      const n = Number(normalizedUpdates.balance)
+      if (!Number.isFinite(n) || n < 0 || n >= 1e12) return NextResponse.json({ error: 'Invalid balance' }, { status: 400 })
+      normalizedUpdates.balance = n
+    }
+    if (normalizedUpdates.minimumPayment !== undefined) {
+      const n = Number(normalizedUpdates.minimumPayment)
+      if (!Number.isFinite(n) || n < 0 || n >= 1e12) return NextResponse.json({ error: 'Invalid minimumPayment' }, { status: 400 })
+      normalizedUpdates.minimumPayment = n
+    }
+    if (normalizedUpdates.originalBalance !== undefined) {
+      const n = Number(normalizedUpdates.originalBalance)
+      if (!Number.isFinite(n) || n < 0 || n >= 1e12) return NextResponse.json({ error: 'Invalid originalBalance' }, { status: 400 })
+      normalizedUpdates.originalBalance = n
+    }
+    if (normalizedUpdates.dueDayOfMonth !== undefined) {
+      const n = Number(normalizedUpdates.dueDayOfMonth)
+      if (!Number.isInteger(n) || n < 1 || n > 31) return NextResponse.json({ error: 'Invalid dueDayOfMonth' }, { status: 400 })
+      normalizedUpdates.dueDayOfMonth = n
+    }
 
     const debts: Debt[] = ((await redis.get(debtsKey(userId))) as Debt[]) || []
     const idx = debts.findIndex((d: Debt) => d.id === id)

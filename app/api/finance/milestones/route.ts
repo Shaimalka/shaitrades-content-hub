@@ -75,11 +75,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing item' }, { status: 400 })
     }
     const existing = await readOrSeed(userId)
+    const targetN = Number(item.target)
+    if (!Number.isFinite(targetN) || targetN < 0 || targetN >= 1e12) {
+      return NextResponse.json({ error: 'Invalid target' }, { status: 400 })
+    }
     const milestone: Milestone = {
       id: item.id || newId(),
       label: String(item.label || 'Untitled'),
       type: item.type || 'net_worth',
-      target: Number(item.target) || 0,
+      target: targetN,
       months: item.months,
       isDefault: false,
       createdAt: new Date().toISOString(),
@@ -101,6 +105,13 @@ export async function PUT(req: NextRequest) {
     const body = await req.json().catch(() => ({}))
     const item = body?.item
     if (!item?.id) return NextResponse.json({ error: 'Missing item.id' }, { status: 400 })
+    if (item.target !== undefined) {
+      const n = Number(item.target)
+      if (!Number.isFinite(n) || n < 0 || n >= 1e12) {
+        return NextResponse.json({ error: 'Invalid target' }, { status: 400 })
+      }
+      item.target = n
+    }
     const existing = await readOrSeed(userId)
     const next = existing.map(m => (m.id === item.id ? { ...m, ...item } : m))
     await redis.set(financeKeys.milestones(userId), JSON.stringify(next))

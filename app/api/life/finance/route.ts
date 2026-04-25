@@ -155,10 +155,14 @@ export async function POST(req: NextRequest) {
 
       // ── Add income ────────────────────────────────────────────────────────────
       if (type === 'income') {
+              const amt = parseFloat(entry?.amount)
+              if (!Number.isFinite(amt) || amt < 0 || amt >= 1e12) {
+                        return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+              }
               const newIncome = {
                         ...entry,
                         id: Date.now().toString(),
-                        amount: parseFloat(entry.amount) || 0,
+                        amount: amt,
                         createdAt: new Date().toISOString(),
               }
               const updated = [...income, newIncome]
@@ -168,10 +172,14 @@ export async function POST(req: NextRequest) {
 
       // ── Add expense ───────────────────────────────────────────────────────────
       if (type === 'expense') {
+              const amt = parseFloat(entry?.amount)
+              if (!Number.isFinite(amt) || amt < 0 || amt >= 1e12) {
+                        return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+              }
               const newExpense = {
                         ...entry,
                         id: Date.now().toString(),
-                        amount: parseFloat(entry.amount) || 0,
+                        amount: amt,
                         createdAt: new Date().toISOString(),
               }
               const updated = [...expenses, newExpense]
