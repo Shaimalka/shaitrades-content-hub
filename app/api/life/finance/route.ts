@@ -121,6 +121,25 @@ export async function POST(req: NextRequest) {
               return NextResponse.json({ success: true, income: updated, expenses, streams, entry: updated[idx] })
       }
 
+      // ── Edit expense entry ────────────────────────────────────────────────────
+      if (action === 'edit_expense' && typeof body.entryId === 'string' && body.patch && typeof body.patch === 'object') {
+              const idx = expenses.findIndex((item: any) => item.id === body.entryId)
+              if (idx === -1) return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
+              const patch: Record<string, any> = {}
+              if (typeof body.patch.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.patch.date)) patch.date = body.patch.date
+              if (body.patch.amount !== undefined) {
+                        const n = parseFloat(body.patch.amount)
+                        if (!Number.isFinite(n) || n < 0) return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
+                        patch.amount = n
+              }
+              if (typeof body.patch.category === 'string') patch.category = body.patch.category.slice(0, 100)
+              if (typeof body.patch.notes === 'string') patch.notes = body.patch.notes.slice(0, 500)
+              const updated = [...expenses]
+              updated[idx] = { ...updated[idx], ...patch, updatedAt: new Date().toISOString() }
+              await redis.set(expensesKey(userId), updated)
+              return NextResponse.json({ success: true, income, expenses: updated, streams, entry: updated[idx] })
+      }
+
       // ── Delete entry ──────────────────────────────────────────────────────────
       if (action === 'delete' && entry?.id) {
               if (type === 'income') {

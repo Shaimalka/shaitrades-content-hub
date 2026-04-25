@@ -329,6 +329,10 @@ function FinancePage() {
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [expenseForm, setExpenseForm] = useState({ date: today(), category: 'Software', amount: '', notes: '' })
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null)
+  const [expenseEditForm, setExpenseEditForm] = useState<{ date: string; amount: string; category: string; notes: string }>({ date: '', amount: '', category: '', notes: '' })
+  const [expenseEditSaving, setExpenseEditSaving] = useState(false)
+  const [expenseEditError, setExpenseEditError] = useState<string | null>(null)
 
   // Recurring income rules (Sprint 1C).
   const [recurringRules, setRecurringRules] = useState<RecurringIncomeRule[]>([])
@@ -640,6 +644,49 @@ function FinancePage() {
       setEditError(err?.message || 'Failed to save')
     } finally {
       setEditSaving(false)
+    }
+  }
+  function startEditExpense(entry: ExpenseEntry) {
+    setEditingExpenseId(entry.id)
+    setExpenseEditForm({
+      date: entry.date,
+      amount: String(entry.amount),
+      category: entry.category || EXPENSE_CATEGORIES[0],
+      notes: entry.notes || '',
+    })
+    setExpenseEditError(null)
+  }
+  function cancelEditExpense() {
+    setEditingExpenseId(null)
+    setExpenseEditError(null)
+  }
+  async function saveEditExpense(id: string) {
+    if (expenseEditSaving) return
+    setExpenseEditSaving(true)
+    setExpenseEditError(null)
+    const prev = expenses
+    const patch = {
+      date: expenseEditForm.date,
+      amount: parseFloat(expenseEditForm.amount) || 0,
+      category: expenseEditForm.category,
+      notes: expenseEditForm.notes,
+    }
+    setExpenses(prev.map(e => e.id === id ? { ...e, ...patch } : e))
+    try {
+      const res = await fetch('/api/life/finance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'edit_expense', entryId: id, patch }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Save failed')
+      if (data.expenses) setExpenses(data.expenses)
+      setEditingExpenseId(null)
+    } catch (err: any) {
+      setExpenses(prev)
+      setExpenseEditError(err?.message || 'Failed to save')
+    } finally {
+      setExpenseEditSaving(false)
     }
   }
 
@@ -1671,6 +1718,11 @@ function FinancePage() {
 
         {/* Expense Form */}
         {activeSection === 'expenses' && (<>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button onClick={() => setShowForm(!showForm)} style={{ background: '#60a5fa', border: 'none', borderRadius: 8, color: '#ffffff', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, minHeight: 44 }}>
+            <Plus size={12} /> Add Entry
+          </button>
+        </div>
         {showForm && activeTab === 'expenses' && (
           <div style={{ ...cardStyle, marginBottom: 16 }}>
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, color: (isDark ? '#ffffff' : '#0a0a0f'), marginBottom: 12 }}>New Expense</h3>
@@ -1805,19 +1857,70 @@ function FinancePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {[...expenses].sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                        <tr key={e.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>{e.date}</td>
-                          <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>{e.category}</span></td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#ff4d6a' }}>{fmt(e.amount)}</td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
-                          <td style={{ padding: '12px 16px' }}>
-                            <button onClick={() => deleteEntry(e.id, 'expense')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3 }}>
-                              <Trash2 size={12} style={{ color: '#ff4d6a' }} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {[...expenses].sort((a,b) => b.date.localeCompare(a.date)).map(e => {
+                        const isEditing = editingExpenseId === e.id
+                        const rowBorder = isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'
+                        const onEditKey = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+                          if (ev.key === 'Enter') { ev.preventDefault(); saveEditExpense(e.id) }
+                          else if (ev.key === 'Escape') { ev.preventDefault(); cancelEditExpense() }
+                        }
+                        return (
+                          <Fragment key={e.id}>
+                            <tr style={{ borderBottom: `1px solid ${rowBorder}` }}>
+                              {isEditing ? (
+                                <>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="date" autoFocus value={expenseEditForm.date} onChange={ev => setExpenseEditForm(f => ({ ...f, date: ev.target.value }))} onKeyDown={onEditKey} style={{ ...inputStyle, colorScheme: isDark ? 'dark' : 'light', padding: '6px 10px' }} />
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <select value={expenseEditForm.category} onChange={ev => setExpenseEditForm(f => ({ ...f, category: ev.target.value }))} style={{ ...inputStyle, padding: '6px 10px', cursor: 'pointer' }}>
+                                      {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                                    </select>
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="text" inputMode="decimal" value={formatNumberInput(expenseEditForm.amount)} onChange={ev => setExpenseEditForm(f => ({ ...f, amount: stripCommas(ev.target.value) }))} onKeyDown={onEditKey} placeholder="0" style={{ ...inputStyle, padding: '6px 10px', color: '#ff4d6a', fontWeight: 700 }} />
+                                  </td>
+                                  <td style={{ padding: '8px 16px' }}>
+                                    <input type="text" value={expenseEditForm.notes} onChange={ev => setExpenseEditForm(f => ({ ...f, notes: ev.target.value }))} onKeyDown={onEditKey} placeholder="Notes" style={{ ...inputStyle, padding: '6px 10px' }} />
+                                  </td>
+                                  <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                                    <button onClick={() => saveEditExpense(e.id)} disabled={expenseEditSaving} aria-label="Save edit" style={{ background: 'none', border: 'none', cursor: expenseEditSaving ? 'wait' : 'pointer', padding: 4, marginRight: 4, opacity: expenseEditSaving ? 0.4 : 0.7, transition: 'opacity 0.12s' }} onMouseEnter={ev => { if (!expenseEditSaving) (ev.currentTarget as HTMLButtonElement).style.opacity = '1' }} onMouseLeave={ev => { if (!expenseEditSaving) (ev.currentTarget as HTMLButtonElement).style.opacity = '0.7' }}>
+                                      <Check size={14} style={{ color: '#10b981' }} />
+                                    </button>
+                                    <button onClick={cancelEditExpense} aria-label="Cancel edit" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, opacity: 0.5, transition: 'opacity 0.12s' }} onMouseEnter={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '1'} onMouseLeave={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '0.5'}>
+                                      <X size={14} style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#475569' }} />
+                                    </button>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569') }}>{e.date}</td>
+                                  <td style={{ padding: '12px 16px' }}><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,77,106,0.1)', border: '1px solid rgba(255,77,106,0.2)', color: '#ff4d6a' }}>{e.category}</span></td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, color: '#ff4d6a' }}>{fmt(e.amount)}</td>
+                                  <td style={{ padding: '12px 16px', fontFamily: 'Inter, sans-serif', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.notes || '—'}</td>
+                                  <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                                    <button onClick={() => startEditExpense(e)} aria-label="Edit entry" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, marginRight: 4, opacity: 0.3, transition: 'opacity 0.12s' }} onMouseEnter={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '1'} onMouseLeave={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '0.3'}>
+                                      <Pencil size={12} style={{ color: '#60a5fa' }} />
+                                    </button>
+                                    <button onClick={() => deleteEntry(e.id, 'expense')} aria-label="Delete entry" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, opacity: 0.3, transition: 'opacity 0.12s' }} onMouseEnter={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '1'} onMouseLeave={ev => (ev.currentTarget as HTMLButtonElement).style.opacity = '0.3'}>
+                                      <Trash2 size={12} style={{ color: '#ff4d6a' }} />
+                                    </button>
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                            {isEditing && expenseEditError && (
+                              <tr>
+                                <td colSpan={5} style={{ padding: '0 16px 10px 16px' }}>
+                                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, color: '#ef4444', background: 'rgba(239,68,68,0.08)', padding: '6px 12px', borderRadius: 6, textAlign: 'left' }}>
+                                    {expenseEditError}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        )
+                      })}
                       {expenses.length === 0 && <tr><td colSpan={5}><EmptyState icon={DollarSign} heading="NO TRANSACTIONS YET" subtext="Log your first expense to start tracking." isDark={isDark} /></td></tr>}
                     </tbody>
                   </table>
