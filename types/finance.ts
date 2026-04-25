@@ -5,35 +5,28 @@ export type {
   FinancePreferences,
 } from '@/lib/finance-keys'
 
-export type AssetType =
-  | 'cash'
-  | 'trading_account'
-  | 'investment'
-  | 'crypto'
-  | 'real_estate'
-  | 'other'
-
+export type AssetCategory = 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other'
 export type AssetLiquidity = 'liquid' | 'illiquid'
 
 export interface Asset {
   id: string
   userId: string
   name: string
-  type: AssetType
   value: number
+  category: AssetCategory
   liquidity?: AssetLiquidity
   createdAt: string
   updatedAt: string
 }
 
-export type LiabilityType = 'loan' | 'credit_card' | 'mortgage' | 'other'
+export type LiabilityCategory = 'Credit Card' | 'Loan' | 'Other'
 
 export interface Liability {
   id: string
   userId: string
   name: string
-  type: LiabilityType
-  value: number
+  amount: number
+  category: LiabilityCategory
   createdAt: string
   updatedAt: string
 }

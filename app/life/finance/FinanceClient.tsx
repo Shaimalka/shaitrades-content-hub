@@ -13,13 +13,12 @@ import NetWorthPies from './components/NetWorthPies'
 import MilestonesStrip from './components/MilestonesStrip'
 import SnapshotModal from './components/SnapshotModal'
 import type { NetWorthSnapshot, Milestone, FinancePreferences } from '@/lib/finance-keys'
+import type { Asset, Liability } from '@/types/finance'
 
 interface IncomeStream { id: string; name: string; color: string; emoji: string }
 interface IncomeEntry { id: string; date: string; amount: number; streamId: string; account?: string; payoutType?: string; source?: string; notes?: string; recurringRuleId?: string | null; createdAt?: string }
 interface RecurringIncomeRule { id: string; streamId: string; amount: number; account: string; notes: string; frequency: 'monthly'; dayOfMonth: number; startDate: string; endDate: string | null; status: 'active' | 'paused' | 'ended'; createdAt: string; lastGeneratedAt: string | null }
 interface ExpenseEntry { id: string; date: string; amount: number; category: string; notes?: string }
-interface Asset { id: string; name: string; value: number; category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other'; liquidity?: 'liquid' | 'illiquid' }
-interface Liability { id: string; name: string; amount: number; category: 'Credit Card' | 'Loan' | 'Other' }
 interface Debt { id: string; userId: string; name: string; type: 'credit_card' | 'student_loan' | 'personal_loan' | 'mortgage' | 'auto_loan' | 'other'; balance: number; originalBalance: number; interestRate: number; minimumPayment: number; dueDayOfMonth?: number; payoffDate?: string; createdAt: string; updatedAt: string }
 
 const LIQUID_DEFAULT_BY_CATEGORY: Record<Asset['category'], 'liquid' | 'illiquid'> = {
@@ -651,7 +650,7 @@ function FinancePage() {
       const data = await res.json(); if (data.assets) setAssets(data.assets)
       setEditingAssetId(null)
     } else {
-      const newAsset: Asset = { id: Date.now().toString(), name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category, liquidity: assetForm.liquidity }
+      const newAsset: Omit<Asset, 'userId' | 'createdAt' | 'updatedAt'> = { id: Date.now().toString(), name: assetForm.name.trim(), value: parseFloat(assetForm.value), category: assetForm.category, liquidity: assetForm.liquidity }
       const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'asset', item: newAsset }) })
       const data = await res.json(); if (data.assets) setAssets(data.assets)
     }
@@ -675,7 +674,7 @@ function FinancePage() {
       const data = await res.json(); if (data.liabilities) setLiabilities(data.liabilities)
       setEditingLiabilityId(null)
     } else {
-      const newLiability: Liability = { id: Date.now().toString(), name: liabilityForm.name.trim(), amount: parseFloat(liabilityForm.amount), category: liabilityForm.category }
+      const newLiability: Omit<Liability, 'userId' | 'createdAt' | 'updatedAt'> = { id: Date.now().toString(), name: liabilityForm.name.trim(), amount: parseFloat(liabilityForm.amount), category: liabilityForm.category }
       const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', type: 'liability', item: newLiability }) })
       const data = await res.json(); if (data.liabilities) setLiabilities(data.liabilities)
     }

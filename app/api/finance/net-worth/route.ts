@@ -69,13 +69,14 @@ export async function POST(req: NextRequest) {
   try {
         const body = await req.json()
         const { action, type, item } = body
+        const now = new Date().toISOString()
 
       if (type === 'asset') {
               const key = `user:${userId}:assets`
               const raw = await redis.get(key)
               let assets: any[] = parseOrEmpty(raw)
-              if (action === 'add') assets = [...assets, item]
-              else if (action === 'edit') assets = assets.map((a) => (a.id === item.id ? { ...a, ...item } : a))
+              if (action === 'add') assets = [...assets, { ...item, userId, createdAt: now, updatedAt: now }]
+              else if (action === 'edit') assets = assets.map((a) => (a.id === item.id ? { ...a, ...item, id: a.id, userId: a.userId, createdAt: a.createdAt, updatedAt: now } : a))
               else if (action === 'delete') assets = assets.filter((a) => a.id !== item.id)
               await redis.set(key, JSON.stringify(assets))
               return NextResponse.json({ assets })
@@ -85,8 +86,8 @@ export async function POST(req: NextRequest) {
               const key = `user:${userId}:liabilities`
               const raw = await redis.get(key)
               let liabilities: any[] = parseOrEmpty(raw)
-              if (action === 'add') liabilities = [...liabilities, item]
-              else if (action === 'edit') liabilities = liabilities.map((l) => (l.id === item.id ? { ...l, ...item } : l))
+              if (action === 'add') liabilities = [...liabilities, { ...item, userId, createdAt: now, updatedAt: now }]
+              else if (action === 'edit') liabilities = liabilities.map((l) => (l.id === item.id ? { ...l, ...item, id: l.id, userId: l.userId, createdAt: l.createdAt, updatedAt: now } : l))
               else if (action === 'delete') liabilities = liabilities.filter((l) => l.id !== item.id)
               await redis.set(key, JSON.stringify(liabilities))
               return NextResponse.json({ liabilities })

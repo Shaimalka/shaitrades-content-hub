@@ -1,14 +1,7 @@
 'use client'
 import { Plus } from 'lucide-react'
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
-
-type Asset = {
-  id: string
-  name: string
-  value: number
-  category: 'Cash' | 'Crypto' | 'Stocks' | 'Real Estate' | 'Other'
-  liquidity?: 'liquid' | 'illiquid'
-}
+import type { Asset } from '@/types/finance'
 
 type Props = {
   assets: Asset[]

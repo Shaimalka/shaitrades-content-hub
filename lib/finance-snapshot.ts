@@ -44,7 +44,7 @@ export async function computeSnapshot(
   const liabilitiesArr = parseOrEmpty(rawLiabilities)
   const debtsArr = parseOrEmpty(rawDebts)
   const assets = sumNumeric(assetsArr, 'value')
-  const liabilities = sumNumeric(liabilitiesArr, 'value')
+  const liabilities = sumNumeric(liabilitiesArr, 'amount')
   const debts = sumNumeric(debtsArr, 'balance')
   const now = new Date()
   const date = opts?.date || `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`
