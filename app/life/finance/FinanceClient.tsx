@@ -538,6 +538,13 @@ function FinancePage() {
     const data = await res.json(); if (data.streams) setStreams(data.streams); setShowNewStream(false); setActiveTab(data.streams?.[data.streams.length - 1]?.id || activeTab)
   }
   async function deleteStream(streamId: string) {
+    const ok = await requestConfirm({
+      title: 'Delete stream',
+      message: 'Delete this stream? Logged income entries stay; only the stream label is removed.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
+    if (!ok) return
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete_stream', streamId }) })
     const data = await res.json(); if (data.streams) setStreams(data.streams); if (activeTab === streamId) setActiveTab(data.streams?.[0]?.id || '')
   }
@@ -582,6 +589,13 @@ function FinancePage() {
     const data = await res.json(); setExpenses(data.expenses || []); setShowForm(false); setExpenseForm({ date: today(), category: 'Software', amount: '', notes: '' })
   }
   async function deleteEntry(id: string, type: 'income' | 'expense') {
+    const ok = await requestConfirm({
+      title: `Delete ${type} entry`,
+      message: `Delete this ${type} entry? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
+    if (!ok) return
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type, entry: { id } }) })
     const data = await res.json(); if (type === 'income') setIncome(data.income || []); else setExpenses(data.expenses || [])
   }
@@ -756,6 +770,13 @@ function FinancePage() {
     setShowLiabilityForm(false)
   }
   async function deleteAsset(id: string) {
+    const ok = await requestConfirm({
+      title: 'Delete asset',
+      message: 'Delete this asset? This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
+    if (!ok) return
     const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: 'asset', item: { id } }) })
     const data = await res.json(); if (data.assets) setAssets(data.assets)
   }
@@ -808,6 +829,13 @@ function FinancePage() {
     const data = await res.json(); if (Array.isArray(data.milestones)) setNwMilestones(data.milestones)
   }
   async function deleteLiability(id: string) {
+    const ok = await requestConfirm({
+      title: 'Delete liability',
+      message: 'Delete this liability? This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    })
+    if (!ok) return
     const res = await fetch('/api/finance/net-worth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: 'liability', item: { id } }) })
     const data = await res.json(); if (data.liabilities) setLiabilities(data.liabilities)
   }
