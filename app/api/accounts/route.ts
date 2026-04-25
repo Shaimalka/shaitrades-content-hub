@@ -58,7 +58,8 @@ export async function GET(req: NextRequest) {
   if (!success) return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
 
   try {
-    const userId = session.user?.email ?? session.user?.name ?? 'unknown'
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const accounts = ((await redis.get(redisKey(userId))) as Account[]) || []
     return NextResponse.json({ accounts })
   } catch {
@@ -86,7 +87,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const userId = session.user?.email ?? session.user?.name ?? 'unknown'
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const now = new Date().toISOString()
 
     const newAccount: Account = {
@@ -132,7 +134,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'id and updates required' }, { status: 400 })
     }
 
-    const userId = session.user?.email ?? session.user?.name ?? 'unknown'
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const accounts: Account[] = ((await redis.get(redisKey(userId))) as Account[]) || []
 
     const idx = accounts.findIndex((a: Account) => a.id === id)
@@ -180,7 +183,8 @@ export async function DELETE(req: NextRequest) {
 
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
-    const userId = session.user?.email ?? session.user?.name ?? 'unknown'
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const accounts: Account[] = ((await redis.get(redisKey(userId))) as Account[]) || []
     const updated = accounts.filter((a: Account) => a.id !== id)
     await redis.set(redisKey(userId), updated)

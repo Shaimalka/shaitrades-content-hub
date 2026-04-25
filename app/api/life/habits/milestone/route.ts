@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'habitName and streak required' }, { status: 400 })
     }
 
-    const userId = (session.user as any)?.id || (session.user as any)?.email || 'unknown'
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Check if this streak has crossed a new milestone threshold
     const milestoneKey = `habitMilestone:${userId}:${habitId}`

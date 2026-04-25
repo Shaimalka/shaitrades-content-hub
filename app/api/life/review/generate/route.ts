@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
     const { weekStart, weekEnd } = await req.json()
 
     // Fetch trader profile and user settings for personalization + timezone
-    const userId = session.user?.email || 'default'
+    const userId = session.user?.email
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const [profile, userSettings] = await Promise.all([
       redis.get(`profile:${userId}`).catch(() => null),
       redis.get(`userSettings:${userId}`).catch(() => null),
