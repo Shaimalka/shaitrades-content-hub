@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense, useRef, Fragment } from 'react'
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import Link from 'next/link'
-import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Pencil, X, Check, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, Plus, Trash2, Pencil, X, Check, DollarSign, BarChart2, Settings, Sparkles, Loader2, AlertCircle, Target } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import LifeHubChat from '@/components/LifeHubChat'
 import { useTheme } from '@/app/contexts/ThemeContext'
@@ -2129,8 +2129,32 @@ function FinancePage() {
           </div>
         )}
         {activeSection === 'plan' && (
-          <div style={{ ...cardStyle, marginBottom: 24 }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontStyle: 'italic', color: (isDark ? 'rgba(255,255,255,0.5)' : '#475569'), margin: 0 }}>Financial plan generator coming in next build step</p>
+          <div style={{ ...tbCard, marginBottom: 24, padding: '40px 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: `${_tb.BRAND}14`, border: `1px solid ${_tb.BRAND}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Target size={26} style={{ color: _tb.BRAND }} />
+              </div>
+              <div>
+                <p style={{ ...tbLabel, color: _tb.BRAND_DARK, marginBottom: 6 }}>FINANCIAL PLAN</p>
+                <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 700, color: _tb.textPrimary, margin: '0 0 8px 0', letterSpacing: '-0.01em' }}>Coming soon</h2>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary, margin: 0, lineHeight: 1.5, maxWidth: 380 }}>
+                  A consolidated view of your goals, runway, and long-term trajectory.
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start', maxWidth: 360, marginTop: 8 }}>
+                {[
+                  'Goals — debt payoff, savings, and investment targets',
+                  'Emergency fund — months of runway covered',
+                  'Retirement — long-term projection from your data',
+                  'Risk tolerance — tailor recommendations to your comfort',
+                ].map(line => (
+                  <div key={line} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontFamily: 'Inter, sans-serif', fontSize: 13, color: _tb.textSecondary }}>
+                    <span style={{ color: _tb.BRAND, fontWeight: 700, lineHeight: 1.5 }}>·</span>
+                    <span style={{ lineHeight: 1.5 }}>{line}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
