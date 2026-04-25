@@ -43,12 +43,16 @@ export async function POST(req: NextRequest) {
           const { messages } = await req.json()
           const income = (await redis.get(incomeKey(userId))) || []
                 const expenses = (await redis.get(expensesKey(userId))) || []
+          // Read user's stored tax reserve %; default to 30 if unset (matches
+          // UI default at FinanceClient.tsx:323 and /api/finance/tax-rate's GET default).
+          const taxRateRaw = await redis.get(`user:${userId}:taxReservePercent`)
+          const taxReservePercent = taxRateRaw !== null ? Number(taxRateRaw) : 30
                       const incomeArr = income as any[]
           const expensesArr = expenses as any[]
           const totalIncome = incomeArr.reduce((s: number, e: any) => s + (e.amount || 0), 0)
           const totalExpenses = expensesArr.reduce((s: number, e: any) => s + (e.amount || 0), 0)
           const netProfit = totalIncome - totalExpenses
-          const taxEstimate = netProfit > 0 ? netProfit * 0.25 : 0
+          const taxEstimate = netProfit > 0 ? netProfit * (taxReservePercent / 100) : 0
           const savingsRate = totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(1) : '0'
           const incomeCount = incomeArr.length
           const expenseCount = expensesArr.length
@@ -66,7 +70,7 @@ export async function POST(req: NextRequest) {
                         }
                 })
           const monthlyIncomes = Object.entries(incomeByMonth).sort((a, b) => a[0].localeCompare(b[0]))
-          const systemPrompt = `You are Coach Shai — a raw, real, empathetic mentor built into the Finance section of the user's personal Life Hub. Keep responses under 80 words maximum. 3-4 sentences only. Be punchy like a text message from a coach, not an essay. Reference the user's actual data in every response. End every response with one specific action they can take today.\n\nKEY STATS:\n- Total Income: $${totalIncome.toFixed(2)}\n- Total Expenses: $${totalExpenses.toFixed(2)}\n- Net Profit: $${netProfit.toFixed(2)}\n- Savings Rate: ${savingsRate}%\n- Tax Estimate (25%): $${taxEstimate.toFixed(2)}\n- Income Entries: ${incomeCount}\n- Expense Entries: ${expenseCount}\n- Top Expense Category: ${topExpenseCategory}\n- Monthly Income Trend: ${JSON.stringify(monthlyIncomes)}`
+          const systemPrompt = `You are Coach Shai — a raw, real, empathetic mentor built into the Finance section of the user's personal Life Hub. Keep responses under 80 words maximum. 3-4 sentences only. Be punchy like a text message from a coach, not an essay. Reference the user's actual data in every response. End every response with one specific action they can take today.\n\nKEY STATS:\n- Total Income: $${totalIncome.toFixed(2)}\n- Total Expenses: $${totalExpenses.toFixed(2)}\n- Net Profit: $${netProfit.toFixed(2)}\n- Savings Rate: ${savingsRate}%\n- Tax Estimate (${taxReservePercent}%): $${taxEstimate.toFixed(2)}\n- Income Entries: ${incomeCount}\n- Expense Entries: ${expenseCount}\n- Top Expense Category: ${topExpenseCategory}\n- Monthly Income Trend: ${JSON.stringify(monthlyIncomes)}`
           const response = await anthropic.messages.create({
                   model: 'claude-haiku-4-5-20251001',
                   max_tokens: 1024,
