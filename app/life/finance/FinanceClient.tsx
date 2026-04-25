@@ -446,7 +446,7 @@ function FinancePage() {
   }
   async function deleteStream(streamId: string) {
     const res = await fetch('/api/life/finance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete_stream', streamId }) })
-    const data = await res.json(); if (data.streams) setStreams(data.streams); if (activeTab === streamId) setActiveTab(data.streams?.[0]?.id || 'expenses')
+    const data = await res.json(); if (data.streams) setStreams(data.streams); if (activeTab === streamId) setActiveTab(data.streams?.[0]?.id || '')
   }
   async function saveIncome(e: React.FormEvent) {
     e.preventDefault()
@@ -1652,6 +1652,9 @@ function FinancePage() {
                   </table>
                 </div>
               </>
+            )}
+            {activeTab !== 'expenses' && !activeStream && (
+              <EmptyState icon={DollarSign} heading="NO STREAMS YET" subtext="Add an income stream above to start logging." isDark={isDark} />
             )}
             {activeTab === 'expenses' && (
               <>
