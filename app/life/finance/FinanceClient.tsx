@@ -839,8 +839,9 @@ function FinancePage() {
       setDebtAnalysisLoading(false)
     }
   }
-  const totalIn = income.reduce((s, e) => s + e.amount, 0)
-  const totalOut = expenses.reduce((s, e) => s + e.amount, 0)
+  const currentYear = new Date().toISOString().slice(0, 4)
+  const totalIn = income.filter(e => e.date.slice(0, 4) === currentYear).reduce((s, e) => s + e.amount, 0)
+  const totalOut = expenses.filter(e => e.date.slice(0, 4) === currentYear).reduce((s, e) => s + e.amount, 0)
   const netProfit = totalIn - totalOut
   const streamTotals = streams.map(s => ({ ...s, total: income.filter(e => e.streamId === s.id).reduce((sum, e) => sum + e.amount, 0), count: income.filter(e => e.streamId === s.id).length }))
   const currentMonth = new Date().toISOString().slice(0, 7)
